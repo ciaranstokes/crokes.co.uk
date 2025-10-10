@@ -14,13 +14,25 @@
 <body class="p-4 sm:p-1 min-h-screen">
     <div class="max-w-screen-2xl mx-auto">
         <div class="card ...">
-            <div id="main-nav" class="grid ...">
-                <a href="/home" data-fragment="home.html" ... >Home Hub</a>
-                <a href="/breakfast" data-fragment="breakfast.html" ... >Breakfast List</a>
-                <a href="/kitchen" data-fragment="kitchen.html" ... >Kitchen List</a>
-                <a href="/hk" data-fragment="hk.html" ... >Housekeeping Plan</a>
-                <a href="/twin" data-fragment="twin.html" ... >Twin Room Visualizer</a>
-            </div>
+            <div class="card bg-white p-6 sm:p-10 rounded-3xl border-violet-100 mt-6 md:mt-12 no-print">
+    <div id="main-nav" class="grid grid-cols-2 md:grid-cols-5 gap-6">
+        <a href="/home" data-fragment="home.html" class="nav-button bg-gray-500 text-white font-bold h-24 rounded-2xl flex items-center justify-center p-3 active">
+            <span class="text-center">Home Hub</span>
+        </a>
+        <a href="/breakfast" data-fragment="breakfast.html" class="nav-button bg-emerald-500 text-white font-bold h-24 rounded-2xl flex items-center justify-center p-3">
+            <span class="text-center">Breakfast List</span>
+        </a>
+        <a href="/kitchen" data-fragment="kitchen.html" class="nav-button bg-pink-500 text-white font-bold h-24 rounded-2xl flex items-center justify-center p-3">
+            <span class="text-center">Kitchen List</span>
+        </a>
+        <a href="/hk" data-fragment="hk.html" class="nav-button bg-sky-500 text-white font-bold h-24 rounded-2xl flex items-center justify-center p-3">
+            <span class="text-center">Housekeeping Plan</span>
+        </a>
+        <a href="/twin" data-fragment="twin.html" class="nav-button bg-violet-500 text-white font-bold h-24 rounded-2xl flex items-center justify-center p-3">
+            <span class="text-center">Twin Room Visualizer</span>
+        </a>
+    </div>
+</div>
         </div>
 
         <main id="content-area" class="mt-8">
