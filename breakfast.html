@@ -1,0 +1,59 @@
+<div class="container mx-auto px-4 py-8 lg:py-12">
+    <header class="text-center mb-8 lg:mb-12 no-print">
+        <a id="breakfast-report-link" href="#" target="_blank" class="inline-flex items-center justify-center gap-3 bg-green-100 text-green-800 px-6 py-3 rounded-3xl hover:bg-green-200 transition duration-150 shadow-md">
+             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+             <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight">Breakfast List</h1>
+        </a>
+    </header>
+    <main class="bg-white/70 backdrop-blur-sm p-6 lg:p-8 rounded-3xl shadow-xl shadow-green-200/50">
+        <div class="grid grid-cols-1 lg:grid-cols-2 lg:gap-8">
+            <div class="flex flex-col gap-6 no-print">
+                <div class="bg-white p-6 rounded-2xl border border-gray-200/80">
+                    <label for="orderData" class="block text-sm font-bold text-green-800 mb-2">Breakfast Data (Paste Here)</label>
+                    <textarea id="orderData" oninput="breakfast_calculateTotal()" rows="4" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-green-300 focus:border-green-400 transition duration-150 ease-in-out" placeholder="Start by pasting your breakfast report data..."></textarea>
+                    <div class="mt-4 text-sm text-gray-600">
+                        <h4 class="font-semibold text-gray-700 mb-2">Instructions:</h4>
+                        <ol class="list-decimal list-inside space-y-1">
+                            <li>In Mews, go to <strong>Product Checklist</strong> and choose the required date.</li>
+                            <li>Press <strong>Ctrl + A</strong> to highlight all the data.</li>
+                            <li>Press <strong>Ctrl + C</strong> to copy the data.</li>
+                            <li>Come back here and press <strong>Ctrl + V</strong> to paste the data.</li>
+                            <li>Press one of the <strong>Print</strong> buttons.</li>
+                        </ol>
+                    </div>
+                </div>
+                <div class="bg-green-100 p-6 rounded-2xl text-center border border-green-200">
+                    <h2 class="text-lg font-semibold text-green-800 mb-2">Total Breakfasts</h2>
+                    <p id="totalAmount" class="text-6xl font-extrabold text-green-600">0</p>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <button onclick="breakfast_print()" class="flex items-center justify-center text-center bg-green-500 text-white font-bold py-4 px-4 rounded-2xl hover:bg-green-600 focus:outline-none focus:ring-4 focus:ring-green-300 transform hover:scale-[1.03] transition-all duration-200">
+                        Print Report
+                    </button>
+                    <button onclick="breakfast_clearData()" class="flex items-center justify-center text-center bg-gray-400 text-white font-bold py-4 px-4 rounded-2xl hover:bg-gray-500 focus:outline-none focus:ring-4 focus:ring-gray-300 transform hover:scale-[1.03] transition-all duration-200">
+                        Clear Data
+                    </button>
+                </div>
+            </div>
+            <div class="mt-8 lg:mt-0">
+                <div class="bg-white p-6 rounded-2xl border border-gray-200/80 h-full">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4 text-center">Breakfast List</h3>
+                    <div class="overflow-auto h-[450px] rounded-xl border border-gray-200">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-green-50 sticky top-0">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-green-800 uppercase tracking-wider">Room</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-green-800 uppercase tracking-wider">Guest</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-green-800 uppercase tracking-wider">Total Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ordersTableBody" class="bg-white divide-y divide-gray-100">
+                                <tr><td colspan="3" class="px-6 py-12 text-center text-gray-500"><div class="flex flex-col items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-10 h-10 text-gray-300"><path d="M4 6h16"></path><path d="M4 12h16"></path><path d="M4 18h16"></path></svg><span>No data processed yet.</span></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
