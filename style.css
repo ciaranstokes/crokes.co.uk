@@ -1,0 +1,184 @@
+/* --- General Super App Styles --- */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #faf5ff; 
+}
+.card {
+    box-shadow: 0 10px 30px -5px rgba(109, 40, 217, 0.1), 0 4px 10px -2px rgba(109, 40, 217, 0.05);
+    border-width: 1px;
+    border-radius: 1.5rem;
+}
+input[type="date"]::-webkit-calendar-picker-indicator {
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    cursor: pointer;
+}
+input[type="date"] {
+    appearance: none;
+    -moz-appearance: none;
+    position: relative;
+    padding-right: 3rem;
+}
+.nav-button.active {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+}
+
+/* --- HK Plan Generator Styles --- */
+.control-area {
+    border-radius: 1.5rem;
+    padding: 1.5rem;
+    background-color: white;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e0f2fe;
+}
+.compact-display span {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+/* --- Twin Visualizer Styles --- */
+.table-container {
+    overflow-x: auto;
+    max-width: 100%;
+    cursor: grab;
+}
+.table-container.grabbing {
+    cursor: grabbing;
+    user-select: none;
+}
+#twin-app-container table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+#twin-app-container th, #twin-app-container td {
+    border: 1px solid #ede9fe;
+    white-space: nowrap;
+}
+#twin-app-container th:first-child, #twin-app-container td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 10;
+    background-color: #f5f3ff;
+}
+#twin-app-container tr.group-header > td {
+    position: sticky;
+    left: 0;
+    z-index: 11; 
+}
+#twin-app-container th {
+     background-color: #f5f3ff;
+}
+.booking-bar {
+    position: relative;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    padding: 0.5rem;
+    font-size: 0.8rem;
+    overflow: hidden;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    transition: all 0.2s ease-in-out;
+}
+.booking-bar[draggable="true"] { cursor: grab; }
+.booking-bar[draggable="true"]:active { cursor: grabbing; }
+.booking-bar[draggable="true"]:hover { transform: scale(1.02); z-index: 20; }
+.lock-icon { cursor: pointer; }
+.moved-booking { border: 2px dashed white; }
+.moved-booking::after { content: 'MOVED'; position: absolute; bottom: 2px; right: 4px; font-size: 0.6rem; font-weight: bold; color: white; background-color: rgba(0,0,0,0.3); padding: 0 3px; border-radius: 3px; }
+.locked-booking .lock-icon { display: block; }
+.upgraded-booking .star-icon { display: block; }
+.non-twin-booking { background-color: #a1a1aa !important; cursor: not-allowed; }
+.non-twin-booking[draggable="true"] { cursor: grab; }
+#twin-app-container td.drop-target { background-color: #ddd6fe; }
+.swap-target { outline: 2px dashed #8b5cf6; outline-offset: 2px; }
+.today-header { background-color: #fecdd3 !important; border-left: 2px solid #f43f5e; border-right: 2px solid #f43f5e; }
+.today-cell { background-color: #fff1f2; }
+
+/* --- Print Specific Styles --- */
+@media print {
+    body { 
+        -webkit-print-color-adjust: exact !important; 
+        print-color-adjust: exact !important; 
+        background-color: #ffffff !important;
+        font-size: 10pt;
+    }
+    .no-print { display: none !important; }
+
+    /* HK Plan Print */
+    #print-table-container { display: block !important; }
+    .print-table-classic { width: 100%; border-collapse: collapse; margin-bottom: 2rem; }
+    .floor-section-print { page-break-inside: avoid; margin-bottom: 2rem; }
+    .print-table-classic th, .print-table-classic td { 
+        border: 1px solid #334155; 
+        padding: 0.3rem;
+        text-align: center; 
+        font-size: 11px;
+        color: black !important; 
+    }
+    .print-table-classic th { 
+        font-weight: bold; 
+        font-size: 12px;
+    }
+    .print-table-classic th:first-child, .print-table-classic td:first-child { 
+        background-color: #f1f5f9 !important; 
+        text-align: left; 
+        font-weight: bold; 
+    }
+    .print-table-classic td {
+        line-height: 1.1;
+    }
+    .print-table-classic td > span {
+        font-size: 0.65rem !important;
+        line-height: 1 !important;
+        display: inline-block;
+    }
+    .print-table-classic td > span > span {
+        font-size: 8px !important;
+    }
+    #print-table-container h3 {
+        font-size: 1rem !important;
+    }
+    #print-table-container ul, #print-table-container p {
+        font-size: 0.9rem !important;
+    }
+    #print-table-container ul li span {
+        font-size: 1rem !important;
+    }
+
+    /* Twin Visualizer Print */
+    #twin-app-container { box-shadow: none; border: none; padding: 0; }
+    #twin-app-container .table-container { overflow: visible; cursor: default; }
+    #twin-app-container th, #twin-app-container td { border: 1px solid #ccc; }
+    #twin-app-container .booking-bar { box-shadow: none; border: 1px solid #999; cursor: default; }
+    #twin-app-container .bg-blue-500 { background-color: #3b82f6 !important; }
+    #twin-app-container .bg-green-500 { background-color: #22c55e !important; }
+    #twin-app-container .bg-purple-500 { background-color: #8b5cf6 !important; }
+    #twin-app-container .bg-orange-500 { background-color: #f97316 !important; }
+    #twin-app-container .bg-red-500 { background-color: #ef4444 !important; }
+    #twin-app-container .bg-teal-500 { background-color: #14b8a6 !important; }
+    #twin-app-container .bg-pink-500 { background-color: #ec4899 !important; }
+
+    /* Kitchen Products Print */
+    @page { size: A4 portrait; margin: 0.4in 0.75in; }
+    #kitchen-app-container #results, #kitchen-app-container #results * { visibility: visible; }
+    #kitchen-app-container #results { position: absolute; left: 0; top: 0; width: 100%; padding: 0; }
+    #kitchen-app-container #reportTitle { display: block !important; color: #581c87 !important; text-align: center; font-size: 1.5rem; font-weight: bold; margin-bottom: 1rem; }
+    #kitchen-app-container table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    #kitchen-app-container thead { background-color: #fae8ff !important; }
+    #kitchen-app-container th { padding: 12px 24px; text-align: center; font-size: 0.9rem; font-weight: bold; color: #581c87 !important; text-transform: uppercase; letter-spacing: 0.05em; border: none; }
+    #kitchen-app-container th:first-child { border-top-left-radius: 1rem; }
+    #kitchen-app-container th:last-child { border-top-right-radius: 1rem; }
+    #kitchen-app-container td { padding: 16px 24px; text-align: center; font-size: 1rem; border-bottom: 1px solid #fae8ff; color: #1f2937; }
+    #kitchen-app-container tr:last-child td { border-bottom: none; }
+    #kitchen-app-container td:nth-child(2), #kitchen-app-container td:nth-child(3) { font-weight: 600; }
+    #kitchen-app-container td div span:first-child { font-weight: bold; color: #000 !important; }
+    #kitchen-app-container td div { display: flex !important; align-items: center; justify-content: center; gap: 0.5rem; }
+}

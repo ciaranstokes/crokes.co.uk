@@ -1,0 +1,58 @@
+<div id="twin-app-container">
+    <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 lg:pt-8 space-y-8">
+        <header class="flex items-center gap-4 no-print">
+             <a id="twin-report-link" href="#" target="_blank" class="flex items-center justify-center gap-3 bg-violet-200 text-violet-900 px-6 py-3 rounded-3xl hover:bg-violet-300 transition duration-150 shadow-md">
+                 <span class="mr-3 text-3xl">🛏️</span>
+                 <h1 class="text-3xl font-bold">Twin Room Visualizer</h1>
+             </a>
+             <div class="relative">
+                 <input type="date" id="twin-date-picker" class="w-full py-3 px-4 border border-gray-300 bg-white rounded-xl focus:ring-4 focus:ring-violet-200 transition duration-200 text-base appearance-none">
+                  <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+             </div>
+        </header>
+        <div class="bg-white p-6 rounded-3xl shadow-lg no-print">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                <div>
+                    <label for="twin_data-input" class="block text-lg font-bold text-violet-900 mb-2">Twin Room Data (Paste Here)</label>
+                    <textarea id="twin_data-input" rows="12" class="block w-full rounded-2xl border-slate-300 shadow-sm focus:border-violet-500 focus:ring-violet-500 sm:text-sm p-4" placeholder="Copy the data from your spreadsheet and paste it here..."></textarea>
+                    <div class="mt-4"><button id="twin_clear-btn" class="inline-flex items-center justify-center px-6 py-3 border border-violet-300 text-base font-medium rounded-2xl shadow-sm text-violet-700 bg-violet-100 hover:bg-violet-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 transition-transform transform hover:scale-[1.03]">Clear Data</button></div>
+                </div>
+                <div class="bg-violet-100 p-4 rounded-2xl border border-violet-200 h-full">
+                    <h4 class="font-semibold text-violet-900 flex items-center"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 mr-2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>Instructions</h4>
+                    <ol class="list-decimal list-inside mt-2 text-slate-700 space-y-2 text-sm pl-2">
+                        <li>Generate the Twin List on Master Mews Hub.</li>
+                        <li>Press <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">Ctrl</kbd> + <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">A</kbd></li>
+                        <li>Press <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">Ctrl</kbd> + <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">C</kbd></li>
+                        <li>Come back here and press <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">Ctrl</kbd> + <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">V</kbd></li>
+                        <li>The data will automatically update.</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="px-4 sm:px-6 lg:px-8 pb-4 sm:pb-6 lg:pb-8 pt-8 space-y-8">
+        <div id="twin_controls" class="hidden bg-white p-4 rounded-3xl shadow-lg flex-wrap items-center gap-4 no-print flex">
+            <button id="twin_show-conflicts-btn" class="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-2xl text-white bg-amber-500 hover:bg-amber-600 transition-transform transform hover:scale-[1.03]">Show Non-Twins</button>
+            <button id="twin_upgrade-outliers-btn" class="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-2xl text-white bg-rose-500 hover:bg-rose-600 transition-transform transform hover:scale-[1.03]">Upgrade Outliers</button>
+            <button id="twin_reset-btn" class="hidden inline-flex items-center justify-center px-4 py-2 border border-red-300 text-sm font-medium rounded-2xl text-red-700 bg-red-100 hover:bg-red-200 transition-transform transform hover:scale-[1.03]"><svg class="w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0011.664 0l3.181-3.183m-11.664 0l4.992-4.993m-4.993 0l-3.181 3.183a8.25 8.25 0 000 11.664l3.181 3.183" /></svg>Reset All Changes</button>
+            <div class="flex items-center ml-auto">
+                <span class="mr-2 text-sm font-medium text-slate-600">Zoom:</span>
+                <button id="twin_zoom-out-btn" title="Zoom Out" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-violet-100 text-violet-700 hover:bg-violet-200 disabled:opacity-50 disabled:cursor-not-allowed transition">-</button>
+                <span id="twin_zoom-level-text" class="mx-2 text-sm font-semibold text-slate-800 w-20 text-center">Medium</span>
+                <button id="twin_zoom-in-btn" title="Zoom In" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-violet-100 text-violet-700 hover:bg-violet-200 disabled:opacity-50 disabled:cursor-not-allowed transition">+</button>
+            </div>
+        </div>
+        <div class="bg-white p-4 sm:p-6 rounded-3xl shadow-lg">
+            <h2 class="text-xl font-bold text-violet-900 mb-4">Occupancy Grid</h2>
+            <div id="twin_output-container">
+                <div id="twin_initial-message" class="text-center bg-white p-12 rounded-3xl"><svg class="mx-auto h-12 w-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" /></svg><h3 class="mt-2 text-sm font-medium text-slate-900">No data processed</h3></div>
+                <div id="twin_loader" class="hidden text-center bg-white p-12 rounded-3xl"><p class="text-lg font-medium text-violet-600">Processing...</p></div>
+                <div id="twin_grid-container" class="hidden table-container"></div>
+            </div>
+        </div>
+        <div id="twin_moves-log" class="hidden bg-white p-6 rounded-3xl shadow-lg no-print">
+            <h3 class="text-xl font-bold text-violet-900 mb-4">Current Room Changes</h3>
+            <div id="twin_moves-list" class="space-y-3"></div>
+        </div>
+    </div>
+</div>

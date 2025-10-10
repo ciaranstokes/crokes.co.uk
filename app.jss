@@ -1,669 +1,161 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mews Master Hub</title>
-    <!-- Favicon: Custom icon with a fire emoji on a purple background -->
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%236d28d9'/%3E%3Ctext x='50%25' y='65%25' style='font-size:55px;text-anchor:middle;'%3E%F0%9F%94%A5%3C/text%3E%3C/svg%3E" type="image/svg+xml">
-    <!-- Load Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        /* --- General Super App Styles --- */
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #faf5ff; 
-        }
-        .card {
-            box-shadow: 0 10px 30px -5px rgba(109, 40, 217, 0.1), 0 4px 10px -2px rgba(109, 40, 217, 0.05);
-            border-width: 1px;
-            border-radius: 1.5rem;
-        }
-        input[type="date"]::-webkit-calendar-picker-indicator {
-            opacity: 0;
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
-            cursor: pointer;
-        }
-        input[type="date"] {
-            appearance: none;
-            -moz-appearance: none;
-            position: relative;
-            padding-right: 3rem;
-        }
-        .app-content {
-            display: none; /* All app views are hidden by default */
-        }
-        .app-content.active {
-            display: block; /* The active app view is shown */
-        }
-        .nav-button.active {
-            transform: scale(1.05);
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
-        }
+// --- NEW: DYNAMIC CONTENT LOADER & NAVIGATION ---
+document.addEventListener('DOMContentLoaded', () => {
+    const navButtons = document.querySelectorAll('#main-nav .nav-button');
+    const contentArea = document.getElementById('content-area');
 
-        /* --- HK Plan Generator Styles --- */
-        .control-area {
-            border-radius: 1.5rem;
-            padding: 1.5rem;
-            background-color: white;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
-            border: 1px solid #e0f2fe;
-        }
-        
-        /* New class for compact display items in the screen view table */
-        .compact-display span {
-            font-size: 1rem; /* Revert emoji size back to normal */
-            font-weight: 600; /* Keep text bold */
-        }
+    // Maps the fragment name to its initialization function
+    const appInitializers = {
+        'home.html': master_init,
+        'breakfast.html': breakfast_init,
+        'kitchen.html': kitchen_init,
+        'hk.html': hk_init,
+        'twin.html': twin_init
+    };
 
-
-        /* --- Twin Visualizer Styles --- */
-        .table-container {
-            overflow-x: auto;
-            max-width: 100%;
-            cursor: grab;
-        }
-        .table-container.grabbing {
-            cursor: grabbing;
-            user-select: none;
-        }
-        #twin-app-container table {
-            border-collapse: separate;
-            border-spacing: 0;
-        }
-        #twin-app-container th, #twin-app-container td {
-            border: 1px solid #ede9fe;
-            white-space: nowrap;
-        }
-        #twin-app-container th:first-child, #twin-app-container td:first-child {
-            position: sticky;
-            left: 0;
-            z-index: 10;
-            background-color: #f5f3ff;
-        }
-        #twin-app-container tr.group-header > td {
-            position: sticky;
-            left: 0;
-            z-index: 11; 
-        }
-        #twin-app-container th {
-             background-color: #f5f3ff;
-        }
-        .booking-bar {
-            position: relative;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            padding: 0.5rem;
-            font-size: 0.8rem;
-            overflow: hidden;
-            border-radius: 0.5rem;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-            transition: all 0.2s ease-in-out;
-        }
-        .booking-bar[draggable="true"] { cursor: grab; }
-        .booking-bar[draggable="true"]:active { cursor: grabbing; }
-        .booking-bar[draggable="true"]:hover { transform: scale(1.02); z-index: 20; }
-        .lock-icon { cursor: pointer; }
-        .moved-booking { border: 2px dashed white; }
-        .moved-booking::after { content: 'MOVED'; position: absolute; bottom: 2px; right: 4px; font-size: 0.6rem; font-weight: bold; color: white; background-color: rgba(0,0,0,0.3); padding: 0 3px; border-radius: 3px; }
-        .locked-booking .lock-icon { display: block; }
-        .upgraded-booking .star-icon { display: block; }
-        .non-twin-booking { background-color: #a1a1aa !important; cursor: not-allowed; }
-        .non-twin-booking[draggable="true"] { cursor: grab; }
-        #twin-app-container td.drop-target { background-color: #ddd6fe; }
-        .swap-target { outline: 2px dashed #8b5cf6; outline-offset: 2px; }
-        .today-header { background-color: #fecdd3 !important; border-left: 2px solid #f43f5e; border-right: 2px solid #f43f5e; }
-        .today-cell { background-color: #fff1f2; }
-
-        /* --- Print Specific Styles --- */
-        @media print {
-            body { 
-                -webkit-print-color-adjust: exact !important; 
-                print-color-adjust: exact !important; 
-                background-color: #ffffff !important;
-                font-size: 10pt; /* Adjusted base print font size */
+    const dynamicHeaderInitializers = {
+        'kitchen.html': () => initializeDynamicHeader('kitchen', 'Daily Kitchen Products'),
+        'hk.html': () => initializeDynamicHeader('hk', 'HK Arrival & Departure List'),
+        'twin.html': () => initializeDynamicHeader('twin', 'Twin List (10 day forecast)')
+    };
+    
+    // Function to fetch and load a fragment
+    const loadFragment = async (fragmentName) => {
+        try {
+            contentArea.innerHTML = '<p>Loading...</p>';
+            const response = await fetch(fragmentName);
+            if (!response.ok) {
+                throw new Error('Content could not be loaded.');
             }
-            .no-print { display: none !important; }
+            const content = await response.text();
+            contentArea.innerHTML = content;
 
-            /* HK Plan Print */
-            #print-table-container { display: block !important; }
-            .print-table-classic { width: 100%; border-collapse: collapse; margin-bottom: 2rem; }
-            .floor-section-print { page-break-inside: avoid; margin-bottom: 2rem; }
-            .print-table-classic th, .print-table-classic td { 
-                border: 1px solid #334155; 
-                padding: 0.3rem; /* Slightly reduced padding */
-                text-align: center; 
-                font-size: 11px; /* Smaller font size for table data */
-                color: black !important; 
+            // Run the specific initializer function for the loaded app
+            if (appInitializers[fragmentName]) {
+                appInitializers[fragmentName]();
             }
-            .print-table-classic th { 
-                font-weight: bold; 
-                font-size: 12px; /* Keep headers slightly larger */
+            // Run any dynamic header initializers needed
+            if (dynamicHeaderInitializers[fragmentName]) {
+                dynamicHeaderInitializers[fragmentName]();
             }
-            .print-table-classic th:first-child, .print-table-classic td:first-child { 
-                background-color: #f1f5f9 !important; 
-                text-align: left; 
-                font-weight: bold; 
-            }
+
+        } catch (error) {
+            console.error('Failed to load fragment:', error);
+            contentArea.innerHTML = `<p class="text-red-500 text-center">${error.message}</p>`;
+        }
+    };
+
+    // Add click listeners to navigation buttons
+    navButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
+            const fragment = button.dataset.fragment;
             
-            /* Fix: Force extremely small font size on content spans within the extra row to fix height issue */
-            .print-table-classic td {
-                line-height: 1.1; /* Ensure tight row height in general */
-            }
-            .print-table-classic td > span {
-                font-size: 0.65rem !important; /* Aggressively reduced emoji size to fix row height */
-                line-height: 1 !important; /* Ensures row height is tight */
-                display: inline-block;
-            }
-            .print-table-classic td > span > span {
-                font-size: 8px !important; /* Tiny font size for values like Bareca */
-            }
-
-            /* Print list styles for Extras/Pets */
-            #print-table-container h3 {
-                font-size: 1rem !important; /* Reduced list heading size */
-            }
-            #print-table-container ul, #print-table-container p {
-                font-size: 0.9rem !important; /* Reduced list content size */
-            }
-            #print-table-container ul li span {
-                 font-size: 1rem !important; /* Reduced emoji size in print list */
-            }
-
-
-            /* Twin Visualizer Print */
-            #twin-app-container { box-shadow: none; border: none; padding: 0; }
-            #twin-app-container .table-container { overflow: visible; cursor: default; }
-            #twin-app-container th, #twin-app-container td { border: 1px solid #ccc; }
-            #twin-app-container .booking-bar { box-shadow: none; border: 1px solid #999; cursor: default; }
-            #twin-app-container .bg-blue-500 { background-color: #3b82f6 !important; }
-            #twin-app-container .bg-green-500 { background-color: #22c55e !important; }
-            #twin-app-container .bg-purple-500 { background-color: #8b5cf6 !important; }
-            #twin-app-container .bg-orange-500 { background-color: #f97316 !important; }
-            #twin-app-container .bg-red-500 { background-color: #ef4444 !important; }
-            #twin-app-container .bg-teal-500 { background-color: #14b8a6 !important; }
-            #twin-app-container .bg-pink-500 { background-color: #ec4899 !important; }
-
-            /* Kitchen Products Print */
-            @page { size: A4 portrait; margin: 0.4in 0.75in; }
-            #kitchen-app-container #results, #kitchen-app-container #results * { visibility: visible; }
-            #kitchen-app-container #results { position: absolute; left: 0; top: 0; width: 100%; padding: 0; }
-            #kitchen-app-container #reportTitle { display: block !important; color: #581c87 !important; text-align: center; font-size: 1.5rem; font-weight: bold; margin-bottom: 1rem; }
-            #kitchen-app-container table { width: 100%; border-collapse: separate; border-spacing: 0; }
-            #kitchen-app-container thead { background-color: #fae8ff !important; }
-            #kitchen-app-container th { padding: 12px 24px; text-align: center; font-size: 0.9rem; font-weight: bold; color: #581c87 !important; text-transform: uppercase; letter-spacing: 0.05em; border: none; }
-            #kitchen-app-container th:first-child { border-top-left-radius: 1rem; }
-            #kitchen-app-container th:last-child { border-top-right-radius: 1rem; }
-            #kitchen-app-container td { padding: 16px 24px; text-align: center; font-size: 1rem; border-bottom: 1px solid #fae8ff; color: #1f2937; }
-            #kitchen-app-container tr:last-child td { border-bottom: none; }
-            #kitchen-app-container td:nth-child(2), #kitchen-app-container td:nth-child(3) { font-weight: 600; }
-            #kitchen-app-container td div span:first-child { font-weight: bold; color: #000 !important; }
-            #kitchen-app-container td div { display: flex !important; align-items: center; justify-content: center; gap: 0.5rem; }
-        }
-    </style>
-</head>
-<body class="p-4 sm:p-1 min-h-screen">
-
-    <div class="max-w-screen-2xl mx-auto">
-        <header class="text-center mb-10">
-            <!-- Title can go here if needed -->
-        </header>
-        
-        <!-- Navigation Links Card -->
-        <div class="card bg-white p-6 sm:p-10 rounded-3xl border-violet-100 mt-6 md:mt-12 no-print">
-            <div id="main-nav" class="grid grid-cols-2 md:grid-cols-5 gap-6">
-                <!-- 0. Home -->
-                 <a href="#" data-target="home-app"
-                   class="nav-button bg-gray-500 text-white font-bold h-24 rounded-2xl hover:bg-gray-600 transition duration-150 shadow-md transform hover:scale-[1.03] active:scale-[0.98] flex items-center justify-center p-3 active">
-                    <span class="text-center">Home Hub</span>
-                </a>
-                <!-- 1. Breakfast List (Emerald/Green) -->
-                <a href="#" data-target="breakfast-app"
-                   class="nav-button bg-emerald-500 text-white font-bold h-24 rounded-2xl hover:bg-emerald-600 transition duration-150 shadow-md transform hover:scale-[1.03] active:scale-[0.98] flex items-center justify-center p-3">
-                    <span class="text-center">Breakfast List</span>
-                </a>
-                <!-- 2. Kitchen List (Pink) -->
-                <a href="#" data-target="kitchen-app"
-                   class="nav-button bg-pink-500 text-white font-bold h-24 rounded-2xl hover:bg-pink-600 transition duration-150 shadow-md transform hover:scale-[1.03] active:scale-[0.98] flex items-center justify-center p-3">
-                    <span class="text-center">Kitchen List</span>
-                </a>
-                <!-- 3. HK Plan (Sky/Blue) -->
-                <a href="#" data-target="hk-app"
-                   class="nav-button bg-sky-500 text-white font-bold h-24 rounded-2xl hover:bg-sky-600 transition duration-150 shadow-md transform hover:scale-[1.03] active:scale-[0.98] flex items-center justify-center p-3">
-                    <span class="text-center">Housekeeping Plan</span>
-                </a>
-                <!-- 4. Twin Room Visualizer (Violet/Purple) -->
-                <a href="#" data-target="twin-app"
-                   class="nav-button bg-violet-500 text-white font-bold h-24 rounded-2xl hover:bg-violet-600 transition duration-150 shadow-md transform hover:scale-[1.03] active:scale-[0.98] flex items-center justify-center p-3">
-                    <span class="text-center">Twin Room Visualizer</span>
-                </a>
-            </div>
-        </div>
-
-        <!-- App Content Area -->
-        <div class="mt-8">
-
-            <!-- HOME / MASTER HUB APP -->
-            <div id="home-app" class="app-content active">
-                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-12">
-                    <div class="card bg-white p-6 sm:p-8 rounded-3xl border-violet-100 md:col-span-1 flex flex-col justify-start">
-                        <h2 class="text-xl font-semibold mb-4 text-violet-600">Choose Date</h2>
-                        <div class="flex flex-col gap-3">
-                            <label for="date-input" class="text-md font-medium text-gray-700 shrink-0">Report Date:</label>
-                            <div class="relative w-full"> 
-                                <input type="date" id="date-input" 
-                                       class="w-full py-3 px-4 border border-pink-300 bg-pink-50 rounded-xl focus:ring-4 focus:ring-pink-200 focus:border-pink-500 transition duration-200 ease-in-out text-base appearance-none" 
-                                       onchange="master_updateLinks()">
-                                <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-pink-600 pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                </svg>
-                            </div>
-                        </div>
-                        <p id="current-date-display" class="mt-4 text-sm text-gray-500 font-medium"></p>
-                    </div>
-                    <div class="card bg-white p-6 sm:p-8 rounded-3xl border-violet-100 md:col-span-2">
-                        <h2 class="text-xl font-semibold mb-6 text-gray-800">Dynamic Reports</h2>
-                        <div id="links-container" class="space-y-3">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- BREAKFAST TRACKER APP -->
-            <div id="breakfast-app" class="app-content">
-                <div class="container mx-auto px-4 py-8 lg:py-12">
-                    <header class="text-center mb-8 lg:mb-12 no-print">
-                        <!-- Link Button -->
-                        <a id="breakfast-report-link" href="#" target="_blank" class="inline-flex items-center justify-center gap-3 bg-green-100 text-green-800 px-6 py-3 rounded-3xl hover:bg-green-200 transition duration-150 shadow-md">
-                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
-                             <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight">Breakfast List</h1>
-                        </a>
-                    </header>
-                    <main class="bg-white/70 backdrop-blur-sm p-6 lg:p-8 rounded-3xl shadow-xl shadow-green-200/50">
-                        <div class="grid grid-cols-1 lg:grid-cols-2 lg:gap-8">
-                            <div class="flex flex-col gap-6 no-print">
-                                <div class="bg-white p-6 rounded-2xl border border-gray-200/80">
-                                    <label for="orderData" class="block text-sm font-bold text-green-800 mb-2">Breakfast Data (Paste Here)</label>
-                                    <textarea id="orderData" oninput="breakfast_calculateTotal()" rows="4" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-green-300 focus:border-green-400 transition duration-150 ease-in-out" placeholder="Start by pasting your breakfast report data..."></textarea>
-                                    <div class="mt-4 text-sm text-gray-600">
-                                        <h4 class="font-semibold text-gray-700 mb-2">Instructions:</h4>
-                                        <ol class="list-decimal list-inside space-y-1">
-                                            <li>In Mews, go to <strong>Product Checklist</strong> and choose the required date.</li>
-                                            <li>Press <strong>Ctrl + A</strong> to highlight all the data.</li>
-                                            <li>Press <strong>Ctrl + C</strong> to copy the data.</li>
-                                            <li>Come back here and press <strong>Ctrl + V</strong> to paste the data.</li>
-                                            <li>Press one of the <strong>Print</strong> buttons.</li>
-                                        </ol>
-                                    </div>
-                                </div>
-                                <div class="bg-green-100 p-6 rounded-2xl text-center border border-green-200">
-                                    <h2 class="text-lg font-semibold text-green-800 mb-2">Total Breakfasts</h2>
-                                    <p id="totalAmount" class="text-6xl font-extrabold text-green-600">0</p>
-                                </div>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <button onclick="breakfast_print()" class="flex items-center justify-center text-center bg-green-500 text-white font-bold py-4 px-4 rounded-2xl hover:bg-green-600 focus:outline-none focus:ring-4 focus:ring-green-300 transform hover:scale-[1.03] transition-all duration-200">
-                                        Print Report
-                                    </button>
-                                    <button onclick="breakfast_clearData()" class="flex items-center justify-center text-center bg-gray-400 text-white font-bold py-4 px-4 rounded-2xl hover:bg-gray-500 focus:outline-none focus:ring-4 focus:ring-gray-300 transform hover:scale-[1.03] transition-all duration-200">
-                                        Clear Data
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="mt-8 lg:mt-0">
-                                <div class="bg-white p-6 rounded-2xl border border-gray-200/80 h-full">
-                                    <h3 class="text-xl font-semibold text-gray-800 mb-4 text-center">Breakfast List</h3>
-                                    <div class="overflow-auto h-[450px] rounded-xl border border-gray-200">
-                                        <table class="min-w-full divide-y divide-gray-200">
-                                            <thead class="bg-green-50 sticky top-0">
-                                                <tr>
-                                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-green-800 uppercase tracking-wider">Room</th>
-                                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-green-800 uppercase tracking-wider">Guest</th>
-                                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-green-800 uppercase tracking-wider">Total Amount</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="ordersTableBody" class="bg-white divide-y divide-gray-100">
-                                                <tr><td colspan="3" class="px-6 py-12 text-center text-gray-500"><div class="flex flex-col items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-10 h-10 text-gray-300"><path d="M4 6h16"></path><path d="M4 12h16"></path><path d="M4 18h16"></path></svg><span>No data processed yet.</span></div></td></tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </main>
-                </div>
-            </div>
-
-            <!-- KITCHEN PRODUCTS APP -->
-            <div id="kitchen-app" class="app-content">
-                <div id="kitchen-app-container" class="container mx-auto p-4 sm:p-6 md:p-8">
-                     <header class="flex items-center gap-4 mb-8 no-print">
-                         <a id="kitchen-report-link" href="#" target="_blank" class="flex items-center justify-center gap-3 bg-pink-100 text-pink-800 px-6 py-3 rounded-3xl hover:bg-pink-200 transition duration-150 shadow-md">
-                            <h1 class="text-3xl md:text-4xl font-bold text-purple-900">Kitchen List</h1>
-                        </a>
-                        <!-- Date Picker -->
-                        <div class="relative">
-                            <input type="date" id="kitchen-date-picker" class="w-full py-3 px-4 border border-gray-300 bg-white rounded-xl focus:ring-4 focus:ring-pink-200 transition duration-200 text-base appearance-none">
-                             <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                        </div>
-                    </header>
-                    <main class="bg-white p-6 sm:p-8 rounded-3xl shadow-xl">
-                        <div id="input-section" class="grid grid-cols-1 md:grid-cols-2 md:gap-8 items-start no-print">
-                            <div class="flex flex-col h-full">
-                                <label for="kitchen_rawData" class="block text-base font-bold text-purple-800 mb-2">Breakfast Data (Paste Here)</label>
-                                <textarea id="kitchen_rawData" rows="10" class="w-full p-4 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-fuchsia-500 focus:border-fuchsia-500 transition flex-grow" placeholder="Paste data here..."></textarea>
-                                <div class="mt-6 flex flex-col sm:flex-row justify-start items-center gap-4">
-                                    <button id="kitchen_mainPrintBtn" class="flex items-center justify-center gap-2 w-full sm:w-auto bg-fuchsia-600 text-white font-bold py-3 px-6 rounded-2xl hover:bg-fuchsia-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-fuchsia-500 transition-transform transform hover:scale-[1.03]"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg><span>Print Report</span></button>
-                                    <button id="kitchen_clearBtn" class="flex items-center justify-center gap-2 w-full sm:w-auto bg-fuchsia-100 text-fuchsia-800 font-bold py-3 px-6 rounded-2xl hover:bg-fuchsia-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-fuchsia-400 transition-transform transform hover:scale-[1.03]"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg><span>Clear</span></button>
-                                </div>
-                            </div>
-                            <div class="bg-fuchsia-50 p-6 rounded-2xl mt-6 md:mt-0">
-                                <h3 class="flex items-center text-lg font-bold text-purple-800 mb-4"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 h-5 w-5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg><span>Instructions</span></h3>
-                                <ol class="list-decimal list-inside space-y-3 text-gray-700">
-                                    <li>Generate the Daily Kitchen Products on Master Mews Hub.</li>
-                                    <li>Press <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">Ctrl</kbd> + <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">A</kbd></li>
-                                    <li>Press <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">Ctrl</kbd> + <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">C</kbd></li>
-                                    <li>Come back here and press <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">Ctrl</kbd> + <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">V</kbd></li>
-                                    <li>The report will generate automatically below.</li>
-                                </ol>
-                            </div>
-                        </div>
-                        <div id="kitchen_error-message" class="hidden mt-6 p-4 bg-pink-100 text-pink-700 border border-pink-300 rounded-2xl"><p><strong class="font-bold">Parsing Error:</strong> Could not find the required data.</p></div>
-                        <h2 id="reportTitle" class="text-2xl font-bold text-center my-4 hidden">Kitchen List</h2>
-                        <div id="results" class="mt-8"></div>
-                    </main>
-                </div>
-            </div>
-
-            <!-- HOUSEKEEPING (HK) APP -->
-            <div id="hk-app" class="app-content">
-                <div class="container mx-auto my-10 max-w-5xl no-print">
-                    <header class="flex items-center gap-4 mb-6">
-                         <a id="hk-report-link" href="#" target="_blank" class="flex items-center justify-center gap-3 bg-sky-100 text-sky-800 px-6 py-3 rounded-3xl hover:bg-sky-200 transition duration-150 shadow-md">
-                            <h1 class="text-4xl font-extrabold text-center text-sky-700">Housekeeping Plan</h1>
-                        </a>
-                        <!-- Date Picker -->
-                        <div class="relative">
-                            <input type="date" id="hk-date-picker" class="w-full py-3 px-4 border border-gray-300 bg-white rounded-xl focus:ring-4 focus:ring-sky-200 transition duration-200 text-base appearance-none">
-                             <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                        </div>
-                    </header>
-                    <div class="control-area mb-6">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div class="md:col-span-1 flex flex-col justify-start">
-                                <h2 class="text-xl font-extrabold text-sky-700 mb-4">Report Details</h2>
-                                <label for="reportDate" class="block text-base font-semibold text-gray-700 mb-2">Report Date:</label>
-                                <input type="date" id="reportDate" class="w-full p-4 border-2 border-cyan-300 bg-cyan-50 rounded-2xl text-cyan-700 font-bold focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition shadow-inner">
-                                <div class="mt-4 flex flex-col gap-3">
-                                    <button id="clearDataBtn" class="w-full bg-red-500 text-white font-extrabold py-3 px-6 rounded-2xl shadow-lg hover:bg-red-600 hover:scale-[1.03] transform transition duration-300 ease-in-out flex items-center justify-center text-lg"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 mr-3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>Clear Data</button>
-                                    <button id="printBtn" class="w-full bg-cyan-500 text-white font-extrabold py-3 px-8 rounded-2xl shadow-lg hover:bg-cyan-600 hover:scale-[1.03] transform transition duration-300 ease-in-out text-lg flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 mr-3"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>Print Checklist</button>
-                                    <div id="status" class="text-center mt-2 text-sky-600 font-medium text-sm"></div>
-                                </div>
-                            </div>
-                            <div class="md:col-span-2">
-                                <label for="dataText" class="block text-xl font-extrabold text-sky-700 mb-4">Reservation Data (Paste Here)</label>
-                                <textarea id="dataText" rows="12" placeholder="Generate the HK Arrival & Departure List on Master Mews Hub&#10;Press Ctrl A, Ctrl C, then paste here with Ctrl V" class="w-full p-4 border border-sky-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition shadow-inner resize-none min-h-[300px]"></textarea>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="control-area mt-6">
-                        <h2 class="text-2xl font-extrabold text-sky-700 mb-6 text-center">Print Options & Customization</h2>
-                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                            <div class="p-5 bg-sky-50 rounded-2xl shadow-lg border border-sky-200">
-                                <h3 class="text-xl font-bold text-sky-700 mb-4">Table Rows</h3>
-                                <div class="grid grid-cols-2 gap-4 text-sm md:text-base" id="rowCheckboxes">
-                                    <div class="flex items-center"><input type="checkbox" id="showUsedLastNightRow" class="form-checkbox h-5 w-5 text-sky-500 rounded-md"><label for="showUsedLastNightRow" class="ml-2">Used Last Night</label></div>
-                                    <div class="flex items-center"><input type="checkbox" id="showArrivingTodayRow" class="form-checkbox h-5 w-5 text-sky-500 rounded-md"><label for="showArrivingTodayRow" class="ml-2">Arriving Today</label></div>
-                                    <div class="flex items-center"><input type="checkbox" id="showGuestsRow" class="form-checkbox h-5 w-5 text-sky-500 rounded-md"><label for="showGuestsRow" class="ml-2">Guests</label></div>
-                                    <div class="flex items-center"><input type="checkbox" id="showPetRow" checked class="form-checkbox h-5 w-5 text-sky-500 rounded-md"><label for="showPetRow" class="ml-2">Pet</label></div>
-                                    <div class="flex items-center"><input type="checkbox" id="showTwinRow" checked class="form-checkbox h-5 w-5 text-sky-500 rounded-md"><label for="showTwinRow" class="ml-2">Twin</label></div>
-                                    <div class="flex items-center"><input type="checkbox" id="showDaybedRow" checked class="form-checkbox h-5 w-5 text-sky-500 rounded-md"><label for="showDaybedRow" class="ml-2">Daybed</label></div>
-                                    <div class="flex items-center"><input type="checkbox" id="showTrundleRow" checked class="form-checkbox h-5 w-5 text-sky-500 rounded-md"><label for="showTrundleRow" class="ml-2">Trundle</label></div>
-                                    <div class="flex items-center"><input type="checkbox" id="showExtrasRow" checked class="form-checkbox h-5 w-5 text-sky-500 rounded-md"><label for="showExtrasRow" class="ml-2 font-bold">Extra</label></div>
-                                </div>
-                            </div>
-                            <div class="p-5 bg-sky-50 rounded-2xl shadow-lg border border-sky-200">
-                                <h3 class="text-xl font-bold text-sky-700 mb-4">Info & Lists</h3>
-                                <div class="grid grid-cols-2 gap-4 text-sm md:text-base" id="listCheckboxes">
-                                    <div class="flex items-center"><input type="checkbox" id="showDepartingRoomInfo" class="form-checkbox h-5 w-5 text-sky-500 rounded-md"><label for="showDepartingRoomInfo" class="ml-2">Departing Info</label></div>
-                                    <div class="flex items-center"><input type="checkbox" id="showStayingRoomInfo" class="form-checkbox h-5 w-5 text-sky-500 rounded-md"><label for="showStayingRoomInfo" class="ml-2">Staying Info</label></div>
-                                    <div class="flex items-center"><input type="checkbox" id="showStayingRoomsList" checked class="form-checkbox h-5 w-5 text-sky-500 rounded-md"><label for="showStayingRoomsList" class="ml-2">Staying List</label></div>
-                                    <div class="flex items-center"><input type="checkbox" id="showPetRoomsList" class="form-checkbox h-5 w-5 text-sky-500 rounded-md"><label for="showPetRoomsList" class="ml-2">Pet List</label></div>
-                                    <div class="flex items-center"><input type="checkbox" id="showTwinRoomsList" class="form-checkbox h-5 w-5 text-sky-500 rounded-md"><label for="showTwinRoomsList" class="ml-2">Twin List</label></div>
-                                    <div class="flex items-center"><input type="checkbox" id="showExtrasRoomsList" checked class="form-checkbox h-5 w-5 text-sky-500 rounded-md"><label for="showExtrasRoomsList" class="ml-2">Extras List</label></div>
-                                </div>
-                            </div>
-                             <div class="p-5 bg-cyan-50 rounded-2xl shadow-lg border border-cyan-200 flex flex-col items-center justify-center">
-                                <h3 id="sparkleModeTitle" class="text-xl font-bold text-cyan-700 cursor-pointer hover:text-cyan-900 transition duration-150 inline-block p-1 rounded">Work Mode</h3>
-                                <p class="text-sm text-cyan-600 mb-4 text-center">&nbsp;</p>
-                                <div id="sparkleOptionsContainer" class="hidden flex flex-col gap-4 w-full">
-                                    <div class="flex items-center justify-between p-3 bg-white rounded-xl border border-cyan-200 shadow-sm">
-                                        <span class="text-gray-700 font-medium">Change Checkmark:</span>
-                                        <button id="changeTickBtn" class="font-bold text-sky-600 transition duration-300 ease-in-out hover:text-sky-800 hover:scale-[1.05] transform"><span id="currentTickEmoji" class="text-2xl">✔️</span></button>
-                                    </div>
-                                    <div class="flex items-center justify-between p-3 bg-white rounded-xl border border-cyan-200 shadow-sm">
-                                        <label class="block text-gray-700 font-medium">Pet Icon:</label>
-                                        <span id="petEmojiDisplay" class="text-2xl">🐶</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="no-print"><div id="output-container" class="container mx-auto p-4"><div id="placeholder" class="text-center text-gray-500 p-10">Your generated cleaning report will appear here.</div></div></div>
-                <div id="print-table-container" style="display: none;"></div>
-            </div>
-
-            <!-- TWIN ROOM VISUALIZER APP -->
-            <div id="twin-app" class="app-content">
-                <div id="twin-app-container">
-                    <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 lg:pt-8 space-y-8">
-                        <header class="flex items-center gap-4 no-print">
-                             <a id="twin-report-link" href="#" target="_blank" class="flex items-center justify-center gap-3 bg-violet-200 text-violet-900 px-6 py-3 rounded-3xl hover:bg-violet-300 transition duration-150 shadow-md">
-                                <span class="mr-3 text-3xl">🛏️</span>
-                                <h1 class="text-3xl font-bold">Twin Room Visualizer</h1>
-                            </a>
-                            <!-- Date Picker -->
-                            <div class="relative">
-                                <input type="date" id="twin-date-picker" class="w-full py-3 px-4 border border-gray-300 bg-white rounded-xl focus:ring-4 focus:ring-violet-200 transition duration-200 text-base appearance-none">
-                                 <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                            </div>
-                        </header>
-                        <div class="bg-white p-6 rounded-3xl shadow-lg no-print">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-                                <div>
-                                    <label for="twin_data-input" class="block text-lg font-bold text-violet-900 mb-2">Twin Room Data (Paste Here)</label>
-                                    <textarea id="twin_data-input" rows="12" class="block w-full rounded-2xl border-slate-300 shadow-sm focus:border-violet-500 focus:ring-violet-500 sm:text-sm p-4" placeholder="Copy the data from your spreadsheet and paste it here..."></textarea>
-                                    <div class="mt-4"><button id="twin_clear-btn" class="inline-flex items-center justify-center px-6 py-3 border border-violet-300 text-base font-medium rounded-2xl shadow-sm text-violet-700 bg-violet-100 hover:bg-violet-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 transition-transform transform hover:scale-[1.03]">Clear Data</button></div>
-                                </div>
-                                <div class="bg-violet-100 p-4 rounded-2xl border border-violet-200 h-full">
-                                    <h4 class="font-semibold text-violet-900 flex items-center"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 mr-2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>Instructions</h4>
-                                    <ol class="list-decimal list-inside mt-2 text-slate-700 space-y-2 text-sm pl-2">
-                                        <li>Generate the Twin List on Master Mews Hub.</li>
-                                        <li>Press <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">Ctrl</kbd> + <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">A</kbd></li>
-                                        <li>Press <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">Ctrl</kbd> + <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">C</kbd></li>
-                                        <li>Come back here and press <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">Ctrl</kbd> + <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">V</kbd></li>
-                                        <li>The data will automatically update.</li>
-                                    </ol>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="px-4 sm:px-6 lg:px-8 pb-4 sm:pb-6 lg:pb-8 pt-8 space-y-8">
-                        <div id="twin_controls" class="hidden bg-white p-4 rounded-3xl shadow-lg flex-wrap items-center gap-4 no-print flex">
-                            <button id="twin_show-conflicts-btn" class="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-2xl text-white bg-amber-500 hover:bg-amber-600 transition-transform transform hover:scale-[1.03]">Show Non-Twins</button>
-                            <button id="twin_upgrade-outliers-btn" class="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-2xl text-white bg-rose-500 hover:bg-rose-600 transition-transform transform hover:scale-[1.03]">Upgrade Outliers</button>
-                            <button id="twin_reset-btn" class="hidden inline-flex items-center justify-center px-4 py-2 border border-red-300 text-sm font-medium rounded-2xl text-red-700 bg-red-100 hover:bg-red-200 transition-transform transform hover:scale-[1.03]"><svg class="w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0011.664 0l3.181-3.183m-11.664 0l4.992-4.993m-4.993 0l-3.181 3.183a8.25 8.25 0 000 11.664l3.181 3.183" /></svg>Reset All Changes</button>
-                            <div class="flex items-center ml-auto">
-                                <span class="mr-2 text-sm font-medium text-slate-600">Zoom:</span>
-                                <button id="twin_zoom-out-btn" title="Zoom Out" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-violet-100 text-violet-700 hover:bg-violet-200 disabled:opacity-50 disabled:cursor-not-allowed transition">-</button>
-                                <span id="twin_zoom-level-text" class="mx-2 text-sm font-semibold text-slate-800 w-20 text-center">Medium</span>
-                                <button id="twin_zoom-in-btn" title="Zoom In" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-violet-100 text-violet-700 hover:bg-violet-200 disabled:opacity-50 disabled:cursor-not-allowed transition">+</button>
-                            </div>
-                        </div>
-                        <div class="bg-white p-4 sm:p-6 rounded-3xl shadow-lg">
-                            <h2 class="text-xl font-bold text-violet-900 mb-4">Occupancy Grid</h2>
-                            <div id="twin_output-container">
-                                <div id="twin_initial-message" class="text-center bg-white p-12 rounded-3xl"><svg class="mx-auto h-12 w-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" /></svg><h3 class="mt-2 text-sm font-medium text-slate-900">No data processed</h3></div>
-                                <div id="twin_loader" class="hidden text-center bg-white p-12 rounded-3xl"><p class="text-lg font-medium text-violet-600">Processing...</p></div>
-                                <div id="twin_grid-container" class="hidden table-container"></div>
-                            </div>
-                        </div>
-                        <div id="twin_moves-log" class="hidden bg-white p-6 rounded-3xl shadow-lg no-print">
-                            <h3 class="text-xl font-bold text-violet-900 mb-4">Current Room Changes</h3>
-                            <div id="twin_moves-list" class="space-y-3"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // --- SUPER APP NAVIGATION LOGIC ---
-        document.addEventListener('DOMContentLoaded', function() {
-            const navButtons = document.querySelectorAll('#main-nav .nav-button');
-            const appContents = document.querySelectorAll('.app-content');
-
-            navButtons.forEach(button => {
-                button.addEventListener('click', function(e) {
-                    e.preventDefault();
-
-                    const targetId = this.dataset.target;
-
-                    // Update button active states
-                    navButtons.forEach(btn => btn.classList.remove('active'));
-                    this.classList.add('active');
-
-                    // Show/hide app content
-                    appContents.forEach(content => {
-                        if (content.id === targetId) {
-                            content.classList.add('active');
-                        } else {
-                            content.classList.remove('active');
-                        }
-                    });
-                });
-            });
-
-             // Initialize all app scripts
-            master_init();
-            breakfast_init();
-            kitchen_init();
-            hk_init();
-            twin_init();
-            // FIX: Corrected report names to match array keys exactly
-            initializeDynamicHeader('kitchen', 'Daily Kitchen Products');
-            initializeDynamicHeader('hk', 'HK Arrival & Departure List');
-            initializeDynamicHeader('twin', 'Twin List (10 day forecast)');
+            // Update active button style
+            navButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            
+            // Load the new content
+            loadFragment(fragment);
+            
+            // Update URL for history
+            history.pushState({ fragment }, '', button.href);
         });
+    });
 
-        // --- DYNAMIC HEADER SCRIPT ---
-        function initializeDynamicHeader(appPrefix, reportName) {
-            const datePicker = document.getElementById(`${appPrefix}-date-picker`);
-            const reportLink = document.getElementById(`${appPrefix}-report-link`);
+    // Load the initial 'home' app
+    loadFragment('home.html');
+});
 
-            if (!datePicker || !reportLink) {
-                console.error(`Missing elements for app header: ${appPrefix}`);
-                return;
-            }
 
-            const updateLink = () => {
-                const selectedDateString = datePicker.value;
-                if (!selectedDateString) return;
+// --- ORIGINAL APP SCRIPTS (UNCHANGED) ---
 
-                // The report name must exactly match the 'name' property in MASTER_REPORT_LINKS
-                const reportTemplate = MASTER_REPORT_LINKS.find(link => link.name === reportName);
-                if (!reportTemplate) {
-                    console.error(`Report template not found: ${reportName}`);
-                    reportLink.href = '#';
-                    return;
-                }
-
-                const newUrlDate = master_formatDateForUrl(selectedDateString);
-                const newEncodedDate = newUrlDate.replace(/\//g, '%2F');
-
-                let daysToAdd = 0;
-                if (reportTemplate.name === "Daily Kitchen Products") daysToAdd = 5;
-                if (reportTemplate.name === "Twin List (10 day forecast)") daysToAdd = 10;
-                
-                let endDateToUse = newEncodedDate;
-                if (daysToAdd > 0) {
-                    const futureDateString = master_addDaysToDate(selectedDateString, daysToAdd);
-                    const futureUrlDate = master_formatDateForUrl(futureDateString);
-                    endDateToUse = futureUrlDate.replace(/\//g, '%2F');
-                }
-
-                let updatedUrl = reportTemplate.url;
-                updatedUrl = updatedUrl.replace(/Start\.Date=.*?&/, `Start.Date=${newEncodedDate}&`);
-                updatedUrl = updatedUrl.replace(/End\.Date=.*?(&|$)/, `End.Date=${endDateToUse}$1`);
-
-                reportLink.href = updatedUrl;
-            };
-
-            datePicker.value = master_getCurrentDateString();
-            datePicker.addEventListener('change', updateLink);
-            updateLink(); // Initial call
+// --- DYNAMIC HEADER SCRIPT ---
+function initializeDynamicHeader(appPrefix, reportName) {
+    const datePicker = document.getElementById(`${appPrefix}-date-picker`);
+    const reportLink = document.getElementById(`${appPrefix}-report-link`);
+    if (!datePicker || !reportLink) {
+        console.error(`Missing elements for app header: ${appPrefix}`);
+        return;
+    }
+    const updateLink = () => {
+        const selectedDateString = datePicker.value;
+        if (!selectedDateString) return;
+        const reportTemplate = MASTER_REPORT_LINKS.find(link => link.name === reportName);
+        if (!reportTemplate) {
+            console.error(`Report template not found: ${reportName}`);
+            reportLink.href = '#';
+            return;
         }
-
-        // --- MASTER HUB SCRIPT ---
-        function master_init() {
-            const dateInput = document.getElementById('date-input');
-            dateInput.value = master_getCurrentDateString();
-            master_updateLinks();
-        }
-
-        const MASTER_REPORT_LINKS = [
-            { name: "Breakfast List", url: "https://app.mews.com/Commander/7cad25ef-cd74-451c-a19d-b31300863d83/ProductCheckList/Index?Start.Date=01%2F01%2F2025&End.Date=01%2F01%2F2025" },
-            { name: "HK Arrival & Departure List", url: "https://app.mews.com/Commander/7cad25ef-cd74-451c-a19d-b31300863d83/GuestInHouseReport/Index?EnterpriseId=7cad25ef-cd74-451c-a19d-b31300863d83&__AntiforgeryToken=Y1Y56hYrf0yrPJU47OLcpKXI5z4t%2BzcoGt7Q61lKfeAd%2Bj%2BN%2BgXCFZ4XnJ1i11ss0ztnQ3bnCsc%2F3dHNIoys9Q%3D%3D&Custom=True&Service.Id=88229245-b44c-496d-a9a9-b3130086af01&Start.Date=02%2F10%2F2025&Start.Time=00%3A15&End.Date=02%2F10%2F2025&End.Time=23%3A00&States.CheckedIn=true&States.CheckedOut=true&States.Confirmed=true&States.Optional=true&DisplayOptions.AllProducts=true&DisplayOptions.Balance=false&DisplayOptions.CarRegistrationNumber=false&DisplayOptions.Classifications=false&DisplayOptions.CompanionLoyalty=false&DisplayOptions.CustomerNotes=true&DisplayOptions.Loyalty=false&DisplayOptions.ProductsConsumedInInterval=false&DisplayOptions.ReservationNotes=true&Customer.Id=&CustomerClassifications.Airline=false&CustomerClassifications.Blacklist=false&CustomerClassifications.Cashlist=false&CustomerClassifications.DisabledPerson=false&CustomerClassifications.FriendOrFamily=false&CustomerClassifications.HealthCompliant=false&CustomerClassifications.Important=false&CustomerClassifications.InRoom=false&CustomerClassifications.LoyaltyProgram=false&CustomerClassifications.Media=false&CustomerClassifications.Military=false&CustomerClassifications.PaymasterAccount=false&CustomerClassifications.PreviousComplaint=false&CustomerClassifications.Problematic=false&CustomerClassifications.Returning=false&CustomerClassifications.Staff=false&CustomerClassifications.Student=false&CustomerClassifications.TopManagement=false&CustomerClassifications.VeryImportant=false&CustomerClassifications.WaitingForRoom=false&Products.Id%5B%5D=6cd0bc5c-3791-4374-91d9-b31d00c70668&Products.Id%5B%5D=e733dbc5-4390-49ba-a0fb-b332013785c3&Products.Id%5B%5D=cc1852b3-79d1-4c39-8ffb-b31d00cae6cc&Products.Id%5B%5D=d2dfa1b7-9ab1-4082-ae6d-b331009aadc8&Products.Id%5B%5D=1361dd09-fda3-45bc-8eda-b3320138a0c2&Products.Id%5B%5D=a82741ff-fc39-441f-8674-b33201383d08&Products.Id%5B%5D=7a596bbb-d9d5-4cc1-8175-b31d00c88137&Products.Id%5B%5D=eaddb778-b118-42ca-8ae6-b3130086b7ac&Products.Id%5B%5D=3ee7b1a8-ab89-48d9-8072-b3130086b7ac&Products.Id%5B%5D=9b739fc6-388c-4bab-aceb-b3130086b8d7&Products.Id%5B%5D=a53b8385-028a-463a-bc54-b3130086b7ac&Products.Id%5B%5D=7b22d4cb-18d1-40b6-953c-b3130086b7ac&Products.Id%5B%5D=5dc46a03-3547-4199-af68-b3130086b7ac&Products.Id%5B%5D=0480db35-1ab3-426b-ba5f-b3130086b7ac&Products.Id%5B%5D=5e9f32e0-1b09-45b0-b526-b3130086b7ac&Products.Id%5B%5D=20a3a8aa-e90a-4078-a051-b3130086b7ac&Products.Id%5B%5D=c8c8e9b0-0408-4fb0-bcb2-b3130086b7ac&Products.Id%5B%5D=23296dd9-ea30-467a-bbe2-b3130086b7ac&Products.Id%5B%5D=f073df1c-00cd-4ae4-a41b-b3130086b7ac&Ordering=Space" },
-            { name: "HK Arrival List", url: "https://app.mews.com/Commander/7cad25ef-cd74-451c-a19d-b31300863d83/GuestInHouseReport/Index?EnterpriseId=7cad25ef-cd74-451c-a19d-b31300863d83&__AntiforgeryToken=sWUWx2zOZ6811Pj06PV%2BbygRMCYhWY1ahifzUnVMZPEJN4m1qeMRo3jDIwGPnRZl85TAWPdle%2Belh5StIEsBLg%3D%3D&Custom=True&Service.Id=88229245-b44c-496d-a9a9-b3130086af01&Start.Date=22%2F08%2F2025&Start.Time=13%3A00&End.Date=22%2F08%2F2025&End.Time=23%3A00&States.CheckedIn=false&States.CheckedOut=false&States.Confirmed=true&States.Optional=false&DisplayOptions.AllProducts=true&DisplayOptions.Balance=false&DisplayOptions.CarRegistrationNumber=false&DisplayOptions.Classifications=false&DisplayOptions.CompanionLoyalty=false&DisplayOptions.CustomerNotes=true&DisplayOptions.Loyalty=false&DisplayOptions.ProductsConsumedInInterval=false&DisplayOptions.ReservationNotes=true&Customer.Id=&CustomerClassifications.Airline=false&CustomerClassifications.Blacklist=false&CustomerClassifications.Cashlist=false&CustomerClassifications.DisabledPerson=false&CustomerClassifications.FriendOrFamily=false&CustomerClassifications.HealthCompliant=false&CustomerClassifications.Important=false&CustomerClassifications.InRoom=false&CustomerClassifications.LoyaltyProgram=false&CustomerClassifications.Media=false&CustomerClassifications.Military=false&CustomerClassifications.PaymasterAccount=false&CustomerClassifications.PreviousComplaint=false&CustomerClassifications.Problematic=false&CustomerClassifications.Returning=false&CustomerClassifications.Staff=false&CustomerClassifications.Student=false&CustomerClassifications.TopManagement=false&CustomerClassifications.VeryImportant=false&CustomerClassifications.WaitingForRoom=false&Products.Id%5B%5D=6cd0bc5c-3791-4374-91d9-b31d00c70668&Products.Id%5B%5D=e733dbc5-4390-49ba-a0fb-b332013785c3&Products.Id%5B%5D=cc1852b3-79d1-4c39-8ffb-b31d00cae6cc&Products.Id%5B%5D=d2dfa1b7-9ab1-4082-ae6d-b331009aadc8&Products.Id%5B%5D=1361dd09-fda3-45bc-8eda-b3320138a0c2&Products.Id%5B%5D=a82741ff-fc39-441f-8674-b33201383d08&Products.Id%5B%5D=7a596bbb-d9c5-4cc1-8175-b31d00c88137&Products.Id%5B%5D=eaddb778-b118-42ca-8ae6-b3130086b7ac&Products.Id%5B%5D=3ee7b1a8-ab89-48d9-8072-b3130086b7ac&Products.Id%5B%5D=9b739fc6-388c-4bab-aceb-b3130086b8d7&Products.Id%5B%5D=a53b8385-028a-463a-bc54-b3130086b7ac&Products.Id%5B%5D=7b22d4cb-18d1-40b6-953c-b3130086b7ac&Products.Id%5B%5D=5dc46a03-3547-4199-af68-b3130086b7ac&Products.Id%5B%5D=0480db35-1ab3-426b-ba5f-b3130086b7ac&Products.Id%5B%5D=5e9f32e0-1b09-45b0-b526-b3130086b7ac&Products.Id%5B%5D=20a3a8aa-e90a-4078-a051-b3130086b7ac&Products.Id%5B%5D=c8c8e9b0-0408-4fb0-bcb2-b3130086b7ac&Products.Id%5B%5D=23296dd9-ea30-467a-bbe2-b3130086b7ac&Products.Id%5B%5D=f073df1c-00cd-4ae4-a41b-b3130086b7ac&Ordering=Space" },
-            // FIX: Added parentheses to names to match the dynamic script calls below
-            { name: "Daily Kitchen Products", url: "https://app.mews.com/Commander/7cad25ef-cd74-451c-a19d-b31300863d83/ProductReport/Index?EnterpriseId=7cad25ef-cd74-451c-a19d-b31300863d83&__AntiforgeryToken=48GCTq5A9MQFKMrnIkEBSfjC9%2FWYfeWnR7D86g6npV8TmAtICmaM4T1euQ%2Bb8YIvidmVrPt%2BTFk5lwwtI0olVQ%3D%3D&Custom=True&Service.Id=88229245-b44c-496d-a9a9-b3130086af01&Start.Date=22%2F08%2F2025&Start.Time=00%3A00&End.Date=04%2F09%2F2025&End.Time=00%3A00&Products.Id%5B%5D=1a82d4e5-236e-4b13-be2c-b3130086b7ac&Products.Id%5B%5D=ce211e37-1ed7-4574-a1d5-b31d00d740dd" },
-            { name: "Twin List (10 day forecast)", url: "https://app.mews.com/Commander/7cad25ef-cd74-451c-a19d-b31300863d83/GuestInHouseReport/Index?EnterpriseId=7cad25ef-cd74-451c-a19d-b31300863d83&__AntiforgeryToken=Y1Y56hYrf0yrPJU47OLcpKXI5z4t%2BzcoGt7Q61lKfeAd%2Bj%2BN%2BgXCFZ4XnJ1i11ss0ztnQ3bnCsc%2F3dHNIoys9Q%3D%3D&Custom=True&Service.Id=88229245-b44c-496d-a9a9-b3130086af01&Start.Date=02%2F10%2F2025&Start.Time=00%3A15&End.Date=12%2F10%2F2025&End.Time=23%3A00&States.CheckedIn=true&States.CheckedOut=true&States.Confirmed=true&States.Optional=true&DisplayOptions.AllProducts=true&DisplayOptions.Balance=false&DisplayOptions.CarRegistrationNumber=false&DisplayOptions.Classifications=false&DisplayOptions.CompanionLoyalty=false&DisplayOptions.CustomerNotes=true&DisplayOptions.Loyalty=false&DisplayOptions.ProductsConsumedInInterval=false&DisplayOptions.ReservationNotes=true&Customer.Id=&CustomerClassifications.Airline=false&CustomerClassifications.Blacklist=false&CustomerClassifications.Cashlist=false&CustomerClassifications.DisabledPerson=false&CustomerClassifications.FriendOrFamily=false&CustomerClassifications.HealthCompliant=false&CustomerClassifications.Important=false&CustomerClassifications.InRoom=false&CustomerClassifications.LoyaltyProgram=false&CustomerClassifications.Media=false&CustomerClassifications.Military=false&CustomerClassifications.PaymasterAccount=false&CustomerClassifications.PreviousComplaint=false&CustomerClassifications.Problematic=false&CustomerClassifications.Returning=false&CustomerClassifications.Staff=false&CustomerClassifications.Student=false&CustomerClassifications.TopManagement=false&CustomerClassifications.VeryImportant=false&CustomerClassifications.WaitingForRoom=false&Products.Id%5B%5D=6cd0bc5c-3791-4374-91d9-b31d00c70668&Products.Id%5B%5D=e733dbc5-4390-49ba-a0fb-b332013785c3&Products.Id%5B%5D=cc1852b3-79d1-4c39-8ffb-b31d00cae6cc&Products.Id%5B%5D=d2dfa1b7-9ab1-4082-ae6d-b331009aadc8&Products.Id%5B%5D=1361dd09-fda3-45bc-8eda-b3320138a0c2&Products.Id%5B%5D=a82741ff-fc39-441f-8674-b33201383d08&Products.Id%5B%5D=7a596bbb-d9d5-4cc1-8175-b31d00c88137&Products.Id%5B%5D=eaddb778-b118-42ca-8ae6-b3130086b7ac&Products.Id%5B%5D=3ee7b1a8-ab89-48d9-8072-b3130086b7ac&Products.Id%5B%5D=9b739fc6-388c-4bab-aceb-b3130086b8d7&Products.Id%5B%5D=a53b8385-028a-463a-bc54-b3130086b7ac&Products.Id%5B%5D=7b22d4cb-18d1-40b6-953c-b3130086b7ac&Products.Id%5B%5D=5dc46a03-3547-4199-af68-b3130086b7ac&Products.Id%5B%5D=0480db35-1ab3-426b-ba5f-b3130086b7ac&Products.Id%5B%5D=5e9f32e0-1b09-45b0-b526-b3130086b7ac&Products.Id%5B%5D=20a3a8aa-e90a-4078-a051-b3130086b7ac&Products.Id%5B%5D=c8c8e9b0-0408-4fb0-bcb2-b3130086b7ac&Products.Id%5B%5D=23296dd9-ea30-467a-bbe2-b3130086b7ac&Products.Id%5B%5D=f073df1c-00cd-4ae4-a41b-b3130086b7ac&Ordering=Space" },
-        ];
-        function master_formatDateForUrl(dateString) { const [year, month, day] = dateString.split('-'); return `${day}/${month}/${year}`; }
-        function master_getCurrentDateString() { const today = new Date(); const year = today.getFullYear(); const month = String(today.getMonth() + 1).padStart(2, '0'); const day = String(today.getDate()).padStart(2, '0'); return `${year}-${month}-${day}`; }
-        function master_addDaysToDate(dateString, days) { const date = new Date(dateString + 'T00:00:00Z'); date.setUTCDate(date.getUTCDate() + days); const year = date.getUTCFullYear(); const month = String(date.getUTCMonth() + 1).padStart(2, '0'); const day = String(date.getUTCDate()).padStart(2, '0'); return `${year}-${month}-${day}`; }
-        function master_updateLinks() {
-            const dateInput = document.getElementById('date-input');
-            const linksContainer = document.getElementById('links-container');
-            const selectedDateString = dateInput.value;
-            if (!selectedDateString) { linksContainer.innerHTML = '<p class="text-red-500">Please select a valid date.</p>'; document.getElementById('current-date-display').textContent = ''; return; }
-            const newUrlDate = master_formatDateForUrl(selectedDateString);
-            const newEncodedDate = newUrlDate.replace(/\//g, '%2F');
-            document.getElementById('current-date-display').textContent = `Links are currently set for: ${newUrlDate}`;
-            linksContainer.innerHTML = '';
-            MASTER_REPORT_LINKS.forEach(linkTemplate => {
-                let updatedUrl = linkTemplate.url;
-                let endDateToUse = newEncodedDate;
-                let daysToAdd = 0;
-                let subtext = '';
-                if (linkTemplate.name === "HK Arrival & Departure List") { subtext = '*to be used with Housekeeping Plan'; } 
-                else if (linkTemplate.name === "HK Arrival List") { subtext = '*to be printed normally'; } 
-                // FIX: Used corrected name for link generation logic
-                else if (linkTemplate.name === "Daily Kitchen Products") { daysToAdd = 5; subtext = '*to be used with Kitchen List'; } 
-                else if (linkTemplate.name === "Twin List (10 day forecast)") { daysToAdd = 10; subtext = '*to be used with twin room visualizer'; }
-                if (daysToAdd > 0) { const futureDateString = master_addDaysToDate(selectedDateString, daysToAdd); const futureUrlDate = master_formatDateForUrl(futureDateString); endDateToUse = futureUrlDate.replace(/\//g, '%2F'); }
-                updatedUrl = updatedUrl.replace(/Start\.Date=.*?&/, `Start.Date=${newEncodedDate}&`);
-                updatedUrl = updatedUrl.replace(/End\.Date=.*?(&|$)/, `End.Date=${endDateToUse}$1`);
-                const linkElement = document.createElement('a');
-                linkElement.href = updatedUrl;
-                linkElement.target = "_blank";
-                linkElement.className = "flex items-center justify-between p-4 bg-violet-50 hover:bg-violet-100 rounded-xl transition duration-200 ease-in-out border border-violet-200 group";
-                let linkNameHtml = subtext ? `<div class="flex flex-col items-start"><span class="text-violet-700 font-medium">${linkTemplate.name}</span><p class="text-xs text-gray-500 italic mt-0.5">${subtext}</p></div>` : `<span class="text-violet-700 font-medium truncate">${linkTemplate.name}</span>`;
-                linkElement.innerHTML = `${linkNameHtml}<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6 text-violet-500 group-hover:text-violet-600 ml-3 shrink-0"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>`;
-                linksContainer.appendChild(linkElement);
-            });
-        }
+        const newUrlDate = master_formatDateForUrl(selectedDateString);
+        const newEncodedDate = newUrlDate.replace(/\//g, '%2F');
+        let daysToAdd = 0;
+        if (reportTemplate.name === "Daily Kitchen Products") daysToAdd = 5;
+        if (reportTemplate.name === "Twin List (10 day forecast)") daysToAdd = 10;
         
-        // --- BREAKFAST TRACKER SCRIPT ---
+        let endDateToUse = newEncodedDate;
+        if (daysToAdd > 0) {
+            const futureDateString = master_addDaysToDate(selectedDateString, daysToAdd);
+            const futureUrlDate = master_formatDateForUrl(futureDateString);
+            endDateToUse = futureUrlDate.replace(/\//g, '%2F');
+        }
+        let updatedUrl = reportTemplate.url;
+        updatedUrl = updatedUrl.replace(/Start\.Date=.*?&/, `Start.Date=${newEncodedDate}&`);
+        updatedUrl = updatedUrl.replace(/End\.Date=.*?(&|$)/, `End.Date=${endDateToUse}$1`);
+        reportLink.href = updatedUrl;
+    };
+    datePicker.value = master_getCurrentDateString();
+    datePicker.addEventListener('change', updateLink);
+    updateLink();
+}
+
+// --- MASTER HUB SCRIPT ---
+function master_init() {
+    const dateInput = document.getElementById('date-input');
+    dateInput.value = master_getCurrentDateString();
+    master_updateLinks();
+}
+const MASTER_REPORT_LINKS = [
+    { name: "Breakfast List", url: "https://app.mews.com/Commander/7cad25ef-cd74-451c-a19d-b31300863d83/ProductCheckList/Index?Start.Date=01%2F01%2F2025&End.Date=01%2F01%2F2025" },
+    { name: "HK Arrival & Departure List", url: "https://app.mews.com/Commander/7cad25ef-cd74-451c-a19d-b31300863d83/GuestInHouseReport/Index?EnterpriseId=7cad25ef-cd74-451c-a19d-b31300863d83&__AntiforgeryToken=Y1Y56hYrf0yrPJU47OLcpKXI5z4t%2BzcoGt7Q61lKfeAd%2Bj%2BN%2BgXCFZ4XnJ1i11ss0ztnQ3bnCsc%2F3dHNIoys9Q%3D%3D&Custom=True&Service.Id=88229245-b44c-496d-a9a9-b3130086af01&Start.Date=02%2F10%2F2025&Start.Time=00%3A15&End.Date=02%2F10%2F2025&End.Time=23%3A00&States.CheckedIn=true&States.CheckedOut=true&States.Confirmed=true&States.Optional=true&DisplayOptions.AllProducts=true&DisplayOptions.Balance=false&DisplayOptions.CarRegistrationNumber=false&DisplayOptions.Classifications=false&DisplayOptions.CompanionLoyalty=false&DisplayOptions.CustomerNotes=true&DisplayOptions.Loyalty=false&DisplayOptions.ProductsConsumedInInterval=false&DisplayOptions.ReservationNotes=true&Customer.Id=&CustomerClassifications.Airline=false&CustomerClassifications.Blacklist=false&CustomerClassifications.Cashlist=false&CustomerClassifications.DisabledPerson=false&CustomerClassifications.FriendOrFamily=false&CustomerClassifications.HealthCompliant=false&CustomerClassifications.Important=false&CustomerClassifications.InRoom=false&CustomerClassifications.LoyaltyProgram=false&CustomerClassifications.Media=false&CustomerClassifications.Military=false&CustomerClassifications.PaymasterAccount=false&CustomerClassifications.PreviousComplaint=false&CustomerClassifications.Problematic=false&CustomerClassifications.Returning=false&CustomerClassifications.Staff=false&CustomerClassifications.Student=false&CustomerClassifications.TopManagement=false&CustomerClassifications.VeryImportant=false&CustomerClassifications.WaitingForRoom=false&Products.Id%5B%5D=6cd0bc5c-3791-4374-91d9-b31d00c70668&Products.Id%5B%5D=e733dbc5-4390-49ba-a0fb-b332013785c3&Products.Id%5B%5D=cc1852b3-79d1-4c39-8ffb-b31d00cae6cc&Products.Id%5B%5D=d2dfa1b7-9ab1-4082-ae6d-b331009aadc8&Products.Id%5B%5D=1361dd09-fda3-45bc-8eda-b3320138a0c2&Products.Id%5B%5D=a82741ff-fc39-441f-8674-b33201383d08&Products.Id%5B%5D=7a596bbb-d9d5-4cc1-8175-b31d00c88137&Products.Id%5B%5D=eaddb778-b118-42ca-8ae6-b3130086b7ac&Products.Id%5B%5D=3ee7b1a8-ab89-48d9-8072-b3130086b7ac&Products.Id%5B%5D=9b739fc6-388c-4bab-aceb-b3130086b8d7&Products.Id%5B%5D=a53b8385-028a-463a-bc54-b3130086b7ac&Products.Id%5B%5D=7b22d4cb-18d1-40b6-953c-b3130086b7ac&Products.Id%5B%5D=5dc46a03-3547-4199-af68-b3130086b7ac&Products.Id%5B%5D=0480db35-1ab3-426b-ba5f-b3130086b7ac&Products.Id%5B%5D=5e9f32e0-1b09-45b0-b526-b3130086b7ac&Products.Id%5B%5D=20a3a8aa-e90a-4078-a051-b3130086b7ac&Products.Id%5B%5D=c8c8e9b0-0408-4fb0-bcb2-b3130086b7ac&Products.Id%5B%5D=23296dd9-ea30-467a-bbe2-b3130086b7ac&Products.Id%5B%5D=f073df1c-00cd-4ae4-a41b-b3130086b7ac&Ordering=Space" },
+    { name: "HK Arrival List", url: "https://app.mews.com/Commander/7cad25ef-cd74-451c-a19d-b31300863d83/GuestInHouseReport/Index?EnterpriseId=7cad25ef-cd74-451c-a19d-b31300863d83&__AntiforgeryToken=sWUWx2zOZ6811Pj06PV%2BbygRMCYhWY1ahifzUnVMZPEJN4m1qeMRo3jDIwGPnRZl85TAWPdle%2Belh5StIEsBLg%3D%3D&Custom=True&Service.Id=88229245-b44c-496d-a9a9-b3130086af01&Start.Date=22%2F08%2F2025&Start.Time=13%3A00&End.Date=22%2F08%2F2025&End.Time=23%3A00&States.CheckedIn=false&States.CheckedOut=false&States.Confirmed=true&States.Optional=false&DisplayOptions.AllProducts=true&DisplayOptions.Balance=false&DisplayOptions.CarRegistrationNumber=false&DisplayOptions.Classifications=false&DisplayOptions.CompanionLoyalty=false&DisplayOptions.CustomerNotes=true&DisplayOptions.Loyalty=false&DisplayOptions.ProductsConsumedInInterval=false&DisplayOptions.ReservationNotes=true&Customer.Id=&CustomerClassifications.Airline=false&CustomerClassifications.Blacklist=false&CustomerClassifications.Cashlist=false&CustomerClassifications.DisabledPerson=false&CustomerClassifications.FriendOrFamily=false&CustomerClassifications.HealthCompliant=false&CustomerClassifications.Important=false&CustomerClassifications.InRoom=false&CustomerClassifications.LoyaltyProgram=false&CustomerClassifications.Media=false&CustomerClassifications.Military=false&CustomerClassifications.PaymasterAccount=false&CustomerClassifications.PreviousComplaint=false&CustomerClassifications.Problematic=false&CustomerClassifications.Returning=false&CustomerClassifications.Staff=false&CustomerClassifications.Student=false&CustomerClassifications.TopManagement=false&CustomerClassifications.VeryImportant=false&CustomerClassifications.WaitingForRoom=false&Products.Id%5B%5D=6cd0bc5c-3791-4374-91d9-b31d00c70668&Products.Id%5B%5D=e733dbc5-4390-49ba-a0fb-b332013785c3&Products.Id%5B%5D=cc1852b3-79d1-4c39-8ffb-b31d00cae6cc&Products.Id%5B%5D=d2dfa1b7-9ab1-4082-ae6d-b331009aadc8&Products.Id%5B%5D=1361dd09-fda3-45bc-8eda-b3320138a0c2&Products.Id%5B%5D=a82741ff-fc39-441f-8674-b33201383d08&Products.Id%5B%5D=7a596bbb-d9c5-4cc1-8175-b31d00c88137&Products.Id%5B%5D=eaddb778-b118-42ca-8ae6-b3130086b7ac&Products.Id%5B%5D=3ee7b1a8-ab89-48d9-8072-b3130086b7ac&Products.Id%5B%5D=9b739fc6-388c-4bab-aceb-b3130086b8d7&Products.Id%5B%5D=a53b8385-028a-463a-bc54-b3130086b7ac&Products.Id%5B%5D=7b22d4cb-18d1-40b6-953c-b3130086b7ac&Products.Id%5B%5D=5dc46a03-3547-4199-af68-b3130086b7ac&Products.Id%5B%5D=0480db35-1ab3-426b-ba5f-b3130086b7ac&Products.Id%5B%5D=5e9f32e0-1b09-45b0-b526-b3130086b7ac&Products.Id%5B%5D=20a3a8aa-e90a-4078-a051-b3130086b7ac&Products.Id%5B%5D=c8c8e9b0-0408-4fb0-bcb2-b3130086b7ac&Products.Id%5B%5D=23296dd9-ea30-467a-bbe2-b3130086b7ac&Products.Id%5B%5D=f073df1c-00cd-4ae4-a41b-b3130086b7ac&Ordering=Space" },
+    { name: "Daily Kitchen Products", url: "https://app.mews.com/Commander/7cad25ef-cd74-451c-a19d-b31300863d83/ProductReport/Index?EnterpriseId=7cad25ef-cd74-451c-a19d-b31300863d83&__AntiforgeryToken=48GCTq5A9MQFKMrnIkEBSfjC9%2FWYfeWnR7D86g6npV8TmAtICmaM4T1euQ%2Bb8YIvidmVrPt%2BTFk5lwwtI0olVQ%3D%3D&Custom=True&Service.Id=88229245-b44c-496d-a9a9-b3130086af01&Start.Date=22%2F08%2F2025&Start.Time=00%3A00&End.Date=04%2F09%2F2025&End.Time=00%3A00&Products.Id%5B%5D=1a82d4e5-236e-4b13-be2c-b3130086b7ac&Products.Id%5B%5D=ce211e37-1ed7-4574-a1d5-b31d00d740dd" },
+    { name: "Twin List (10 day forecast)", url: "https://app.mews.com/Commander/7cad25ef-cd74-451c-a19d-b31300863d83/GuestInHouseReport/Index?EnterpriseId=7cad25ef-cd74-451c-a19d-b31300863d83&__AntiforgeryToken=Y1Y56hYrf0yrPJU47OLcpKXI5z4t%2BzcoGt7Q61lKfeAd%2Bj%2BN%2BgXCFZ4XnJ1i11ss0ztnQ3bnCsc%2F3dHNIoys9Q%3D%3D&Custom=True&Service.Id=88229245-b44c-496d-a9a9-b3130086af01&Start.Date=02%2F10%2F2025&Start.Time=00%3A15&End.Date=12%2F10%2F2025&End.Time=23%3A00&States.CheckedIn=true&States.CheckedOut=true&States.Confirmed=true&States.Optional=true&DisplayOptions.AllProducts=true&DisplayOptions.Balance=false&DisplayOptions.CarRegistrationNumber=false&DisplayOptions.Classifications=false&DisplayOptions.CompanionLoyalty=false&DisplayOptions.CustomerNotes=true&DisplayOptions.Loyalty=false&DisplayOptions.ProductsConsumedInInterval=false&DisplayOptions.ReservationNotes=true&Customer.Id=&CustomerClassifications.Airline=false&CustomerClassifications.Blacklist=false&CustomerClassifications.Cashlist=false&CustomerClassifications.DisabledPerson=false&CustomerClassifications.FriendOrFamily=false&CustomerClassifications.HealthCompliant=false&CustomerClassifications.Important=false&CustomerClassifications.InRoom=false&CustomerClassifications.LoyaltyProgram=false&CustomerClassifications.Media=false&CustomerClassifications.Military=false&CustomerClassifications.PaymasterAccount=false&CustomerClassifications.PreviousComplaint=false&CustomerClassifications.Problematic=false&CustomerClassifications.Returning=false&CustomerClassifications.Staff=false&CustomerClassifications.Student=false&CustomerClassifications.TopManagement=false&CustomerClassifications.VeryImportant=false&CustomerClassifications.WaitingForRoom=false&Products.Id%5B%5D=6cd0bc5c-3791-4374-91d9-b31d00c70668&Products.Id%5B%5D=e733dbc5-4390-49ba-a0fb-b332013785c3&Products.Id%5B%5D=cc1852b3-79d1-4c39-8ffb-b31d00cae6cc&Products.Id%5B%5D=d2dfa1b7-9ab1-4082-ae6d-b331009aadc8&Products.Id%5B%5D=1361dd09-fda3-45bc-8eda-b3320138a0c2&Products.Id%5B%5D=a82741ff-fc39-441f-8674-b33201383d08&Products.Id%5B%5D=7a596bbb-d9d5-4cc1-8175-b31d00c88137&Products.Id%5B%5D=eaddb778-b118-42ca-8ae6-b3130086b7ac&Products.Id%5B%5D=3ee7b1a8-ab89-48d9-8072-b3130086b7ac&Products.Id%5B%5D=9b739fc6-388c-4bab-aceb-b3130086b8d7&Products.Id%5B%5D=a53b8385-028a-463a-bc54-b3130086b7ac&Products.Id%5B%5D=7b22d4cb-18d1-40b6-953c-b3130086b7ac&Products.Id%5B%5D=5dc46a03-3547-4199-af68-b3130086b7ac&Products.Id%5B%5D=0480db35-1ab3-426b-ba5f-b3130086b7ac&Products.Id%5B%5D=5e9f32e0-1b09-45b0-b526-b3130086b7ac&Products.Id%5B%5D=20a3a8aa-e90a-4078-a051-b3130086b7ac&Products.Id%5B%5D=c8c8e9b0-0408-4fb0-bcb2-b3130086b7ac&Products.Id%5B%5D=23296dd9-ea30-467a-bbe2-b3130086b7ac&Products.Id%5B%5D=f073df1c-00cd-4ae4-a41b-b3130086b7ac&Ordering=Space" },
+];
+function master_formatDateForUrl(dateString) { const [year, month, day] = dateString.split('-'); return `${day}/${month}/${year}`; }
+function master_getCurrentDateString() { const today = new Date(); const year = today.getFullYear(); const month = String(today.getMonth() + 1).padStart(2, '0'); const day = String(today.getDate()).padStart(2, '0'); return `${year}-${month}-${day}`; }
+function master_addDaysToDate(dateString, days) { const date = new Date(dateString + 'T00:00:00Z'); date.setUTCDate(date.getUTCDate() + days); const year = date.getUTCFullYear(); const month = String(date.getUTCMonth() + 1).padStart(2, '0'); const day = String(date.getUTCDate()).padStart(2, '0'); return `${year}-${month}-${day}`; }
+function master_updateLinks() {
+    const dateInput = document.getElementById('date-input');
+    const linksContainer = document.getElementById('links-container');
+    const selectedDateString = dateInput.value;
+    if (!selectedDateString) { linksContainer.innerHTML = '<p class="text-red-500">Please select a valid date.</p>'; document.getElementById('current-date-display').textContent = ''; return; }
+    const newUrlDate = master_formatDateForUrl(selectedDateString);
+    const newEncodedDate = newUrlDate.replace(/\//g, '%2F');
+    document.getElementById('current-date-display').textContent = `Links are currently set for: ${newUrlDate}`;
+    linksContainer.innerHTML = '';
+    MASTER_REPORT_LINKS.forEach(linkTemplate => {
+        let updatedUrl = linkTemplate.url;
+        let endDateToUse = newEncodedDate;
+        let daysToAdd = 0;
+        let subtext = '';
+        if (linkTemplate.name === "HK Arrival & Departure List") { subtext = '*to be used with Housekeeping Plan'; } 
+        else if (linkTemplate.name === "HK Arrival List") { subtext = '*to be printed normally'; } 
+        else if (linkTemplate.name === "Daily Kitchen Products") { daysToAdd = 5; subtext = '*to be used with Kitchen List'; } 
+        else if (linkTemplate.name === "Twin List (10 day forecast)") { daysToAdd = 10; subtext = '*to be used with twin room visualizer'; }
+        if (daysToAdd > 0) { const futureDateString = master_addDaysToDate(selectedDateString, daysToAdd); const futureUrlDate = master_formatDateForUrl(futureDateString); endDateToUse = futureUrlDate.replace(/\//g, '%2F'); }
+        updatedUrl = updatedUrl.replace(/Start\.Date=.*?&/, `Start.Date=${newEncodedDate}&`);
+        updatedUrl = updatedUrl.replace(/End\.Date=.*?(&|$)/, `End.Date=${endDateToUse}$1`);
+        const linkElement = document.createElement('a');
+        linkElement.href = updatedUrl;
+        linkElement.target = "_blank";
+        linkElement.className = "flex items-center justify-between p-4 bg-violet-50 hover:bg-violet-100 rounded-xl transition duration-200 ease-in-out border border-violet-200 group";
+        let linkNameHtml = subtext ? `<div class="flex flex-col items-start"><span class="text-violet-700 font-medium">${linkTemplate.name}</span><p class="text-xs text-gray-500 italic mt-0.5">${subtext}</p></div>` : `<span class="text-violet-700 font-medium truncate">${linkTemplate.name}</span>`;
+        linkElement.innerHTML = `${linkNameHtml}<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6 text-violet-500 group-hover:text-violet-600 ml-3 shrink-0"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>`;
+        linksContainer.appendChild(linkElement);
+    });
+}
+    
+// --- BREAKFAST TRACKER SCRIPT ---
         let breakfast_detectedDate = null; // Variable to store the date for the print function
 
         function breakfast_init() {
@@ -1979,6 +1471,3 @@
             function getDaysDifference(start, end) { return Math.round((new Date(end) - new Date(start)) / 86400000); }
             function categorizeRooms(allRooms) { const categorized = { 'Large Rooms': new Set(), 'Accessible Rooms': new Set(), 'Medium Rooms': new Set(), 'Outliers': new Set() }; allRooms.forEach(room => { const category = roomToCategoryMap[room] || 'Outliers'; categorized[category].add(room); }); for (const category in categorized) { categorized[category] = Array.from(categorized[category]).sort((a, b) => parseInt(a) - parseInt(b)); } return categorized; }
         }
-    </script>
-</body>
-</html>
