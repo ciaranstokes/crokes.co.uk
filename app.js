@@ -230,14 +230,22 @@ function master_updateLinks() {
         }
 
         // --- KITCHEN PRODUCTS SCRIPT ---
-        function kitchen_init() {
-            const mainPrintBtn = document.getElementById('kitchen_mainPrintBtn');
-            const clearBtn = document.getElementById('kitchen_clearBtn');
-            const rawDataInput = document.getElementById('kitchen_rawData');
-            mainPrintBtn.addEventListener('click', () => { if (!document.querySelector('#kitchen-app #results').innerHTML.trim()) { alert("Please paste data to generate a report before printing."); } else { window.print(); } });
-            clearBtn.addEventListener('click', () => { rawDataInput.value = ''; kitchen_clearReportView(); rawDataInput.focus(); });
-            rawDataInput.addEventListener('input', kitchen_processDataAndDisplay);
-        }
+        function kitchen_init() function kitchen_init() {
+    const mainPrintBtn = document.getElementById('kitchen_mainPrintBtn');
+    const clearBtn = document.getElementById('kitchen_clearBtn');
+    const rawDataInput = document.getElementById('kitchen_rawData');
+    mainPrintBtn.addEventListener('click', () => { 
+        // --- FIX IS HERE ---
+        const resultsDiv = document.getElementById('results');
+        if (!resultsDiv || !resultsDiv.innerHTML.trim()) { 
+            alert("Please paste data to generate a report before printing."); 
+        } else { 
+            window.print(); 
+        } 
+    });
+    clearBtn.addEventListener('click', () => { rawDataInput.value = ''; kitchen_clearReportView(); rawDataInput.focus(); });
+    rawDataInput.addEventListener('input', kitchen_processDataAndDisplay);
+}
         const KITCHEN_BREAKFAST_EMOJIS = ['🥞', '🍳', '🥓', '🥐', '🧇', '🥣', '🍊', '☕️', '🍩', '🥑'];
         
         function kitchen_parseData(text) {
@@ -296,15 +304,19 @@ function master_updateLinks() {
             });
         }
 
-        function kitchen_displayReport(data) {
-            const resultsDiv = document.querySelector('#kitchen-app #results');
-            const reportTitle = document.querySelector('#kitchen-app #reportTitle');
-            resultsDiv.innerHTML = ''; reportTitle.classList.remove('hidden');
-            const table = document.createElement('table'); table.className = 'min-w-full bg-white border-separate border-spacing-0';
-            table.innerHTML = `<thead class="bg-fuchsia-100"><tr><th class="px-6 py-3 text-center text-l font-bold text-purple-900 uppercase tracking-wider rounded-tl-2xl">Date</th><th class="px-6 py-3 text-center text-l font-bold text-purple-900 uppercase tracking-wider">Day</th><th class="px-6 py-3 text-center text-l font-bold text-purple-900 uppercase tracking-wider">Guests</th><th class="px-6 py-3 text-center text-l font-bold text-purple-900 uppercase tracking-wider rounded-tr-2xl">Breakfasts</th></tr></thead>
-                <tbody>${data.map((row, index) => `<tr class="hover:bg-fuchsia-50"><td class="px-6 py-4 text-center text-lg font-normal border-b border-fuchsia-100">${row.date}</td><td class="px-6 py-4 text-center text-lg font-semibold border-b border-fuchsia-100">${row.day}</td><td class="px-6 py-4 text-center text-lg font-semibold border-b border-fuchsia-100">${row.guests}</td><td class="px-6 py-4 text-center border-b border-fuchsia-100"><div class="flex items-center justify-center"><span class="text-lg font-bold text-fuchsia-600">${row.breakfasts}</span><span class="text-2xl ml-2">${KITCHEN_BREAKFAST_EMOJIS[Math.floor(Math.random() * KITCHEN_BREAKFAST_EMOJIS.length)]}</span></div></td></tr>`).join('')}</tbody>`;
-            resultsDiv.appendChild(table);
-        }
+        function kitchen_displayReport(data) function kitchen_displayReport(data) {
+    // --- FIX IS HERE ---
+    const resultsDiv = document.getElementById('results');
+    const reportTitle = document.getElementById('reportTitle');
+
+    resultsDiv.innerHTML = ''; 
+    reportTitle.classList.remove('hidden');
+    const table = document.createElement('table'); 
+    table.className = 'min-w-full bg-white border-separate border-spacing-0';
+    table.innerHTML = `<thead class="bg-fuchsia-100"><tr><th class="px-6 py-3 text-center text-l font-bold text-purple-900 uppercase tracking-wider rounded-tl-2xl">Date</th><th class="px-6 py-3 text-center text-l font-bold text-purple-900 uppercase tracking-wider">Day</th><th class="px-6 py-3 text-center text-l font-bold text-purple-900 uppercase tracking-wider">Guests</th><th class="px-6 py-3 text-center text-l font-bold text-purple-900 uppercase tracking-wider rounded-tr-2xl">Breakfasts</th></tr></thead>
+        <tbody>${data.map((row, index) => `<tr class="hover:bg-fuchsia-50"><td class="px-6 py-4 text-center text-lg font-normal border-b border-fuchsia-100">${row.date}</td><td class="px-6 py-4 text-center text-lg font-semibold border-b border-fuchsia-100">${row.day}</td><td class="px-6 py-4 text-center text-lg font-semibold border-b border-fuchsia-100">${row.guests}</td><td class="px-6 py-4 text-center border-b border-fuchsia-100"><div class="flex items-center justify-center"><span class="text-lg font-bold text-fuchsia-600">${row.breakfasts}</span><span class="text-2xl ml-2">${KITCHEN_BREAKFAST_EMOJIS[Math.floor(Math.random() * KITCHEN_BREAKFAST_EMOJIS.length)]}</span></div></td></tr>`).join('')}</tbody>`;
+    resultsDiv.appendChild(table);
+}
         function kitchen_clearReportView() {
             const reportTitle = document.querySelector('#kitchen-app #reportTitle');
             const resultsDiv = document.querySelector('#kitchen-app #results');
