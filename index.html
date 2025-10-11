@@ -720,7 +720,7 @@
 
         function breakfast_formatDateWithSuffix(date) { const day = date.getUTCDate(); let suffix = 'th'; if (day % 10 === 1 && day !== 11) suffix = 'st'; else if (day % 10 === 2 && day !== 12) suffix = 'nd'; else if (day % 10 === 3 && day !== 13) suffix = 'rd'; const weekday = date.toLocaleDateString('en-GB', { weekday: 'long', timeZone: 'UTC' }); const month = date.toLocaleDateString('en-GB', { month: 'long', timeZone: 'UTC' }); const year = date.getUTCFullYear(); return `${weekday}, ${day}${suffix} ${month} ${year}`; }
         
-         function breakfast_printTable(date) {
+        function breakfast_printTable(date) {
             const tableBody = document.getElementById('ordersTableBody');
             if (!tableBody || tableBody.children[0].textContent.includes('No data')) {
                 return;
@@ -789,8 +789,9 @@
                     padding-bottom: 10px;
                 }
                 .main-title {
-                    background-color: #fff;
-                    color: #000;
+                    background-color: #f0fff4;
+                    border-radius: 25px;
+                    color: #276749;
                     padding: 5px 20px;
                     font-size: 26pt;
                     font-weight: 700;
@@ -799,6 +800,11 @@
                 .info-block {
                     text-align: right;
                     font-size: 14pt;
+                    background-color: #f0fff4;
+                    border-radius: 25px;
+                    color: #276749;
+                    padding: 5px 20px;
+                    letter-spacing: 1px;
                 }
                 
                 .content-container {
@@ -860,6 +866,7 @@
             printWindow.focus();
             setTimeout(() => { printWindow.print(); printWindow.close(); }, 250);
         }
+
 
 
         // --- KITCHEN PRODUCTS SCRIPT ---
