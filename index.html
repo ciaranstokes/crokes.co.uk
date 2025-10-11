@@ -720,7 +720,7 @@
 
         function breakfast_formatDateWithSuffix(date) { const day = date.getUTCDate(); let suffix = 'th'; if (day % 10 === 1 && day !== 11) suffix = 'st'; else if (day % 10 === 2 && day !== 12) suffix = 'nd'; else if (day % 10 === 3 && day !== 13) suffix = 'rd'; const weekday = date.toLocaleDateString('en-GB', { weekday: 'long', timeZone: 'UTC' }); const month = date.toLocaleDateString('en-GB', { month: 'long', timeZone: 'UTC' }); const year = date.getUTCFullYear(); return `${weekday}, ${day}${suffix} ${month} ${year}`; }
         
-        function breakfast_printTable(date) {
+         function breakfast_printTable(date) {
             const tableContainer = document.querySelector('#breakfast-app .overflow-auto');
             if (!tableContainer || document.getElementById('ordersTableBody').children[0].textContent.includes('No data')) { return; }
             const totalBreakfasts = document.getElementById('totalAmount').textContent;
@@ -739,61 +739,39 @@
                     font-family: 'Inter', sans-serif;
                     font-size: 8pt;
                 }
-                h1 {
+                h1, h2, h3 {
                     text-align: center;
-                    font-size: 14pt;
-                    font-weight: 600;
-                    margin-bottom: 2px;
-                }
-                h2 {
-                    text-align: center;
-                    font-size: 12pt;
-                    font-weight: 600;
-                    margin-bottom: 10px;
-                }
-                h3 {
-                    text-align: center;
-                    font-size: 11pt;
-                    font-weight: 500;
                     margin-bottom: 5px;
-                    color: #4b5563;
                 }
+                h1 { font-size: 14pt; font-weight: 600; }
+                h2 { font-size: 12pt; font-weight: 600; margin-bottom: 10px; }
+                h3 { font-size: 11pt; font-weight: 500; color: #4b5563; }
+                
                 table {
                     width: 100%;
                     border-collapse: collapse;
                     border-spacing: 0;
-                    border: 1px solid #e5e7eb;
-                    border-radius: 8px;
-                    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+                    table-layout: fixed; /* --- KEY CHANGE: Force column widths --- */
                 }
                 th, td {
-                    border-top: 1px solid #e5e7eb;
+                    border: 1px solid #e5e7eb;
                     padding: 2px 4px;
                     text-align: left;
-                }
-                td {
-                    border-left: 1px solid #e5e7eb;
-                }
-                td:first-child {
-                    border-left: none;
+                    word-wrap: break-word; /* Prevents long names from breaking layout */
                 }
                 th {
                     background-color: #f9fafb;
                     font-weight: 600;
                 }
                 
-                /* --- MODIFIED SECTION: Column Widths --- */
+                /* --- Column Width Definitions --- */
                 th:first-child, td:first-child {
+                    width: 15%;
                     text-align: center;
-                    width: 15%; /* Set a specific width for the Room column */
-                }
-                th:nth-child(2), td:nth-child(2) {
-                    width: auto; /* Allow the Guest column to fill remaining space */
                 }
                 th:last-child, td:last-child {
-                    width: 20%; /* Reduced width for the Total Amount column */
+                    width: 20%;
                 }
-                /* --- END MODIFIED SECTION --- */
 
                 body {
                     -webkit-print-color-adjust: exact;
