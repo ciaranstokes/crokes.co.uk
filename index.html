@@ -728,7 +728,70 @@
             tableToPrint.querySelector('thead').classList.remove('sticky');
             const formattedDate = breakfast_formatDateWithSuffix(date);
             const printWindow = window.open('', '_blank');
-            printWindow.document.write(`<html><head><title>Printable Breakfast Orders</title><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><style>@media print{@page{size: A4; margin: 15mm;}}body{font-family: 'Inter', sans-serif; font-size: 8pt;}h1{text-align: center; font-size: 14pt; font-weight: 600; margin-bottom: 5px;}h2{text-align: center; font-size: 12pt; font-weight: 600; margin-bottom: 15px;}h3{text-align: center; font-size: 11pt; font-weight: 500; margin-bottom: 10px; color: #4b5563;}table{width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);}th, td{border-top: 1px solid #e5e7eb; padding: 4px; text-align: left;}td{border-left: 1px solid #e5e7eb;}td:first-child{border-left: none;}th{background-color: #f9fafb; font-weight: 600;}th:first-child, td:first-child{text-align: center;}th:last-child, td:last-child{width: 25%;}body{-webkit-print-color-adjust: exact; print-color-adjust: exact;}</style></head><body>`);
+            printWindow.document.write(`<html><head><title>Printable Breakfast Orders</title><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><style>
+                @media print {
+                    @page {
+                        size: A4;
+                        margin: 10mm; /* Reduced page margin */
+                    }
+                }
+                body {
+                    font-family: 'Inter', sans-serif;
+                    font-size: 8pt;
+                }
+                h1 {
+                    text-align: center;
+                    font-size: 14pt;
+                    font-weight: 600;
+                    margin-bottom: 2px; /* Reduced margin */
+                }
+                h2 {
+                    text-align: center;
+                    font-size: 12pt;
+                    font-weight: 600;
+                    margin-bottom: 10px; /* Reduced margin */
+                }
+                h3 {
+                    text-align: center;
+                    font-size: 11pt;
+                    font-weight: 500;
+                    margin-bottom: 5px; /* Reduced margin */
+                    color: #4b5563;
+                }
+                table {
+                    width: 100%;
+                    border-collapse: collapse; /* Changed for a tighter look */
+                    border-spacing: 0;
+                    border: 1px solid #e5e7eb;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+                }
+                th, td {
+                    border-top: 1px solid #e5e7eb;
+                    padding: 2px 4px; /* Reduced padding */
+                    text-align: left;
+                }
+                td {
+                    border-left: 1px solid #e5e7eb;
+                }
+                td:first-child {
+                    border-left: none;
+                }
+                th {
+                    background-color: #f9fafb;
+                    font-weight: 600;
+                }
+                th:first-child, td:first-child {
+                    text-align: center;
+                }
+                th:last-child, td:last-child {
+                    width: 25%;
+                }
+                body {
+                    -webkit-print-color-adjust: exact;
+                    print-color-adjust: exact;
+                }
+            </style></head><body>`);
             printWindow.document.write(`<h1>Breakfast List</h1><h3>${formattedDate}</h3><h2>Total Breakfasts: ${totalBreakfasts}</h2>`);
             printWindow.document.write(tableToPrint.outerHTML);
             printWindow.document.write('</body></html>');
