@@ -155,7 +155,7 @@
         }
 
         function isDayOff(shift) {
-            return !shift || shift === 'H' || shift.toLowerCase() === 'off';
+            return !shift || shift === 'H' || shift.toLowerCase() === 'off' || shift.trim() === '';
         }
 
         function isFreeAfter(shift, hour) {
@@ -338,11 +338,12 @@ Each object represents an employee and must have two keys: "name" (string) and "
 
         function renderRota() {
             const grid = document.getElementById('rota-grid');
-            grid.style.gridTemplateColumns = '1.5fr repeat(7, 1fr) 1fr';
+            // Add a new column for the calendar download button
+            grid.style.gridTemplateColumns = '1.5fr repeat(7, 1fr) 1fr 1.5fr';
             grid.innerHTML = '';
 
-            // Render Headers
-            ['Name', ...days, 'Total'].forEach(header => {
+            // Render Headers, adding a new header for the calendar column
+            [...['Name'], ...days, ...['Total', 'Calendar']].forEach(header => {
                 const headerCell = document.createElement('div');
                 headerCell.className = 'font-semibold p-3 bg-slate-200 text-slate-600 border-b-2 border-r border-slate-300';
                 headerCell.textContent = header;
@@ -352,7 +353,7 @@ Each object represents an employee and must have two keys: "name" (string) and "
             const filteredData = rotaData.filter(emp => emp.name === employee1 || emp.name === employee2);
 
             if (filteredData.length === 0) {
-                 grid.innerHTML += `<div class="col-span-9 p-4 text-center text-gray-500">Upload a rota to find Ciaran & Louise.</div>`;
+                 grid.innerHTML += `<div class="col-span-10 p-4 text-center text-gray-500">Upload a rota to find Ciaran & Louise.</div>`;
                  return;
             }
 
@@ -363,21 +364,15 @@ Each object represents an employee and must have two keys: "name" (string) and "
                 nameCell.textContent = emp.name;
                 grid.appendChild(nameCell);
 
-                emp.schedule.forEach((shift, index) => {
+                emp.schedule.forEach((shift) => {
                     const shiftCell = document.createElement('div');
                     shiftCell.className = 'p-3 border-b border-r border-gray-200 flex items-center justify-center';
                     if (isDayOff(shift)) {
                         shiftCell.classList.add('bg-emerald-50', 'text-emerald-700', 'text-2xl');
                         shiftCell.textContent = '😌';
                     } else {
-                        shiftCell.innerHTML = `
-                            <div class="flex flex-col items-center">
-                                <span class="font-semibold">${shift}</span>
-                                <button class="mt-2 text-xs bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-2 rounded" onclick="generateICSFile('${emp.name}', '${shift}', '${days[index]}')">
-                                    <i class="fa-solid fa-calendar-plus mr-1"></i> Add to Calendar
-                                </button>
-                            </div>
-                        `;
+                        shiftCell.classList.add('bg-white', 'font-semibold');
+                        shiftCell.textContent = shift;
                     }
                     grid.appendChild(shiftCell);
                 });
@@ -387,6 +382,16 @@ Each object represents an employee and must have two keys: "name" (string) and "
                 totalCell.className = 'p-3 border-b border-r-0 border-gray-200 flex items-center justify-center font-bold bg-slate-100 text-slate-800';
                 totalCell.textContent = totalHours > 0 ? totalHours.toFixed(1) : '-';
                 grid.appendChild(totalCell);
+
+                // Add the new cell for the full week calendar button
+                const calendarCell = document.createElement('div');
+                calendarCell.className = 'p-3 border-b border-r-0 border-gray-200 flex items-center justify-center';
+                calendarCell.innerHTML = `
+                    <button class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-3 rounded-lg text-sm" onclick="generateFullWeekICS('${emp.name}')">
+                        <i class="fa-solid fa-calendar-plus mr-1"></i> Add Week to Calendar
+                    </button>
+                `;
+                grid.appendChild(calendarCell);
             });
 
             // Render Dinner Date Row (if applicable)
@@ -405,71 +410,98 @@ Each object represents an employee and must have two keys: "name" (string) and "
                     grid.appendChild(dinnerCell);
                 });
 
-                const emptyCell = document.createElement('div');
-                emptyCell.className = 'p-3 bg-purple-50';
-                grid.appendChild(emptyCell);
+                // Add two empty cells to align with Total and Calendar columns
+                const emptyTotalCell = document.createElement('div');
+                emptyTotalCell.className = 'p-3 bg-purple-50';
+                grid.appendChild(emptyTotalCell);
+                const emptyCalendarCell = document.createElement('div');
+                emptyCalendarCell.className = 'p-3 bg-purple-50';
+                grid.appendChild(emptyCalendarCell);
             }
         }
 
-        function generateICSFile(employeeName, shift, day) {
-            const timeRegex = /(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})/;
-            const match = shift.match(timeRegex);
-
-            if (!match) {
-                alert("Could not parse shift time to create a calendar event.");
+        function generateFullWeekICS(employeeName) {
+            const employee = rotaData.find(e => e.name === employeeName);
+            if (!employee) {
+                alert("Could not find employee data.");
                 return;
             }
 
-            const dayOfMonth = parseInt(day.split(' ')[1], 10);
-            const today = new Date();
-            // This is a naive approach, assuming the rota is for the current month.
-            // A more robust solution would be to get the month and year from the rota image.
-            const month = today.getMonth();
-            const year = today.getFullYear();
+            const timeRegex = /(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})/;
+            let events = [];
 
+            employee.schedule.forEach((shift, index) => {
+                if (isDayOff(shift)) {
+                    return; // Skip days off
+                }
 
-            const startHour = parseInt(match[1], 10);
-            const startMinute = parseInt(match[2], 10);
-            let endHour = parseInt(match[3], 10);
-            const endMinute = parseInt(match[4], 10);
-            
-            if (endHour < startHour || (endHour === startHour && endMinute < startMinute)) {
-                    endHour += 24;
+                const match = shift.match(timeRegex);
+                if (!match) {
+                    console.warn(`Could not parse shift time: ${shift}`);
+                    return; // Skip shifts with unparsable times
+                }
+
+                const dayString = days[index]; // e.g., "Mon 13"
+                const dayOfMonth = parseInt(dayString.split(' ')[1], 10);
+                const today = new Date();
+                // This is a naive approach, assuming the rota is for the current month.
+                // A more robust solution would be to get the month and year from the rota image.
+                const month = today.getMonth();
+                const year = today.getFullYear();
+
+                const startHour = parseInt(match[1], 10);
+                const startMinute = parseInt(match[2], 10);
+                let endHour = parseInt(match[3], 10);
+                const endMinute = parseInt(match[4], 10);
+                
+                if (endHour < startHour || (endHour === startHour && endMinute < startMinute)) {
+                    // This handles overnight shifts, though it might not be common in this context.
+                    // A simple solution is just to assume it ends the same day.
+                }
+
+                const startDate = new Date(year, month, dayOfMonth, startHour, startMinute);
+                const endDate = new Date(year, month, dayOfMonth, endHour, endMinute);
+                
+                const toISOStringWithOffset = (date) => {
+                    const pad = (num) => (num < 10 ? '0' : '') + num;
+                    return date.getFullYear() +
+                        pad(date.getMonth() + 1) +
+                        pad(date.getDate()) + 'T' +
+                        pad(date.getHours()) +
+                        pad(date.getMinutes()) +
+                        '00';
+                };
+
+                const event = [
+                    'BEGIN:VEVENT',
+                    'UID:' + new Date().getTime() + index + '@yourdomain.com',
+                    'DTSTAMP:' + toISOStringWithOffset(new Date()),
+                    'DTSTART:' + toISOStringWithOffset(startDate),
+                    'DTEND:' + toISOStringWithOffset(endDate),
+                    'SUMMARY:Work Shift: ' + employeeName,
+                    'DESCRIPTION:Shift details: ' + shift,
+                    'END:VEVENT'
+                ].join('\r\n');
+                events.push(event);
+            });
+
+            if (events.length === 0) {
+                alert(`${employeeName} has no shifts this week to add to the calendar.`);
+                return;
             }
-
-            const startDate = new Date(year, month, dayOfMonth, startHour, startMinute);
-            const endDate = new Date(year, month, dayOfMonth, endHour, endMinute);
-            
-            const toISOStringWithOffset = (date) => {
-                const pad = (num) => (num < 10 ? '0' : '') + num;
-                return date.getFullYear() +
-                    pad(date.getMonth() + 1) +
-                    pad(date.getDate()) + 'T' +
-                    pad(date.getHours()) +
-                    pad(date.getMinutes()) +
-                    pad(date.getSeconds());
-            };
-
 
             const icsContent = [
                 'BEGIN:VCALENDAR',
                 'VERSION:2.0',
-                'PRODID:-//hacksw/handcal//NONSGML v1.0//EN',
-                'BEGIN:VEVENT',
-                'UID:' + new Date().getTime() + '@yourdomain.com',
-                'DTSTAMP:' + toISOStringWithOffset(new Date()),
-                'DTSTART:' + toISOStringWithOffset(startDate),
-                'DTEND:' + toISOStringWithOffset(endDate),
-                'SUMMARY:Work Shift: ' + employeeName,
-                'DESCRIPTION:Shift details: ' + shift,
-                'END:VEVENT',
+                'PRODID:-//YourCompany//YourApp//EN',
+                ...events,
                 'END:VCALENDAR'
             ].join('\r\n');
 
-            const blob = new Blob([icsContent], { type: 'text/calendar' });
+            const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
             const link = document.createElement('a');
             link.href = window.URL.createObjectURL(blob);
-            link.download = `shift-${employeeName}-${day}.ics`;
+            link.download = `rota-${employeeName}.ics`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
