@@ -261,9 +261,9 @@
                         <div class="flex flex-col gap-3">
                             <label for="date-input" class="text-md font-medium text-gray-700 shrink-0">Report Date:</label>
                             <div class="relative w-full"> 
-                                <input type="date" id="date-input" 
+                                <input type="text" id="date-input" 
                                        class="w-full py-3 px-4 border border-pink-300 bg-pink-50 rounded-xl focus:ring-4 focus:ring-pink-200 focus:border-pink-500 transition duration-200 ease-in-out text-base appearance-none" 
-                                       onchange="master_updateLinks()">
+                                       >
                                 <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-pink-600 pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                 </svg>
@@ -352,7 +352,7 @@
                         </a>
                         <!-- Date Picker -->
                         <div class="relative">
-                            <input type="date" id="kitchen-date-picker" class="w-full py-3 px-4 border border-gray-300 bg-white rounded-xl focus:ring-4 focus:ring-pink-200 transition duration-200 text-base appearance-none">
+                            <input type="text" id="kitchen-date-picker" class="w-full py-3 px-4 border border-gray-300 bg-white rounded-xl focus:ring-4 focus:ring-pink-200 transition duration-200 text-base appearance-none">
                              <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                         </div>
                     </header>
@@ -393,7 +393,7 @@
                         </a>
                         <!-- Date Picker -->
                         <div class="relative">
-                            <input type="date" id="hk-date-picker" class="w-full py-3 px-4 border border-gray-300 bg-white rounded-xl focus:ring-4 focus:ring-sky-200 transition duration-200 text-base appearance-none">
+                            <input type="text" id="hk-date-picker" class="w-full py-3 px-4 border border-gray-300 bg-white rounded-xl focus:ring-4 focus:ring-sky-200 transition duration-200 text-base appearance-none">
                              <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                         </div>
                     </header>
@@ -402,7 +402,7 @@
                             <div class="md:col-span-1 flex flex-col justify-start">
                                 <h2 class="text-xl font-extrabold text-sky-700 mb-4">Report Details</h2>
                                 <label for="reportDate" class="block text-base font-semibold text-gray-700 mb-2">Report Date:</label>
-                                <input type="date" id="reportDate" class="w-full p-4 border-2 border-cyan-300 bg-cyan-50 rounded-2xl text-cyan-700 font-bold focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition shadow-inner">
+                                <input type="text" id="reportDate" class="w-full p-4 border-2 border-cyan-300 bg-cyan-50 rounded-2xl text-cyan-700 font-bold focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition shadow-inner">
                                 <div class="mt-4 flex flex-col gap-3">
                                     <button id="clearDataBtn" class="w-full bg-red-500 text-white font-extrabold py-3 px-6 rounded-2xl shadow-lg hover:bg-red-600 hover:scale-[1.03] transform transition duration-300 ease-in-out flex items-center justify-center text-lg"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 mr-3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>Clear Data</button>
                                     <button id="printBtn" class="w-full bg-cyan-500 text-white font-extrabold py-3 px-8 rounded-2xl shadow-lg hover:bg-cyan-600 hover:scale-[1.03] transform transition duration-300 ease-in-out text-lg flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 mr-3"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>Print Checklist</button>
@@ -474,7 +474,7 @@
                             </a>
                             <!-- Date Picker -->
                             <div class="relative">
-                                <input type="date" id="twin-date-picker" class="w-full py-3 px-4 border border-gray-300 bg-white rounded-xl focus:ring-4 focus:ring-violet-200 transition duration-200 text-base appearance-none">
+                                <input type="text" id="twin-date-picker" class="w-full py-3 px-4 border border-gray-300 bg-white rounded-xl focus:ring-4 focus:ring-violet-200 transition duration-200 text-base appearance-none">
                                  <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                             </div>
                         </header>
@@ -566,6 +566,52 @@
             initializeDynamicHeader('hk', 'HK Arrival & Departure List');
             initializeDynamicHeader('twin', 'Twin List (10 day forecast)');
         });
+// ==========================================================
+    // ===== ADD THE NEW FLATPICKR INITIALIZATION CODE HERE =====
+    // ==========================================================
+
+    // 1. Home Hub Datepicker
+    flatpickr("#date-input", {
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "F j, Y",
+        defaultDate: "today",
+        onChange: function(selectedDates, dateStr, instance) {
+            master_updateLinks(); // Replaces the old onchange=""
+        }
+    });
+
+    // 2. Kitchen App Datepicker
+    flatpickr("#kitchen-date-picker", {
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "F j, Y",
+        defaultDate: "today"
+    });
+
+    // 3. Housekeeping App Datepickers
+    flatpickr("#hk-date-picker", {
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "F j, Y",
+        defaultDate: "today"
+    });
+    flatpickr("#reportDate", {
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "F j, Y",
+        defaultDate: "today"
+    });
+
+    // 4. Twin Visualizer App Datepicker
+    flatpickr("#twin-date-picker", {
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "F j, Y",
+        defaultDate: "today"
+    });
+    
+}); // <-- End of the DOMContentLoaded listener
 
         // --- DYNAMIC HEADER SCRIPT ---
         function initializeDynamicHeader(appPrefix, reportName) {
@@ -617,11 +663,9 @@
 
         // --- MASTER HUB SCRIPT ---
         function master_init() {
-            const dateInput = document.getElementById('date-input');
-            dateInput.value = master_getCurrentDateString();
-            master_updateLinks();
-        }
-
+    // Flatpickr now sets the default date, so we don't need to do it here.
+    master_updateLinks();
+}
         const MASTER_REPORT_LINKS = [
             { name: "Breakfast List", url: "https://app.mews.com/Commander/7cad25ef-cd74-451c-a19d-b31300863d83/ProductCheckList/Index?Start.Date=01%2F01%2F2025&End.Date=01%2F01%2F2025" },
             { name: "HK Arrival & Departure List", url: "https://app.mews.com/Commander/7cad25ef-cd74-451c-a19d-b31300863d83/GuestInHouseReport/Index?EnterpriseId=7cad25ef-cd74-451c-a19d-b31300863d83&__AntiforgeryToken=wRuS6VMUNHTWVfErQaQmGa%2FgtH34qDaPTu4nbkCX1s0t8GrDdgx0cRcaBk%2B2V6PTGFiPV2QapRhCM16teL7zjQ%3D%3D&Custom=True&Service.Id=88229245-b44c-496d-a9a9-b3130086af01&Start.Date=02%2F10%2F2025&Start.Time=00%3A15&End.Date=02%2F10%2F2025&End.Time=23%3A00&States.CheckedIn=true&States.CheckedOut=true&States.Confirmed=true&States.Optional=true&DisplayOptions.AllProducts=true&DisplayOptions.Balance=false&DisplayOptions.CarRegistrationNumber=false&DisplayOptions.Classifications=false&DisplayOptions.CompanionLoyalty=false&DisplayOptions.CustomerNotes=false&DisplayOptions.Loyalty=false&DisplayOptions.ProductsConsumedInInterval=false&DisplayOptions.ReservationNotes=true&DisplayOptions.VerificationPhoto=false&Customer.Id=&CustomerClassifications.Airline=false&CustomerClassifications.Blacklist=false&CustomerClassifications.Cashlist=false&CustomerClassifications.DisabledPerson=false&CustomerClassifications.FriendOrFamily=false&CustomerClassifications.HealthCompliant=false&CustomerClassifications.Important=false&CustomerClassifications.InRoom=false&CustomerClassifications.LoyaltyProgram=false&CustomerClassifications.Media=false&CustomerClassifications.Military=false&CustomerClassifications.PaymasterAccount=false&CustomerClassifications.PreviousComplaint=false&CustomerClassifications.Problematic=false&CustomerClassifications.Returning=false&CustomerClassifications.Staff=false&CustomerClassifications.Student=false&CustomerClassifications.TopManagement=false&CustomerClassifications.VeryImportant=false&CustomerClassifications.WaitingForRoom=false&Products.Id%5B%5D=6cd0bc5c-3791-4374-91d9-b31d00c70668&Products.Id%5B%5D=e733dbc5-4390-49ba-a0fb-b332013785c3&Products.Id%5B%5D=cc1852b3-79d1-4c39-8ffb-b31d00cae6cc&Products.Id%5B%5D=d2dfa1b7-9ab1-4082-ae6d-b331009aadc8&Products.Id%5B%5D=1361dd09-fda3-45bc-8eda-b3320138a0c2&Products.Id%5B%5D=a82741ff-fc39-441f-8674-b33201383d08&Products.Id%5B%5D=eaddb778-b118-42ca-8ae6-b3130086b7ac&Products.Id%5B%5D=3ee7b1a8-ab89-48d9-8072-b3130086b7ac&Products.Id%5B%5D=9b739fc6-388c-4bab-aceb-b3130086b8d7&Products.Id%5B%5D=a53b8385-028a-463a-bc54-b3130086b7ac&Products.Id%5B%5D=7b22d4cb-18d1-40b6-953c-b3130086b7ac&Products.Id%5B%5D=5dc46a03-3547-4199-af68-b3130086b7ac&Products.Id%5B%5D=0480db35-1ab3-426b-ba5f-b3130086b7ac&Products.Id%5B%5D=5e9f32e0-1b09-45b0-b526-b3130086b7ac&Products.Id%5B%5D=20a3a8aa-e90a-4078-a051-b3130086b7ac&Products.Id%5B%5D=c8c8e9b0-0408-4fb0-bcb2-b3130086b7ac&Products.Id%5B%5D=23296dd9-ea30-467a-bbe2-b3130086b7ac&Products.Id%5B%5D=f073df1c-00cd-4ae4-a41b-b3130086b7ac&Ordering=Space" },
