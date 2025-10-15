@@ -24,6 +24,7 @@
         /* --- Print Styles --- */
         @media print {
             body {
+                /* These are the magic rules to make colors print! */
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
@@ -39,6 +40,7 @@
                 top: 0;
                 width: 100%;
             }
+            /* Hide elements specifically marked as no-print */
             .no-print {
                 display: none !important;
             }
@@ -237,7 +239,7 @@
             uploadArea.classList.add('hidden');
             processingArea.classList.remove('hidden');
 
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${API_KEY}`;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`;
             const prompt = `Analyze this rota screenshot. Extract the schedule for every employee. The week's dates are at the top.
 The output MUST be a single JSON object with two keys: "days" and "schedule".
 - The "days" key must have an array of 7 strings for the dates (e.g., "Mon 29").
@@ -252,8 +254,26 @@ Each object represents an employee and must have two keys: "name" (string) and "
                         { inlineData: { mimeType: "image/png", data: base64ImageData } }
                     ]
                 }],
-                 generationConfig: {
+                generationConfig: {
                     responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            "days": { "type": "ARRAY", "items": { "type": "STRING" } },
+                            "schedule": {
+                                "type": "ARRAY",
+                                "items": {
+                                    "type": "OBJECT",
+                                    "properties": {
+                                        "name": { "type": "STRING" },
+                                        "schedule": { "type": "ARRAY", "items": { "type": "STRING" } }
+                                    },
+                                    "required": ["name", "schedule"]
+                                }
+                            }
+                        },
+                        "required": ["days", "schedule"]
+                    }
                 }
             };
             try {
