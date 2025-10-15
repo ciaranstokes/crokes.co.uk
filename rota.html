@@ -38,7 +38,7 @@
             }
             /* Hide elements specifically marked as no-print */
             .no-print {
-                display: none;
+                display: none !important;
             }
 
             /* --- Concise Print Styling --- */
@@ -235,7 +235,7 @@
             uploadArea.classList.add('hidden');
             processingArea.classList.remove('hidden');
 
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${API_KEY}`;
             const prompt = `Analyze this rota screenshot. Extract the schedule for every employee. The week's dates are at the top.
 The output MUST be a single JSON object with two keys: "days" and "schedule".
 - The "days" key must have an array of 7 strings for the dates (e.g., "Mon 29").
@@ -250,26 +250,8 @@ Each object represents an employee and must have two keys: "name" (string) and "
                         { inlineData: { mimeType: "image/png", data: base64ImageData } }
                     ]
                 }],
-                generationConfig: {
+                 generationConfig: {
                     responseMimeType: "application/json",
-                    responseSchema: {
-                        type: "OBJECT",
-                        properties: {
-                            "days": { "type": "ARRAY", "items": { "type": "STRING" } },
-                            "schedule": {
-                                "type": "ARRAY",
-                                "items": {
-                                    "type": "OBJECT",
-                                    "properties": {
-                                        "name": { "type": "STRING" },
-                                        "schedule": { "type": "ARRAY", "items": { "type": "STRING" } }
-                                    },
-                                    "required": ["name", "schedule"]
-                                }
-                            }
-                        },
-                        "required": ["days", "schedule"]
-                    }
                 }
             };
             try {
@@ -346,6 +328,9 @@ Each object represents an employee and must have two keys: "name" (string) and "
             [...['Name'], ...days, ...['Total', 'Calendar']].forEach(header => {
                 const headerCell = document.createElement('div');
                 headerCell.className = 'font-semibold p-3 bg-slate-200 text-slate-600 border-b-2 border-r border-slate-300';
+                if (header === 'Calendar') {
+                    headerCell.classList.add('no-print');
+                }
                 headerCell.textContent = header;
                 grid.appendChild(headerCell);
             });
@@ -385,7 +370,7 @@ Each object represents an employee and must have two keys: "name" (string) and "
 
                 // Add the new cell for the full week calendar button
                 const calendarCell = document.createElement('div');
-                calendarCell.className = 'p-3 border-b border-r-0 border-gray-200 flex items-center justify-center';
+                calendarCell.className = 'p-3 border-b border-r-0 border-gray-200 flex items-center justify-center no-print';
                 calendarCell.innerHTML = `
                     <button class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-3 rounded-lg text-sm" onclick="generateFullWeekICS('${emp.name}')">
                         <i class="fa-solid fa-calendar-plus mr-1"></i> Add Week to Calendar
@@ -415,7 +400,7 @@ Each object represents an employee and must have two keys: "name" (string) and "
                 emptyTotalCell.className = 'p-3 bg-purple-50';
                 grid.appendChild(emptyTotalCell);
                 const emptyCalendarCell = document.createElement('div');
-                emptyCalendarCell.className = 'p-3 bg-purple-50';
+                emptyCalendarCell.className = 'p-3 bg-purple-50 no-print';
                 grid.appendChild(emptyCalendarCell);
             }
         }
