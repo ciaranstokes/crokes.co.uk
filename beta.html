@@ -143,24 +143,31 @@
     text-align: center;
     font-size: 11px;
     color: black !important;
-    vertical-align: bottom; /* Aligns content (emojis) to the bottom */
-    height: 2.5rem;         /* Ensures a consistent row height */
+    height: 2.5rem; /* Explicitly set a consistent row height */
 }
 .print-table-classic th {
     font-weight: bold;
     font-size: 12px;
-    vertical-align: middle; /* Keeps header text vertically centered */
+    vertical-align: middle; /* Center header text vertically */
 }
-            .print-table-classic th:first-child, .print-table-classic td:first-child { 
-                background-color: #f1f5f9 !important; 
-                text-align: left; 
-                font-weight: bold; 
-            }
-            
-            /* Fix: Force extremely small font size on content spans within the extra row to fix height issue */
-            .print-table-classic td {
-                line-height: 1.1; /* Ensure tight row height in general */
-            }
+.print-table-classic td {
+    vertical-align: bottom; /* Align all data content to the bottom */
+}
+
+.print-table-classic th:first-child, .print-table-classic td:first-child {
+    background-color: #f1f5f9 !important;
+    text-align: left;
+    font-weight: bold;
+    vertical-align: middle; /* Re-center the first column's text */
+}
+
+/* NEW: Specific styling for the emojis in the 'Extras' row */
+.print-table-classic td > span {
+    font-size: 0.8rem !important; /* Control emoji size */
+    display: inline-block;
+    margin-bottom: 0.1rem; /* Small lift from the bottom border */
+    line-height: 1; /* Ensure tight line height for the span itself */
+}
             .print-table-classic td > span {
     font-size: 0.8rem !important;   /* Makes emojis smaller but readable */
     line-height: 1 !important;
