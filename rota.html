@@ -235,9 +235,7 @@
             uploadArea.classList.add('hidden');
             processingArea.classList.remove('hidden');
 
-            // --- FIXED API URL ---
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${API_KEY}`;
-            
             const prompt = `Analyze this rota screenshot. Extract the schedule for every employee. The week's dates are at the top.
 The output MUST be a single JSON object with two keys: "days" and "schedule".
 - The "days" key must have an array of 7 strings for the dates (e.g., "Mon 29").
@@ -250,11 +248,11 @@ Each object represents an employee and must have two keys: "name" (string) and "
                 contents: [{
                     parts: [
                         { text: prompt },
-                        { inline_data: { mime_type: "image/png", data: base64ImageData } }
+                        { inlineData: { mimeType: "image/png", data: base64ImageData } }
                     ]
                 }],
                 generationConfig: {
-                    response_mime_type: "application/json",
+                    responseMimeType: "application/json",
                 }
             };
 
