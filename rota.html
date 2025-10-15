@@ -235,7 +235,9 @@
             uploadArea.classList.add('hidden');
             processingArea.classList.remove('hidden');
 
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${API_KEY}`;
+            // --- FIXED API URL ---
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${API_KEY}`;
+            
             const prompt = `Analyze this rota screenshot. Extract the schedule for every employee. The week's dates are at the top.
 The output MUST be a single JSON object with two keys: "days" and "schedule".
 - The "days" key must have an array of 7 strings for the dates (e.g., "Mon 29").
@@ -243,17 +245,19 @@ The output MUST be a single JSON object with two keys: "days" and "schedule".
 Each object represents an employee and must have two keys: "name" (string) and "schedule" (an array of exactly 7 strings, one for each day Mon-Sun).
 - Use an empty string "" for days off or empty cells. Do not use "H".
 - Ensure the employee order in the JSON matches the order in the image.`;
+            
             const payload = {
                 contents: [{
                     parts: [
                         { text: prompt },
-                        { inlineData: { mimeType: "image/png", data: base64ImageData } }
+                        { inline_data: { mime_type: "image/png", data: base64ImageData } }
                     ]
                 }],
-                 generationConfig: {
-                    responseMimeType: "application/json",
+                generationConfig: {
+                    response_mime_type: "application/json",
                 }
             };
+
             try {
                 const response = await fetch(apiUrl, {
                     method: 'POST',
@@ -320,11 +324,10 @@ Each object represents an employee and must have two keys: "name" (string) and "
 
         function renderRota() {
             const grid = document.getElementById('rota-grid');
-            // Add a new column for the calendar download button
             grid.style.gridTemplateColumns = '1.5fr repeat(7, 1fr) 1fr 1.5fr';
             grid.innerHTML = '';
 
-            // Render Headers, adding a new header for the calendar column
+            // Render Headers
             [...['Name'], ...days, ...['Total', 'Calendar']].forEach(header => {
                 const headerCell = document.createElement('div');
                 headerCell.className = 'font-semibold p-3 bg-slate-200 text-slate-600 border-b-2 border-r border-slate-300';
@@ -368,7 +371,6 @@ Each object represents an employee and must have two keys: "name" (string) and "
                 totalCell.textContent = totalHours > 0 ? totalHours.toFixed(1) : '-';
                 grid.appendChild(totalCell);
 
-                // Add the new cell for the full week calendar button
                 const calendarCell = document.createElement('div');
                 calendarCell.className = 'p-3 border-b border-r-0 border-gray-200 flex items-center justify-center no-print';
                 calendarCell.innerHTML = `
@@ -379,7 +381,7 @@ Each object represents an employee and must have two keys: "name" (string) and "
                 grid.appendChild(calendarCell);
             });
 
-            // Render Dinner Date Row (if applicable)
+            // Render Dinner Date Row
             if(filteredData.length === 2){
                 const dinnerDays = findDinnerDates();
                 const dinnerDateHeader = document.createElement('div');
@@ -395,7 +397,6 @@ Each object represents an employee and must have two keys: "name" (string) and "
                     grid.appendChild(dinnerCell);
                 });
 
-                // Add two empty cells to align with Total and Calendar columns
                 const emptyTotalCell = document.createElement('div');
                 emptyTotalCell.className = 'p-3 bg-purple-50';
                 grid.appendChild(emptyTotalCell);
@@ -423,14 +424,12 @@ Each object represents an employee and must have two keys: "name" (string) and "
                 const match = shift.match(timeRegex);
                 if (!match) {
                     console.warn(`Could not parse shift time: ${shift}`);
-                    return; // Skip shifts with unparsable times
+                    return;
                 }
 
-                const dayString = days[index]; // e.g., "Mon 13"
+                const dayString = days[index]; 
                 const dayOfMonth = parseInt(dayString.split(' ')[1], 10);
                 const today = new Date();
-                // This is a naive approach, assuming the rota is for the current month.
-                // A more robust solution would be to get the month and year from the rota image.
                 const month = today.getMonth();
                 const year = today.getFullYear();
 
@@ -439,11 +438,6 @@ Each object represents an employee and must have two keys: "name" (string) and "
                 let endHour = parseInt(match[3], 10);
                 const endMinute = parseInt(match[4], 10);
                 
-                if (endHour < startHour || (endHour === startHour && endMinute < startMinute)) {
-                    // This handles overnight shifts, though it might not be common in this context.
-                    // A simple solution is just to assume it ends the same day.
-                }
-
                 const startDate = new Date(year, month, dayOfMonth, startHour, startMinute);
                 const endDate = new Date(year, month, dayOfMonth, endHour, endMinute);
                 
@@ -498,7 +492,6 @@ Each object represents an employee and must have two keys: "name" (string) and "
             const imagePreview = document.getElementById('image-preview');
             const imagePreviewContainer = document.getElementById('image-preview-container');
 
-            // Initial render
             renderDinnerAlert();
             renderRota();
 
