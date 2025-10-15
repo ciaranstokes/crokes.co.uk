@@ -244,15 +244,16 @@ Each object represents an employee and must have two keys: "name" (string) and "
 - Use an empty string "" for days off or empty cells. Do not use "H".
 - Ensure the employee order in the JSON matches the order in the image.`;
             
+            // --- PAYLOAD CORRECTED TO USE snake_case ---
             const payload = {
                 contents: [{
                     parts: [
                         { text: prompt },
-                        { inlineData: { mimeType: "image/png", data: base64ImageData } }
+                        { inline_data: { mime_type: "image/png", data: base64ImageData } }
                     ]
                 }],
-                generationConfig: {
-                    responseMimeType: "application/json",
+                generation_config: {
+                    response_mime_type: "application/json",
                 }
             };
 
