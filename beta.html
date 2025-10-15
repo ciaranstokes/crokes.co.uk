@@ -137,17 +137,20 @@
             #print-table-container { display: block !important; }
             .print-table-classic { width: 100%; border-collapse: collapse; margin-bottom: 2rem; }
             .floor-section-print { page-break-inside: avoid; margin-bottom: 2rem; }
-            .print-table-classic th, .print-table-classic td { 
-                border: 1px solid #334155; 
-                padding: 0.3rem; /* Slightly reduced padding */
-                text-align: center; 
-                font-size: 11px; /* Smaller font size for table data */
-                color: black !important; 
-            }
-            .print-table-classic th { 
-                font-weight: bold; 
-                font-size: 12px; /* Keep headers slightly larger */
-            }
+            .print-table-classic th, .print-table-classic td {
+    border: 1px solid #334155;
+    padding: 0.3rem;
+    text-align: center;
+    font-size: 11px;
+    color: black !important;
+    vertical-align: bottom; /* Aligns content (emojis) to the bottom */
+    height: 2.5rem;         /* Ensures a consistent row height */
+}
+.print-table-classic th {
+    font-weight: bold;
+    font-size: 12px;
+    vertical-align: middle; /* Keeps header text vertically centered */
+}
             .print-table-classic th:first-child, .print-table-classic td:first-child { 
                 background-color: #f1f5f9 !important; 
                 text-align: left; 
@@ -159,9 +162,11 @@
                 line-height: 1.1; /* Ensure tight row height in general */
             }
             .print-table-classic td > span {
-                font-size: 0.65rem !important; /* Aggressively reduced emoji size to fix row height */
-                line-height: 1 !important; /* Ensures row height is tight */
-                display: inline-block;
+    font-size: 0.8rem !important;   /* Makes emojis smaller but readable */
+    line-height: 1 !important;
+    display: inline-block;
+    margin-bottom: 0.1rem;      /* Lifts emojis slightly off the bottom border */
+}
             }
             .print-table-classic td > span > span {
                 font-size: 8px !important; /* Tiny font size for values like Bareca */
