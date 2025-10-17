@@ -1122,7 +1122,7 @@ if (keywordBase === 'birthday' || keywordBase === 'anniversary' || keywordBase =
     } else if (keywordBase === 'anniversary') {
         // Looks for anniversary, aniversary, aniversary, etc.
         regex = /\b(an?n?iversary)\b/i;
-    } else { // honeymoon
+    } else { // This is now the final fallback for "honeymoon"
         // Looks for honeymoon, honey moon, honymoon etc.
         regex = /\b(ho?n?ey\s?moon)\b/i;
     }
