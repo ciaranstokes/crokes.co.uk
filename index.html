@@ -1016,6 +1016,8 @@
                 { name: 'Picnic', key: 'Picnic', emoji: '🧺', condition: 'Arrival', hasValue: false }, // Picnic basket emoji
                 { name: 'Prosecco', key: 'Prosecco', emoji: '🍾', condition: 'Arrival', hasValue: false }, // Champagne emoji
                 { name: 'Selection of 6 IPA\'s', key: 'Selectionof6IPAs', emoji: '🍺', condition: 'Arrival', hasValue: false } // Beer emoji
+                { name: 'Birthday', key: 'Birthday', emoji: '🎉', condition: 'Arrival', hasValue: false }, // Birthday cake emoji
+                { name: 'Anniversary', key: 'Anniversary', emoji: '💝', condition: 'Arrival', hasValue: false }, // Anniversary hearts emoji
             ];
 
             // --- NEW HELPER: Get value per unit from product name (e.g., gets 25 from Bareca Voucher (£25 Per Head)) ---
@@ -1107,84 +1109,79 @@
             }
             
             // --- NEW: Robust Item Counter for the new columnar format ---
-            function getItemCount(keyword, cleanedBlock, dateRangeStr, reportDate) { 
-                let total = 0;
-                const keywordBase = keyword.replace(/ \(\£.*?\)/, '').toLowerCase(); // Remove price info for matching
+            function getItemCount(keyword, cleanedBlock, dateRangeStr, reportDate) {
+    let total = 0;
+    const keywordBase = keyword.replace(/ \(\£.*?\)/, '').toLowerCase();
 
-                // 1. Look for explicit "X x Keyword" in the cleaned block (Products column)
-                // This regex is flexible to handle the "X x Product Name (price)" structure.
-                const productRegex = new RegExp(`(\\d+)\\s*x\\s+${keywordBase.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}`, 'ig'); 
-                let match;
-                
-                let productCount = 0;
-                while ((match = productRegex.exec(cleanedBlock.toLowerCase())) !== null) {
-                    productCount += parseInt(match[1], 10);
-                }
-                
-                // Special case: Pet Guests (Your specific request)
-                if (keywordBase.includes('pet guest')) {
-                    // Check for explicit "Second Pet" product, which overrides simple per-night logic if found.
-                    const secondPetRegex = new RegExp(`(second\\s*pet\\s*guest)|(2nd\\s*pet)`, 'ig');
-                    if (secondPetRegex.test(cleanedBlock.toLowerCase())) {
-                         // If a second pet product is explicitly listed, assume 2 pets.
-                         return 2; 
-                    }
-                    
-                    // If no explicit "Second Pet", check if the purchased count matches the stay duration.
-                    if (dateRangeStr) {
-                        const duration = getStayDuration(dateRangeStr, reportDate);
-                        
-                        // If the total product count (e.g., 2 x Pet Guest) equals the duration (2 nights), 
-                        // it signifies 1 pet charged per night.
-                        if (productCount > 0 && productCount === duration) {
-                            return 1;
-                        } 
-                        
-                        // If the product count is greater than duration, it suggests multiple pets.
-                        if (productCount > duration) {
-                             // Assuming any excess is due to a second pet charged per night.
-                             // Example: 4 x Pet Guest (2 nights). Duration is 2. 4/2 = 2 pets.
-                             // Since the data format is inconsistent, we stick to checking for the divisor.
-                             if (duration > 0 && productCount % duration === 0) {
-                                 return productCount / duration;
-                             }
-                        }
-                    }
-                    
-                    // Fallback: If any pet product is listed, assume 1 pet is present today, unless overridden by the logic above.
-                    if (productCount > 0) return 1;
-                    
-                    return 0;
-                }
+    // --- NEW: Special handling for birthdays and anniversaries ---
+    if (keywordBase === 'birthday' || keywordBase === 'anniversary') {
+        let regex;
+        if (keywordBase === 'birthday') {
+            // Looks for birthday, bday, b-day, birth day, etc.
+            regex = /\b(b-day|bday|birth\s?day)\b/i;
+        } else { // anniversary
+            // Looks for anniversary, aniversary, aniversary, etc.
+            regex = /\b(an?n?iversary)\b/i;
+        }
 
-                // Default logic for other products: use direct count accumulated above
-                total = productCount;
-                
-                // 2. Look for implicit keyword mentions (fallback for non-pet products)
-                if (total === 0) {
-                     // Check for simple mentions, excluding the "X x " prefix
-                    const implicitRegex = new RegExp(`(?!\\d\\s*x\\s*)\\b${keywordBase.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, 'ig');
-                    if (implicitRegex.test(cleanedBlock.toLowerCase())) {
-                        if (keywordBase.includes('twin') || keywordBase.includes('zedbed') || keywordBase.includes('daybed') || keywordBase.includes('trundle')) {
-                            total = 1;
-                        } else if (!keywordBase.includes('pet guest')) {
-                            total = 1;
-                        }
-                    }
-                }
-                
-                // Special case for Twin Beds, check for TWIN BEDS in caps in notes (overrides previous total if it was 0)
-                if (keywordBase.includes('twin') && cleanedBlock.toUpperCase().includes('TWIN BEDS')) {
-                    if (total === 0) total = 1; 
-                }
-                
-                // Special case for ZedBed/Daybed
-                if (keywordBase.includes('zedbed') && (cleanedBlock.toUpperCase().includes('ZEDBED') || cleanedBlock.toLowerCase().includes('daybed'))) {
-                    if (total === 0) total = 1;
-                }
+        if (regex.test(cleanedBlock)) {
+            return 1; // Found a match, so we count it as 1
+        }
+    }
+    // --- End of new section ---
 
-                return total;
+
+    // This part remains from your existing code to handle other items
+    const productRegex = new RegExp(`(\\d+)\\s*x\\s+${keywordBase.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}`, 'ig');
+    let match;
+    let productCount = 0;
+    while ((match = productRegex.exec(cleanedBlock.toLowerCase())) !== null) {
+        productCount += parseInt(match[1], 10);
+    }
+
+    if (keywordBase.includes('pet guest')) {
+        const secondPetRegex = new RegExp(`(second\\s*pet\\s*guest)|(2nd\\s*pet)`, 'ig');
+        if (secondPetRegex.test(cleanedBlock.toLowerCase())) {
+            return 2;
+        }
+        if (dateRangeStr) {
+            const duration = getStayDuration(dateRangeStr, reportDate);
+            if (productCount > 0 && productCount === duration) {
+                return 1;
             }
+            if (productCount > duration) {
+                if (duration > 0 && productCount % duration === 0) {
+                    return productCount / duration;
+                }
+            }
+        }
+        if (productCount > 0) return 1;
+        return 0;
+    }
+
+    total = productCount;
+
+    if (total === 0) {
+        const implicitRegex = new RegExp(`(?!\\d\\s*x\\s*)\\b${keywordBase.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, 'ig');
+        if (implicitRegex.test(cleanedBlock.toLowerCase())) {
+            if (keywordBase.includes('twin') || keywordBase.includes('zedbed') || keywordBase.includes('daybed') || keywordBase.includes('trundle')) {
+                total = 1;
+            } else if (!keywordBase.includes('pet guest')) {
+                total = 1;
+            }
+        }
+    }
+
+    if (keywordBase.includes('twin') && cleanedBlock.toUpperCase().includes('TWIN BEDS')) {
+        if (total === 0) total = 1;
+    }
+
+    if (keywordBase.includes('zedbed') && (cleanedBlock.toUpperCase().includes('ZEDBED') || cleanedBlock.toLowerCase().includes('daybed'))) {
+        if (total === 0) total = 1;
+    }
+
+    return total;
+}
 
             // --- NEW: Extracts extra product counts and values ---
             function extractExtraProducts(cleanedBlock, dateRangeStr, reportDate) {
