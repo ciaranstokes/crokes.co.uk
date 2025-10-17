@@ -1113,25 +1113,24 @@
     let total = 0;
     const keywordBase = keyword.replace(/ \(\£.*?\)/, '').toLowerCase();
 
-    // --- NEW: Special handling for birthdays and anniversaries ---
-    if (keywordBase === 'birthday' || keywordBase === 'anniversary') {
-        let regex;
-        if (keywordBase === 'birthday') {
-            // Looks for birthday, bday, b-day, birth day, etc.
-            regex = /\b(b-day|bday|birth\s?day)\b/i;
-        } else { // anniversary
-            // Looks for anniversary, aniversary, aniversary, etc.
-            regex = /\b(an?n?iversary)\b/i;
-        }
-        else { // honeymoon
-            // Looks for anniversary, aniversary, aniversary, etc.
-            regex = /\b(ho?n?eymoon)\b/i;
-        }
-
-        if (regex.test(cleanedBlock)) {
-            return 1; // Found a match, so we count it as 1
-        }
+// --- NEW: Special handling for birthdays, anniversaries, and honeymoons ---
+if (keywordBase === 'birthday' || keywordBase === 'anniversary' || keywordBase === 'honeymoon') {
+    let regex;
+    if (keywordBase === 'birthday') {
+        // Looks for birthday, bday, b-day, birth day, etc.
+        regex = /\b(b-day|bday|birth\s?day)\b/i;
+    } else if (keywordBase === 'anniversary') {
+        // Looks for anniversary, aniversary, aniversary, etc.
+        regex = /\b(an?n?iversary)\b/i;
+    } else { // honeymoon
+        // Looks for honeymoon, honey moon, honymoon etc.
+        regex = /\b(ho?n?ey\s?moon)\b/i;
     }
+
+    if (regex.test(cleanedBlock)) {
+        return 1; // Found a match, so we count it as 1
+    }
+}
     // --- End of new section ---
 
 
