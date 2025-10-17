@@ -1123,6 +1123,10 @@
             // Looks for anniversary, aniversary, aniversary, etc.
             regex = /\b(an?n?iversary)\b/i;
         }
+        else { // honeymoon
+            // Looks for anniversary, aniversary, aniversary, etc.
+            regex = /\b(ho?n?eymoon)\b/i;
+        }
 
         if (regex.test(cleanedBlock)) {
             return 1; // Found a match, so we count it as 1
