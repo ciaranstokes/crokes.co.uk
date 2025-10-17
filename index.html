@@ -1020,16 +1020,24 @@
 
             // --- NEW HELPER: Get value per unit from product name (e.g., gets 25 from Bareca Voucher (£25 Per Head)) ---
             function getExtraValue(keyword, cleanedText) {
-                // Find the specific product line that includes the value in parentheses.
-                // Regex to find the value associated with the keyword, assuming format (VALUE Per Head)
-                const keywordBase = keyword.replace(/ \(\£.*?\)/, '').toLowerCase();
-                
-                // FIX: Corrected regex definition to use template literals and backslashes correctly
-                const valueRegex = new RegExp(`${keywordBase.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\s*\\(\\s*£(\\d+)\\s*Per Head\\)`, 'i');
-                const match = cleanedText.match(valueRegex);
-                
-                return match ? parseInt(match[1], 10) : 0; // Returns the integer value (e.g., 25)
-            }
+    const keywordBase = keyword.replace(/ \(\£.*?\)/, '').toLowerCase();
+
+    // 1. First, try to match the existing format: "Bareca Voucher (£25 Per Head)"
+    const perHeadRegex = new RegExp(`${keywordBase.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\s*\\(\\s*£(\\d+)\\s*Per Head\\)`, 'i');
+    const perHeadMatch = cleanedText.match(perHeadRegex);
+    if (perHeadMatch) {
+        return parseInt(perHeadMatch[1], 10);
+    }
+
+    // 2. If the first format fails, try the new format: "1 x £40 Voucher"
+    const totalValueRegex = new RegExp(`\\d+\\s*x\\s*£(\\d+)\\s*${keywordBase.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}`, 'i');
+    const totalValueMatch = cleanedText.match(totalValueRegex);
+    if (totalValueMatch) {
+        return parseInt(totalValueMatch[1], 10);
+    }
+
+    return 0; // Return 0 if no value is found
+}
             
             // Helper to determine stay duration
             function getStayDuration(dateRangeStr, reportDate) {
