@@ -1019,24 +1019,34 @@
             ];
 
             // --- NEW HELPER: Get value per unit from product name (e.g., gets 25 from Bareca Voucher (£25 Per Head)) ---
-            function getExtraValue(keyword, cleanedText) {
+           function getExtraValue(keyword, cleanedText) {
     const keywordBase = keyword.replace(/ \(\£.*?\)/, '').toLowerCase();
 
-    // 1. First, try to match the existing format: "Bareca Voucher (£25 Per Head)"
+    // 1. First, try the original format: "Bareca Voucher (£25 Per Head)"
     const perHeadRegex = new RegExp(`${keywordBase.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\s*\\(\\s*£(\\d+)\\s*Per Head\\)`, 'i');
     const perHeadMatch = cleanedText.match(perHeadRegex);
-    if (perHeadMatch) {
+    if (perHeadMatch && perHeadMatch[1]) {
         return parseInt(perHeadMatch[1], 10);
     }
 
-    // 2. If the first format fails, try the new format: "1 x £40 Voucher"
-    const totalValueRegex = new RegExp(`\\d+\\s*x\\s*£(\\d+)\\s*${keywordBase.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}`, 'i');
-    const totalValueMatch = cleanedText.match(totalValueRegex);
-    if (totalValueMatch) {
-        return parseInt(totalValueMatch[1], 10);
+    // 2. If the keyword is a voucher, look for the generic format: "1 x £40 Voucher"
+    if (keywordBase.includes('voucher')) {
+        // This regex finds a monetary value (£XX) followed by the word "Voucher"
+        const genericVoucherRegex = /(?:\d+\s*x\s*)?£(\d+)\s*Voucher/i;
+        const genericMatch = cleanedText.match(genericVoucherRegex);
+        if (genericMatch && genericMatch[1]) {
+            return parseInt(genericMatch[1], 10);
+        }
+    }
+    
+    // 3. As a fallback, look for a format like: "£40 Boot Crew Voucher"
+    const directValueRegex = new RegExp(`(?:\\d+\\s*x\\s*)?£(\\d+)\\s*${keywordBase.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}`, 'i');
+    const directMatch = cleanedText.match(directValueRegex);
+    if (directMatch && directMatch[1]) {
+        return parseInt(directMatch[1], 10);
     }
 
-    return 0; // Return 0 if no value is found
+    return 0; // Return 0 if no value pattern is matched
 }
             
             // Helper to determine stay duration
