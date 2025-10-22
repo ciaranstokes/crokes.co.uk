@@ -123,6 +123,58 @@
         .today-header { background-color: #fecdd3 !important; border-left: 2px solid #f43f5e; border-right: 2px solid #f43f5e; }
         .today-cell { background-color: #fff1f2; }
 
+/* --- Group Booking List Styles --- */
+        #groupBookingTableContainer table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #fff;
+            font-size: 16px;
+        }
+
+        #groupBookingTableContainer th,
+        #groupBookingTableContainer td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        #groupBookingTableContainer th {
+            background-color: #f97316; /* Orange header */
+            color: white;
+            font-weight: bold;
+        }
+        
+        #groupBookingTableContainer tr:nth-child(even) {
+            background-color: #fff7ed; /* Light orange for zebra striping */
+        }
+        
+        /* Print Styles for Group Booking */
+        @media print {
+            #group-booking-app #groupBookingTableContainer, 
+            #group-booking-app #groupBookingTableContainer * {
+                visibility: visible;
+            }
+            #group-booking-app #groupBookingTitle {
+                display: block !important;
+                color: #000 !important;
+                text-align: center;
+                font-size: 1.5rem;
+                font-weight: bold;
+                margin-bottom: 1rem;
+            }
+            #group-booking-app {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            #group-booking-app th {
+                 background-color: #f2f2f2 !important;
+                 color: #000 !important;
+            }
+        }
+
         /* --- Print Specific Styles --- */
         @media print {
             body { 
@@ -219,34 +271,27 @@
         
         <!-- Navigation Links Card -->
         <div class="card bg-white p-6 sm:p-10 rounded-3xl border-violet-100 mt-6 md:mt-12 no-print">
-            <div id="main-nav" class="grid grid-cols-2 md:grid-cols-5 gap-6">
-                <!-- 0. Home -->
-                 <a href="#" data-target="home-app"
-                   class="nav-button bg-gray-500 text-white font-bold h-24 rounded-2xl hover:bg-gray-600 transition duration-150 shadow-md transform hover:scale-[1.03] active:scale-[0.98] flex items-center justify-center p-3 active">
-                    <span class="text-center">Home Hub</span>
-                </a>
-                <!-- 1. Breakfast List (Emerald/Green) -->
-                <a href="#" data-target="breakfast-app"
-                   class="nav-button bg-emerald-500 text-white font-bold h-24 rounded-2xl hover:bg-emerald-600 transition duration-150 shadow-md transform hover:scale-[1.03] active:scale-[0.98] flex items-center justify-center p-3">
-                    <span class="text-center">Breakfast List</span>
-                </a>
-                <!-- 2. Kitchen List (Pink) -->
-                <a href="#" data-target="kitchen-app"
-                   class="nav-button bg-pink-500 text-white font-bold h-24 rounded-2xl hover:bg-pink-600 transition duration-150 shadow-md transform hover:scale-[1.03] active:scale-[0.98] flex items-center justify-center p-3">
-                    <span class="text-center">Kitchen List</span>
-                </a>
-                <!-- 3. HK Plan (Sky/Blue) -->
-                <a href="#" data-target="hk-app"
-                   class="nav-button bg-sky-500 text-white font-bold h-24 rounded-2xl hover:bg-sky-600 transition duration-150 shadow-md transform hover:scale-[1.03] active:scale-[0.98] flex items-center justify-center p-3">
-                    <span class="text-center">Housekeeping Plan</span>
-                </a>
-                <!-- 4. Twin Room Visualizer (Violet/Purple) -->
-                <a href="#" data-target="twin-app"
-                   class="nav-button bg-violet-500 text-white font-bold h-24 rounded-2xl hover:bg-violet-600 transition duration-150 shadow-md transform hover:scale-[1.03] active:scale-[0.98] flex items-center justify-center p-3">
-                    <span class="text-center">Twin Room Visualizer</span>
-                </a>
-            </div>
-        </div>
+    <div id="main-nav" class="grid grid-cols-2 md:grid-cols-5 gap-6">
+        <a href="#" data-target="home-app" class="nav-button bg-gray-500 text-white font-bold h-24 rounded-2xl hover:bg-gray-600 transition duration-150 shadow-md transform hover:scale-[1.03] active:scale-[0.98] flex items-center justify-center p-3 active">
+            <span class="text-center">Home Hub</span>
+        </a>
+        <a href="#" data-target="breakfast-app" class="nav-button bg-emerald-500 text-white font-bold h-24 rounded-2xl hover:bg-emerald-600 transition duration-150 shadow-md transform hover:scale-[1.03] active:scale-[0.98] flex items-center justify-center p-3">
+            <span class="text-center">Breakfast List</span>
+        </a>
+        <a href="#" data-target="kitchen-app" class="nav-button bg-pink-500 text-white font-bold h-24 rounded-2xl hover:bg-pink-600 transition duration-150 shadow-md transform hover:scale-[1.03] active:scale-[0.98] flex items-center justify-center p-3">
+            <span class="text-center">Kitchen List</span>
+        </a>
+        <a href="#" data-target="hk-app" class="nav-button bg-sky-500 text-white font-bold h-24 rounded-2xl hover:bg-sky-600 transition duration-150 shadow-md transform hover:scale-[1.03] active:scale-[0.98] flex items-center justify-center p-3">
+            <span class="text-center">Housekeeping Plan</span>
+        </a>
+        <a href="#" data-target="twin-app" class="nav-button bg-violet-500 text-white font-bold h-24 rounded-2xl hover:bg-violet-600 transition duration-150 shadow-md transform hover:scale-[1.03] active:scale-[0.98] flex items-center justify-center p-3">
+            <span class="text-center">Twin Room Visualizer</span>
+        </a>
+        <a href="#" data-target="group-booking-app" class="nav-button bg-orange-500 text-white font-bold h-24 rounded-2xl hover:bg-orange-600 transition duration-150 shadow-md transform hover:scale-[1.03] active:scale-[0.98] flex items-center justify-center p-3">
+            <span class="text-center">Group Booking List</span>
+        </a>
+    </div>
+</div>
 
         <!-- App Content Area -->
         <div class="mt-8">
@@ -524,8 +569,28 @@
                 </div>
             </div>
         </div>
-    </div>
+<div id="group-booking-app" class="app-content">
+                <div class="container mx-auto px-4 py-8 lg:py-12">
+                    <header class="text-center mb-8 lg:mb-12 no-print">
+                        <h1 id="groupBookingTitle" class="text-3xl md:text-4xl font-extrabold tracking-tight text-orange-600">Group Booking List</h1>
+                    </header>
+                    <main class="bg-white/70 backdrop-blur-sm p-6 lg:p-8 rounded-3xl shadow-xl shadow-orange-200/50">
+                        <div class="controls flex flex-wrap items-center justify-center gap-4 mb-6 no-print">
+                            <input type="file" id="groupBookingFile" accept=".xlsx, .xls, .csv" class="block w-full sm:w-auto text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100"/>
+                            <button id="sortByRoomBtn" class="bg-orange-500 text-white font-bold py-2 px-5 rounded-xl hover:bg-orange-600 transition">Sort by Room</button>
+                            <button id="sortByFirstNameBtn" class="bg-orange-500 text-white font-bold py-2 px-5 rounded-xl hover:bg-orange-600 transition">Sort by First Name</button>
+<button id="sortByLastNameBtn" class="bg-orange-500 text-white font-bold py-2 px-5 rounded-xl hover:bg-orange-600 transition">Sort by Last Name</button>
+                            <button id="printGroupBookingBtn" class="bg-gray-500 text-white font-bold py-2 px-5 rounded-xl hover:bg-gray-600 transition">Print</button>
+                        </div>
 
+                        <div id="groupBookingTableContainer" class="mt-4">
+                            <p class="text-center text-gray-500">Please upload an Excel file to see the booking list.</p>
+                        </div>
+                    </main>
+                </div>
+            </div>
+    </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         // --- SUPER APP NAVIGATION LOGIC ---
         document.addEventListener('DOMContentLoaded', function() {
@@ -559,6 +624,7 @@
             kitchen_init();
             hk_init();
             twin_init();
+	    group_booking_init();
             // FIX: Corrected report names to match array keys exactly
             initializeDynamicHeader('kitchen', 'Daily Kitchen Products');
             initializeDynamicHeader('hk', 'HK Arrival & Departure List');
@@ -2130,6 +2196,216 @@ if (keywordBase === 'birthday' || keywordBase === 'anniversary' || keywordBase =
             function parseDate(dateStr, year = 2025) { const [day, month] = dateStr.split('/'); if (!day || !month) throw new Error(`Invalid date: ${dateStr}`); return new Date(Date.UTC(year, parseInt(month, 10) - 1, parseInt(day, 10))); }
             function getDaysDifference(start, end) { return Math.round((new Date(end) - new Date(start)) / 86400000); }
             function categorizeRooms(allRooms) { const categorized = { 'Large Rooms': new Set(), 'Accessible Rooms': new Set(), 'Medium Rooms': new Set(), 'Outliers': new Set() }; allRooms.forEach(room => { const category = roomToCategoryMap[room] || 'Outliers'; categorized[category].add(room); }); for (const category in categorized) { categorized[category] = Array.from(categorized[category]).sort((a, b) => parseInt(a) - parseInt(b)); } return categorized; }
+        }
+// --- GROUP BOOKING LIST SCRIPT ---
+        function group_booking_init() {
+            // Global variable to store parsed data for sorting
+            let reservationData = [];
+
+            // --- Event Listeners ---
+            document.getElementById('groupBookingFile').addEventListener('change', handleFileSelect);
+            document.getElementById('sortByRoomBtn').addEventListener('click', sortByRoom);
+            document.getElementById('sortByFirstNameBtn').addEventListener('click', sortByFirstName);
+            document.getElementById('sortByLastNameBtn').addEventListener('click', sortByLastName); // Listener for the new button
+            document.getElementById('printGroupBookingBtn').addEventListener('click', group_booking_print);
+
+            /**
+             * Helper function to group and sort the reservation data.
+             */
+            function getGroupedAndSortedData(data, sortBy = 'room') {
+                const rooms = {};
+                data.forEach(row => {
+                    const roomNumber = row['Room'] || 'N/A';
+                    if (!rooms[roomNumber]) {
+                        rooms[roomNumber] = [];
+                    }
+                    row['First name'] = String(row['First name'] || '');
+                    row['Last name'] = String(row['Last name'] || '');
+                    rooms[roomNumber].push(row);
+                });
+
+                let sortedRoomEntries = Object.entries(rooms);
+
+                // Updated sorting logic
+                if (sortBy === 'firstName') {
+                    sortedRoomEntries.sort((a, b) => {
+                        const guestNameA = a[1][0]['First name'].toLowerCase();
+                        const guestNameB = b[1][0]['First name'].toLowerCase();
+                        return guestNameA.localeCompare(guestNameB);
+                    });
+                } else if (sortBy === 'lastName') { // New sorting case
+                    sortedRoomEntries.sort((a, b) => {
+                        const guestNameA = a[1][0]['Last name'].toLowerCase();
+                        const guestNameB = b[1][0]['Last name'].toLowerCase();
+                        return guestNameA.localeCompare(guestNameB);
+                    });
+                } else { // Default to room sort
+                    sortedRoomEntries.sort((a, b) => {
+                        const roomA = parseInt(a[0], 10) || 0;
+                        const roomB = parseInt(b[0], 10) || 0;
+                        return roomA - roomB;
+                    });
+                }
+                return sortedRoomEntries;
+            }
+            
+            /**
+             * Reads and processes the uploaded Excel file.
+             */
+            function handleFileSelect(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const groupName = file.name.split('-')[0].trim().replace(/_/g, ' ');
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                    
+                    reservationData = jsonData;
+
+                    const titleElement = document.getElementById('groupBookingTitle');
+                    if (jsonData.length > 0 && jsonData[0]['Arrival date']) {
+                        const earliestDate = new Date(Math.min.apply(null, jsonData.map(row => new Date(row['Arrival date']))));
+                        const formattedDate = earliestDate.toLocaleDateString('en-GB');
+                        titleElement.innerText = `${groupName} - Arrival: ${formattedDate}`;
+                    } else {
+                        titleElement.innerText = groupName;
+                    }
+
+                    renderTable(reservationData, 'room');
+                };
+
+                reader.readAsArrayBuffer(file);
+            }
+
+            /**
+             * Renders the reservation data into an HTML table for the screen.
+             */
+            function renderTable(data, sortBy = 'room') {
+                const container = document.getElementById('groupBookingTableContainer');
+                const sortedRoomEntries = getGroupedAndSortedData(data, sortBy);
+                 if (!sortedRoomEntries || sortedRoomEntries.length === 0) {
+                    container.innerHTML = '<p class="text-center text-gray-500">No data found in the file.</p>';
+                    return;
+                }
+
+                let tableHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Room</th>
+                                <th>Guests</th>
+                                <th>Arrived</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+
+                for (const [roomNumber, guests] of sortedRoomEntries) {
+                    guests.sort((a, b) => a['Last name'].localeCompare(b['Last name']));
+                    const formattedNames = guests.map(guest => `<b>${guest['Last name'].trim()}</b> ${guest['First name'].trim()}`).join('<br>');
+
+                    tableHTML += `
+                        <tr>
+                            <td>${roomNumber}</td>
+                            <td>${formattedNames}</td>
+                            <td></td>
+                        </tr>`;
+                }
+
+                tableHTML += '</tbody></table>';
+                container.innerHTML = tableHTML;
+            }
+
+            function sortByRoom() {
+                if (reservationData.length === 0) return;
+                renderTable(reservationData, 'room');
+            }
+
+            function sortByFirstName() {
+                if (reservationData.length === 0) return;
+                renderTable(reservationData, 'firstName');
+            }
+            
+            // New function for the new button
+            function sortByLastName() {
+                if (reservationData.length === 0) return;
+                renderTable(reservationData, 'lastName');
+            }
+            
+            /**
+             * Generates a new window with a print-friendly, auto-sizing report.
+             */
+            function group_booking_print() {
+                if (!reservationData || reservationData.length === 0) {
+                    alert("Please upload a file before printing.");
+                    return;
+                }
+                
+                const titleText = document.getElementById('groupBookingTitle').innerText;
+                const [groupName, arrivalDate] = titleText.split(' - ');
+                const totalGuests = reservationData.length;
+                
+                const sortedRoomEntries = getGroupedAndSortedData(reservationData, 'room');
+
+                let tableRows = '';
+                for (const [roomNumber, guests] of sortedRoomEntries) {
+                    guests.sort((a, b) => a['Last name'].localeCompare(b['Last name']));
+                    const formattedNames = guests.map(g => `<b>${g['Last name'].trim()}</b> ${g['First name'].trim()}`).join('<br>');
+                    tableRows += `
+                        <tr>
+                            <td>${roomNumber}</td>
+                            <td>${formattedNames}</td>
+                            <td></td>
+                        </tr>`;
+                }
+
+                const printWindow = window.open('', '_blank');
+                printWindow.document.write(`<html><head><title>Print Group Booking</title><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><style>
+                    @media print { @page { size: A4 portrait; margin: 10mm; } }
+                    body { font-family: 'Inter', sans-serif; font-size: 11pt; }
+                    .header-container { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+                    .main-title { background-color: #fff7ed; border-radius: 25px; color: #9a3412; padding: 5px 20px; font-size: 24pt; font-weight: 700; }
+                    .info-block { text-align: right; font-size: 14pt; background-color: #fff7ed; border-radius: 25px; color: #9a3412; padding: 5px 20px; }
+                    .table-container { display: flex; justify-content: center; }
+                    table { border-collapse: collapse; }
+                    th, td { border: 1px solid #ccc; padding: 4px 8px; text-align: left; vertical-align: top; }
+                    th { background-color: #f2f2f2; font-weight: bold; white-space: nowrap; }
+                    td:nth-child(1) { text-align: center; font-weight: bold; }
+                    td:nth-child(2) { white-space: nowrap; }
+                    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                </style></head><body>
+                    <div class="header-container">
+                        <div class="main-title">Group Booking List</div>
+                        <div class="info-block">
+                            <div><strong>${groupName}</strong></div>
+                            <div>${arrivalDate}</div>
+                            <div>Total Guests: ${totalGuests}</div>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Room</th>
+                                    <th>Guests</th>
+                                    <th>Arrived</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${tableRows}
+                            </tbody>
+                        </table>
+                    </div>
+                </body></html>`);
+                printWindow.document.close();
+                printWindow.focus();
+                setTimeout(() => { printWindow.print(); printWindow.close(); }, 250);
+            }
         }
     </script>
 </body>
