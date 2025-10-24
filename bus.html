@@ -11,31 +11,29 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Doto&display=swap" rel="stylesheet">
     <style>
-        /* --- Light Mode Styles --- */
+        /* --- Base and Light Mode Styles --- */
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f1f5f9;
             /* gray-100 */
         }
 
-        .dark body {
-            background-color: #030712;
-            /* dark:gray-950 */
+        .card-background {
+            background-color: white;
         }
 
-        /* --- Carousel Styles --- */
+        h1,
+        #large-clock {
+            letter-spacing: normal;
+        }
+
+        /* --- Base Carousel Layout (for both modes) --- */
         .carousel-wrapper {
             overflow-x: auto;
-            /* Smooth scrolling on touch devices */
             -webkit-overflow-scrolling: touch;
-            /* Disable overscroll/bounce effect on touch */
             overscroll-behavior-x: contain;
-            /* Hide scrollbar */
             scrollbar-width: none;
-            /* Firefox */
             cursor: grab;
-            /* Cursor for desktop */
-            /* Add some padding to see the shadows */
             padding-top: 0.5rem;
             padding-bottom: 0.5rem;
             margin-top: -0.5rem;
@@ -48,168 +46,37 @@
 
         .carousel-wrapper::-webkit-scrollbar {
             display: none;
-            /* Safari and Chrome */
         }
 
         .carousel-container {
             display: flex;
             gap: 1rem;
-            /* 16px */
             padding-left: 0.25rem;
             padding-right: 0.25rem;
         }
 
         .carousel-item {
-            /* Each slide will snap to the start */
             scroll-snap-align: start;
             flex-shrink: 0;
-            /* Each slide takes up 60% of the container width on mobile */
             width: 60%;
             transform-origin: center center;
             border-radius: 0.75rem;
-            /* rounded-xl */
             user-select: none;
-            /* Prevent text selection on drag */
             transition: all 0.2s ease-in-out;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
         }
 
-        /* On larger screens, show 3 slides */
         @media (min-width: 640px) {
             .carousel-item {
                 width: 31%;
-                /* approx 1/3 with gaps */
             }
         }
 
-        /* --- Carousel Item States --- */
-
-        /* 1. Next Bus (Blue) */
-        .bus-next {
-            background-color: #dbeafe;
-            /* blue-100 */
-            color: #1e3a8a;
-            /* blue-900 */
-            border: 1px solid #93c5fd;
-            /* blue-300 */
-            transform: scale(1.03);
-        }
-
-        .dark .bus-next {
-            background-color: #1e3a8a;
-            /* dark:blue-900 */
-            color: #eff6ff;
-            /* dark:blue-50 */
-            border: 1px solid #3b82f6;
-            /* dark:blue-500 */
-        }
-
-        .bus-next .time {
-            color: #2563eb;
-            /* blue-600 */
-        }
-
-        .dark .bus-next .time {
-            color: #93c5fd;
-            /* dark:blue-300 */
-        }
-
-        /* 2. Upcoming Today (Light Gray) */
-        .bus-upcoming {
-            background-color: #ffffff;
-            /* white */
-            color: #374151;
-            /* gray-700 */
-            border: 1px solid #e5e7eb;
-            /* gray-200 */
-        }
-
-        .dark .bus-upcoming {
-            background-color: #1f2937;
-            /* dark:gray-800 */
-            color: #d1d5db;
-            /* dark:gray-300 */
-            border: 1px solid #4b5563;
-            /* dark:gray-600 */
-        }
-
-        .bus-upcoming .time {
-            color: #111827;
-            /* gray-900 */
-        }
-
-        .dark .bus-upcoming .time {
-            color: #f9fafb;
-            /* dark:gray-50 */
-        }
-
-        /* 3. Past Bus (Faded Gray) */
-        .bus-past {
-            background-color: #f9fafb;
-            /* gray-50 */
-            color: #9ca3af;
-            /* gray-400 */
-            border: 1px solid #f3f4f6;
-            /* gray-100 */
-            opacity: 0.7;
-        }
-
-        .dark .bus-past {
-            background-color: #111827;
-            /* dark:gray-900 */
-            color: #6b7280;
-            /* dark:gray-500 */
-            border: 1px solid #1f2937;
-            /* dark:gray-800 */
-            opacity: 0.6;
-        }
-
-        .bus-past .time {
-            color: #9ca3af;
-            /* gray-400 */
-        }
-
-        .dark .bus-past .time {
-            color: #4b5563;
-            /* dark:gray-600 */
-        }
-
-        /* 4. Future Day Bus (White/Dark Gray, like upcoming) */
-        .bus-future {
-            background-color: #ffffff;
-            /* white */
-            color: #374151;
-            /* gray-700 */
-            border: 1px solid #e5e7eb;
-            /* gray-200 */
-        }
-
-        .dark .bus-future {
-            background-color: #1f2937;
-            /* dark:gray-800 */
-            color: #d1d5db;
-            /* dark:gray-300 */
-            border: 1px solid #4b5563;
-            /* dark:gray-600 */
-        }
-
-        .bus-future .time {
-            color: #111827;
-            /* gray-900 */
-        }
-
-        .dark .bus-future .time {
-            color: #f9fafb;
-            /* dark:gray-50 */
-        }
-
-        /* --- Day Header in Carousel --- */
         .carousel-day-header {
             flex-shrink: 0;
             width: auto;
             padding-left: 0.5rem;
             padding-right: 0.5rem;
-            /* Aligns with bus card horizontal padding */
             display: flex;
             align-items: center;
             scroll-snap-align: start;
@@ -218,50 +85,88 @@
 
         .carousel-day-header h4 {
             font-size: 1.25rem;
-            /* text-xl */
             font-weight: 700;
-            /* bold */
-            color: #3b82f6;
-            /* blue-500 */
             white-space: nowrap;
             padding-bottom: 1.25rem;
-            /* Aligns with bus card text */
-        }
-
-        .dark .carousel-day-header h4 {
-            color: #60a5fa;
-            /* dark:blue-400 */
         }
 
         .carousel-day-header.today h4 {
             font-size: 1.5rem;
-            /* text-2xl */
-            color: #1d4ed8;
-            /* blue-700 */
         }
 
-        .dark .carousel-day-header.today h4 {
-            color: #93c5fd;
-            /* dark:blue-300 */
+        /* --- Light Mode Theming --- */
+        .bus-next {
+            background-color: #dbeafe;
+            color: #1e3a8a;
+            border: 1px solid #93c5fd;
+            transform: scale(1.03);
         }
-        
-        /* --- Dark Mode Dot Matrix Styles --- */
+
+        .bus-next .time {
+            color: #2563eb;
+        }
+
+        .bus-upcoming {
+            background-color: #ffffff;
+            color: #374151;
+            border: 1px solid #e5e7eb;
+        }
+
+        .bus-upcoming .time {
+            color: #111827;
+        }
+
+        .bus-past {
+            background-color: #f9fafb;
+            color: #9ca3af;
+            border: 1px solid #f3f4f6;
+            opacity: 0.7;
+        }
+
+        .bus-past .time {
+            color: #9ca3af;
+        }
+
+        .bus-future {
+            background-color: #ffffff;
+            color: #374151;
+            border: 1px solid #e5e7eb;
+        }
+
+        .bus-future .time {
+            color: #111827;
+        }
+
+        .carousel-day-header h4 {
+            color: #3b82f6;
+        }
+
+        .carousel-day-header.today h4 {
+            color: #1d4ed8;
+        }
+
+        /* --- Dark Mode Theming (Dot Matrix) --- */
         @media (prefers-color-scheme: dark) {
             body {
-                font-family: 'Doto', monospace; /* Dot matrix font */
-                background-color: #0c0c0c; /* Dark background */
-                color: #ffb700; /* Amber text color */
+                font-family: 'Doto', monospace;
+                background-color: #0c0c0c;
+                color: #ffb700;
             }
 
-            /* Glowing text effect */
+            h1,
+            #large-clock {
+                letter-spacing: 2px;
+            }
+
             .glow {
                 text-shadow: 0 0 5px rgba(255, 183, 0, 0.7),
-                             0 0 10px rgba(255, 183, 0, 0.5),
-                             0 0 15px rgba(255, 183, 0, 0.3);
+                    0 0 10px rgba(255, 183, 0, 0.5),
+                    0 0 15px rgba(255, 183, 0, 0.3);
             }
 
-            h1, #large-clock {
-                letter-spacing: 2px;
+            .card-background {
+                background-color: #1a1a1a;
+                border: 1px solid #333;
             }
 
             .carousel-item {
@@ -269,33 +174,28 @@
                 border: none !important;
                 box-shadow: none !important;
                 opacity: 1 !important;
-                color: #ffb700; /* Amber */
-                transition: all 0.3s ease-in-out;
+                color: #ffb700;
             }
 
-            /* Style for the next bus - brighter glow */
             .bus-next {
-                color: #ffdd00 !important; /* Brighter yellow */
+                color: #ffdd00 !important;
                 transform: scale(1.05);
             }
-            .bus-next .time, .bus-next .countdown {
-                 text-shadow: 0 0 8px rgba(255, 221, 0, 0.8),
-                             0 0 15px rgba(255, 221, 0, 0.6),
-                             0 0 25px rgba(255, 221, 0, 0.4);
+
+            .bus-next .time,
+            .bus-next .countdown {
+                text-shadow: 0 0 8px rgba(255, 221, 0, 0.8),
+                    0 0 15px rgba(255, 221, 0, 0.6),
+                    0 0 25px rgba(255, 221, 0, 0.4);
             }
 
-            /* Style for upcoming buses */
             .bus-upcoming {
-                color: #ffb700 !important; /* Standard Amber */
-            }
-
-            /* Style for past buses - dimmed */
-            .bus-past {
-                color: #4a3400 !important; /* Dimmed amber/brown */
-            }
-
-            .bus-future {
                 color: #ffb700 !important;
+            }
+
+            .bus-past {
+                color: #4a3400 !important;
+                opacity: 1;
             }
 
             .bus-past .time,
@@ -304,13 +204,12 @@
                 text-shadow: none;
             }
 
-            .carousel-day-header h4 {
-                color: #ffdd00;
+            .bus-future {
+                color: #ffb700 !important;
             }
-            
-            .card-background {
-                 background-color: #1a1a1a;
-                 border: 1px solid #333;
+
+            .carousel-day-header h4 {
+                color: #ffdd00 !important;
             }
         }
     </style>
@@ -321,22 +220,22 @@
     <div class="container mx-auto p-4 md:p-8 max-w-7xl">
 
         <header class="text-center mb-6 md:mb-8">
-            <h1 class="text-4xl md:text-5xl font-extrabold text-blue-600 dark:text-blue-400 glow">Bus Schedule</h1>
-            <div id="large-clock" class="text-6xl md:text-8xl font-bold text-gray-800 dark:text-gray-200 my-4 glow"></div>
+            <h1 class="text-4xl md:text-5xl font-extrabold text-blue-600 dark:text-amber-400 glow">Bus Schedule</h1>
+            <div id="large-clock" class="text-6xl md:text-8xl font-bold text-gray-800 dark:text-amber-400 my-4 glow"></div>
             <p id="current-date" class="text-xl md:text-2xl text-gray-600 dark:text-gray-400 font-medium">Loading...</p>
         </header>
 
         <div class="flex flex-col gap-8">
 
             <section>
-                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 card-background">
+                <div class="rounded-2xl shadow-lg p-6 card-background">
                     <div class="flex justify-between items-center mb-4">
                         <div>
-                            <h2 id="title-castleton" class="text-2xl font-bold glow">➡️ To Castleton</h2>
+                            <h2 id="title-castleton" class="text-2xl font-bold text-gray-800 dark:text-amber-400 glow">➡️ To Castleton</h2>
                             <p id="subtitle-castleton" class="text-sm text-gray-500 dark:text-gray-400 -mt-1">Departs from Hotel (Bike & Boot)</p>
                         </div>
                         <button id="swap-castleton" title="Swap Direction" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
                             </svg>
                         </button>
@@ -350,14 +249,14 @@
             </section>
 
             <section>
-                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 card-background">
+                <div class="rounded-2xl shadow-lg p-6 card-background">
                     <div class="flex justify-between items-center mb-4">
                         <div>
-                            <h2 id="title-hathersage" class="text-2xl font-bold glow">➡️ To Hathersage</h2>
+                            <h2 id="title-hathersage" class="text-2xl font-bold text-gray-800 dark:text-amber-400 glow">➡️ To Hathersage</h2>
                             <p id="subtitle-hathersage" class="text-sm text-gray-500 dark:text-gray-400 -mt-1">Departs from Hotel (Bike & Boot)</p>
                         </div>
                         <button id="swap-hathersage" title="Swap Direction" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
                             </svg>
                         </button>
@@ -376,132 +275,332 @@
         // --- DATA: Bus Timetable ---
         const timetable = {
             'monfri': {
-                'toCastleton': [
-                    { 'hotel': '08:14', 'hathersage': '08:10', 'castleton': '08:26' },
-                    { 'hotel': '09:14', 'hathersage': '09:10', 'castleton': '09:26' },
-                    { 'hotel': '10:29', 'hathersage': '10:25', 'castleton': '10:54' },
-                    { 'hotel': '11:54', 'hathersage': '11:50', 'castleton': '12:06' },
-                    { 'hotel': '12:48', 'hathersage': '12:44', 'castleton': '13:13' },
-                    { 'hotel': '14:11', 'hathersage': '14:07', 'castleton': '14:23' },
-                    { 'hotel': '15:21', 'hathersage': '15:17', 'castleton': '15:45' },
-                    { 'hotel': '16:41', 'hathersage': '16:37', 'castleton': '16:53' },
-                    { 'hotel': '17:36', 'hathersage': '17:32', 'castleton': '18:01' },
-                    { 'hotel': '18:34', 'hathersage': '18:30', 'castleton': '18:59' },
-                    { 'hotel': '19:28', 'hathersage': '19:24', 'castleton': '19:40' },
-                    { 'hotel': '22:01', 'hathersage': '21:57', 'castleton': '22:23' },
-                    { 'hotel': '23:37', 'hathersage': '23:33', 'castleton': '23:59' }
-                ],
-                'toSheffield': [
-                    { 'hotel': '07:25', 'hathersage': '07:35', 'castleton': '07:19' },
-                    { 'hotel': '08:50', 'hathersage': '09:00', 'castleton': '08:30' },
-                    { 'hotel': '09:36', 'hathersage': '09:46', 'castleton': '09:30' },
-                    { 'hotel': '11:20', 'hathersage': '11:30', 'castleton': '11:00' },
-                    { 'hotel': '12:20', 'hathersage': '12:30', 'castleton': '12:14' },
-                    { 'hotel': '13:44', 'hathersage': '13:54', 'castleton': '13:24' },
-                    { 'hotel': '14:41', 'hathersage': '14:51', 'castleton': '14:35' },
-                    { 'hotel': '16:20', 'hathersage': '16:30', 'castleton': '16:00' },
-                    { 'hotel': '17:20', 'hathersage': '17:30', 'castleton': '17:00' },
-                    { 'hotel': '18:35', 'hathersage': '18:45', 'castleton': '18:15' },
-                    { 'hotel': '19:48', 'hathersage': '19:58', 'castleton': '19:30' },
-                    { 'hotel': '22:43', 'hathersage': '22:53', 'castleton': '22:25' }
-                ]
+                'toCastleton': [{
+                    'hotel': '08:14',
+                    'hathersage': '08:10',
+                    'castleton': '08:26'
+                }, {
+                    'hotel': '09:14',
+                    'hathersage': '09:10',
+                    'castleton': '09:26'
+                }, {
+                    'hotel': '10:29',
+                    'hathersage': '10:25',
+                    'castleton': '10:54'
+                }, {
+                    'hotel': '11:54',
+                    'hathersage': '11:50',
+                    'castleton': '12:06'
+                }, {
+                    'hotel': '12:48',
+                    'hathersage': '12:44',
+                    'castleton': '13:13'
+                }, {
+                    'hotel': '14:11',
+                    'hathersage': '14:07',
+                    'castleton': '14:23'
+                }, {
+                    'hotel': '15:21',
+                    'hathersage': '15:17',
+                    'castleton': '15:45'
+                }, {
+                    'hotel': '16:41',
+                    'hathersage': '16:37',
+                    'castleton': '16:53'
+                }, {
+                    'hotel': '17:36',
+                    'hathersage': '17:32',
+                    'castleton': '18:01'
+                }, {
+                    'hotel': '18:34',
+                    'hathersage': '18:30',
+                    'castleton': '18:59'
+                }, {
+                    'hotel': '19:28',
+                    'hathersage': '19:24',
+                    'castleton': '19:40'
+                }, {
+                    'hotel': '22:01',
+                    'hathersage': '21:57',
+                    'castleton': '22:23'
+                }, {
+                    'hotel': '23:37',
+                    'hathersage': '23:33',
+                    'castleton': '23:59'
+                }],
+                'toSheffield': [{
+                    'hotel': '07:25',
+                    'hathersage': '07:35',
+                    'castleton': '07:19'
+                }, {
+                    'hotel': '08:50',
+                    'hathersage': '09:00',
+                    'castleton': '08:30'
+                }, {
+                    'hotel': '09:36',
+                    'hathersage': '09:46',
+                    'castleton': '09:30'
+                }, {
+                    'hotel': '11:20',
+                    'hathersage': '11:30',
+                    'castleton': '11:00'
+                }, {
+                    'hotel': '12:20',
+                    'hathersage': '12:30',
+                    'castleton': '12:14'
+                }, {
+                    'hotel': '13:44',
+                    'hathersage': '13:54',
+                    'castleton': '13:24'
+                }, {
+                    'hotel': '14:41',
+                    'hathersage': '14:51',
+                    'castleton': '14:35'
+                }, {
+                    'hotel': '16:20',
+                    'hathersage': '16:30',
+                    'castleton': '16:00'
+                }, {
+                    'hotel': '17:20',
+                    'hathersage': '17:30',
+                    'castleton': '17:00'
+                }, {
+                    'hotel': '18:35',
+                    'hathersage': '18:45',
+                    'castleton': '18:15'
+                }, {
+                    'hotel': '19:48',
+                    'hathersage': '19:58',
+                    'castleton': '19:30'
+                }, {
+                    'hotel': '22:43',
+                    'hathersage': '22:53',
+                    'castleton': '22:25'
+                }]
             },
             'saturday': {
-                'toCastleton': [
-                    { 'hotel': '08:14', 'hathersage': '08:10', 'castleton': '08:26' },
-                    { 'hotel': '09:14', 'hathersage': '09:10', 'castleton': '09:26' },
-                    { 'hotel': '10:29', 'hathersage': '10:25', 'castleton': '10:54' },
-                    { 'hotel': '11:54', 'hathersage': '11:50', 'castleton': '12:06' },
-                    { 'hotel': '12:48', 'hathersage': '12:44', 'castleton': '13:13' },
-                    { 'hotel': '14:11', 'hathersage': '14:07', 'castleton': '14:23' },
-                    { 'hotel': '15:18', 'hathersage': '15:14', 'castleton': '15:43' },
-                    { 'hotel': '16:41', 'hathersage': '16:37', 'castleton': '16:53' },
-                    { 'hotel': '17:33', 'hathersage': '17:29', 'castleton': '17:58' },
-                    { 'hotel': '18:33', 'hathersage': '18:29', 'castleton': '18:58' },
-                    { 'hotel': '19:28', 'hathersage': '19:24', 'castleton': '19:40' },
-                    { 'hotel': '22:02', 'hathersage': '21:58', 'castleton': '22:24' },
-                    { 'hotel': '23:37', 'hathersage': '23:33', 'castleton': '23:59' }
-                ],
-                'toSheffield': [
-                    { 'hotel': '07:25', 'hathersage': '07:35', 'castleton': '07:19' },
-                    { 'hotel': '08:50', 'hathersage': '09:00', 'castleton': '08:30' },
-                    { 'hotel': '09:36', 'hathersage': '09:46', 'castleton': '09:30' },
-                    { 'hotel': '11:20', 'hathersage': '11:30', 'castleton': '11:00' },
-                    { 'hotel': '12:20', 'hathersage': '12:30', 'castleton': '12:14' },
-                    { 'hotel': '13:44', 'hathersage': '13:54', 'castleton': '13:24' },
-                    { 'hotel': '14:41', 'hathersage': '14:51', 'castleton': '14:35' },
-                    { 'hotel': '16:20', 'hathersage': '16:30', 'castleton': '16:00' },
-                    { 'hotel': '17:20', 'hathersage': '17:30', 'castleton': '17:00' },
-                    { 'hotel': '18:35', 'hathersage': '18:45', 'castleton': '18:15' },
-                    { 'hotel': '19:48', 'hathersage': '19:58', 'castleton': '19:30' },
-                    { 'hotel': '22:43', 'hathersage': '22:53', 'castleton': '22:25' }
-                ]
+                'toCastleton': [{
+                    'hotel': '08:14',
+                    'hathersage': '08:10',
+                    'castleton': '08:26'
+                }, {
+                    'hotel': '09:14',
+                    'hathersage': '09:10',
+                    'castleton': '09:26'
+                }, {
+                    'hotel': '10:29',
+                    'hathersage': '10:25',
+                    'castleton': '10:54'
+                }, {
+                    'hotel': '11:54',
+                    'hathersage': '11:50',
+                    'castleton': '12:06'
+                }, {
+                    'hotel': '12:48',
+                    'hathersage': '12:44',
+                    'castleton': '13:13'
+                }, {
+                    'hotel': '14:11',
+                    'hathersage': '14:07',
+                    'castleton': '14:23'
+                }, {
+                    'hotel': '15:18',
+                    'hathersage': '15:14',
+                    'castleton': '15:43'
+                }, {
+                    'hotel': '16:41',
+                    'hathersage': '16:37',
+                    'castleton': '16:53'
+                }, {
+                    'hotel': '17:33',
+                    'hathersage': '17:29',
+                    'castleton': '17:58'
+                }, {
+                    'hotel': '18:33',
+                    'hathersage': '18:29',
+                    'castleton': '18:58'
+                }, {
+                    'hotel': '19:28',
+                    'hathersage': '19:24',
+                    'castleton': '19:40'
+                }, {
+                    'hotel': '22:02',
+                    'hathersage': '21:58',
+                    'castleton': '22:24'
+                }, {
+                    'hotel': '23:37',
+                    'hathersage': '23:33',
+                    'castleton': '23:59'
+                }],
+                'toSheffield': [{
+                    'hotel': '07:25',
+                    'hathersage': '07:35',
+                    'castleton': '07:19'
+                }, {
+                    'hotel': '08:50',
+                    'hathersage': '09:00',
+                    'castleton': '08:30'
+                }, {
+                    'hotel': '09:36',
+                    'hathersage': '09:46',
+                    'castleton': '09:30'
+                }, {
+                    'hotel': '11:20',
+                    'hathersage': '11:30',
+                    'castleton': '11:00'
+                }, {
+                    'hotel': '12:20',
+                    'hathersage': '12:30',
+                    'castleton': '12:14'
+                }, {
+                    'hotel': '13:44',
+                    'hathersage': '13:54',
+                    'castleton': '13:24'
+                }, {
+                    'hotel': '14:41',
+                    'hathersage': '14:51',
+                    'castleton': '14:35'
+                }, {
+                    'hotel': '16:20',
+                    'hathersage': '16:30',
+                    'castleton': '16:00'
+                }, {
+                    'hotel': '17:20',
+                    'hathersage': '17:30',
+                    'castleton': '17:00'
+                }, {
+                    'hotel': '18:35',
+                    'hathersage': '18:45',
+                    'castleton': '18:15'
+                }, {
+                    'hotel': '19:48',
+                    'hathersage': '19:58',
+                    'castleton': '19:30'
+                }, {
+                    'hotel': '22:43',
+                    'hathersage': '22:53',
+                    'castleton': '22:25'
+                }]
             },
             'sunday': {
-                'toCastleton': [
-                    { 'hotel': '09:14', 'hathersage': '09:10', 'castleton': '09:39' },
-                    { 'hotel': '10:14', 'hathersage': '10:10', 'castleton': '10:26' },
-                    { 'hotel': '11:14', 'hathersage': '11:10', 'castleton': '11:39' },
-                    { 'hotel': '12:18', 'hathersage': '12:14', 'castleton': '12:30' },
-                    { 'hotel': '13:18', 'hathersage': '13:14', 'castleton': '13:43' },
-                    { 'hotel': '14:18', 'hathersage': '14:14', 'castleton': '14:30' },
-                    { 'hotel': '15:18', 'hathersage': '15:14', 'castleton': '15:43' },
-                    { 'hotel': '16:18', 'hathersage': '16:14', 'castleton': '16:30' },
-                    { 'hotel': '17:18', 'hathersage': '17:14', 'castleton': '17:43' },
-                    { 'hotel': '19:31', 'hathersage': '19:27', 'castleton': '19:53' },
-                    { 'hotel': '22:02', 'hathersage': '21:58', 'castleton': '22:24' }
-                ],
-                'toSheffield': [
-                    { 'hotel': '10:26', 'hathersage': '10:36', 'castleton': '10:20' },
-                    { 'hotel': '11:26', 'hathersage': '11:36', 'castleton': '11:06' },
-                    { 'hotel': '12:26', 'hathersage': '12:36', 'castleton': '12:20' },
-                    { 'hotel': '13:26', 'hathersage': '13:36', 'castleton': '13:06' },
-                    { 'hotel': '14:26', 'hathersage': '14:36', 'castleton': '14:20' },
-                    { 'hotel': '15:26', 'hathersage': '15:36', 'castleton': '15:06' },
-                    { 'hotel': '16:26', 'hathersage': '16:36', 'castleton': '16:20' },
-                    { 'hotel': '17:26', 'hathersage': '17:36', 'castleton': '17:06' },
-                    { 'hotel': '18:26', 'hathersage': '18:36', 'castleton': '18:20' },
-                    { 'hotel': '20:33', 'hathersage': '20:43', 'castleton': '20:15' },
-                    { 'hotel': '22:43', 'hathersage': '22:53', 'castleton': '22:25' }
-                ]
+                'toCastleton': [{
+                    'hotel': '09:14',
+                    'hathersage': '09:10',
+                    'castleton': '09:39'
+                }, {
+                    'hotel': '10:14',
+                    'hathersage': '10:10',
+                    'castleton': '10:26'
+                }, {
+                    'hotel': '11:14',
+                    'hathersage': '11:10',
+                    'castleton': '11:39'
+                }, {
+                    'hotel': '12:18',
+                    'hathersage': '12:14',
+                    'castleton': '12:30'
+                }, {
+                    'hotel': '13:18',
+                    'hathersage': '13:14',
+                    'castleton': '13:43'
+                }, {
+                    'hotel': '14:18',
+                    'hathersage': '14:14',
+                    'castleton': '14:30'
+                }, {
+                    'hotel': '15:18',
+                    'hathersage': '15:14',
+                    'castleton': '15:43'
+                }, {
+                    'hotel': '16:18',
+                    'hathersage': '16:14',
+                    'castleton': '16:30'
+                }, {
+                    'hotel': '17:18',
+                    'hathersage': '17:14',
+                    'castleton': '17:43'
+                }, {
+                    'hotel': '19:31',
+                    'hathersage': '19:27',
+                    'castleton': '19:53'
+                }, {
+                    'hotel': '22:02',
+                    'hathersage': '21:58',
+                    'castleton': '22:24'
+                }],
+                'toSheffield': [{
+                    'hotel': '10:26',
+                    'hathersage': '10:36',
+                    'castleton': '10:20'
+                }, {
+                    'hotel': '11:26',
+                    'hathersage': '11:36',
+                    'castleton': '11:06'
+                }, {
+                    'hotel': '12:26',
+                    'hathersage': '12:36',
+                    'castleton': '12:20'
+                }, {
+                    'hotel': '13:26',
+                    'hathersage': '13:36',
+                    'castleton': '13:06'
+                }, {
+                    'hotel': '14:26',
+                    'hathersage': '14:36',
+                    'castleton': '14:20'
+                }, {
+                    'hotel': '15:26',
+                    'hathersage': '15:36',
+                    'castleton': '15:06'
+                }, {
+                    'hotel': '16:26',
+                    'hathersage': '16:36',
+                    'castleton': '16:20'
+                }, {
+                    'hotel': '17:26',
+                    'hathersage': '17:36',
+                    'castleton': '17:06'
+                }, {
+                    'hotel': '18:26',
+                    'hathersage': '18:36',
+                    'castleton': '18:20'
+                }, {
+                    'hotel': '20:33',
+                    'hathersage': '20:43',
+                    'castleton': '20:15'
+                }, {
+                    'hotel': '22:43',
+                    'hathersage': '22:53',
+                    'castleton': '22:25'
+                }]
             }
         };
 
         // --- STATE ---
+        const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
         let isCastletonSwapped = false;
         let isHathersageSwapped = false;
 
         // --- DOM Elements ---
         const largeClockDisplay = document.getElementById('large-clock');
         const currentDateDisplay = document.getElementById('current-date');
-        
         const nextBusCastletonContainer = document.getElementById('next-bus-castleton-container');
         const nextBusHathersageContainer = document.getElementById('next-bus-hathersage-container');
-        
         const castletonCarouselWrapper = document.getElementById('carousel-wrapper-castleton');
         const sheffieldCarouselWrapper = document.getElementById('carousel-wrapper-hathersage');
-
         const swapCastletonBtn = document.getElementById('swap-castleton');
         const swapHathersageBtn = document.getElementById('swap-hathersage');
-
         const titleCastleton = document.getElementById('title-castleton');
         const subtitleCastleton = document.getElementById('subtitle-castleton');
         const titleHathersage = document.getElementById('title-hathersage');
         const subtitleHathersage = document.getElementById('subtitle-hathersage');
 
-
-        /**
-         * Returns a new Date object offset by a number of days.
-         */
         function getOffsetDate(date, daysOffset) {
             const newDate = new Date(date);
             newDate.setDate(date.getDate() + daysOffset);
             return newDate;
         }
 
-        /**
-         * Returns the correct timetable key ('monfri', 'saturday', 'sunday') for a given Date object.
-         */
         function getDayKey(date) {
             const day = date.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
             if (day === 0) return 'sunday';
@@ -509,28 +608,20 @@
             return 'monfri';
         }
 
-        /**
-         * Calculates the 'in X minutes' string.
-         */
         function calculateCountdown(busTimeStr, now) {
             const [hours, mins] = busTimeStr.split(':').map(Number);
             const busTime = new Date(now);
             busTime.setHours(hours, mins, 0, 0);
-
             if (busTime < now && hours < 5) {
                 busTime.setDate(busTime.getDate() + 1);
             }
-
             const diffMs = busTime - now;
             const diffMins = Math.round(diffMs / 60000);
-
             if (diffMins <= 0) return 'Due now';
+            if (isDarkMode) return `in ${diffMins} min`;
             return `in ${diffMins} ${diffMins === 1 ? 'minute' : 'minutes'}`;
         }
 
-        /**
-         * Creates a DOM element for a day header in the carousel.
-         */
         function createDayHeader(dayName, dayIdentifier) {
             const header = document.createElement('div');
             header.className = `carousel-day-header ${dayIdentifier}`;
@@ -538,58 +629,58 @@
             return header;
         }
 
-        /**
-         * Renders the entire 3-day schedule into a carousel.
-         */
         function renderFullCarousel(container, sectionType, isSwapped, now) {
-            container.innerHTML = ''; 
-            const nowTimeStr = now.toTimeString().substring(0, 5); 
-
+            container.innerHTML = '';
+            const nowTimeStr = now.toTimeString().substring(0, 5);
             const today = new Date(now);
             const tomorrow = getOffsetDate(now, 1);
             const dayAfter = getOffsetDate(now, 2);
-
-            const days = [
-                { name: 'Today', date: today, identifier: 'today' },
-                { name: tomorrow.toLocaleDateString('en-US', { weekday: 'long' }), date: tomorrow, identifier: 'tomorrow' },
-                { name: dayAfter.toLocaleDateString('en-US', { weekday: 'long' }), date: dayAfter, identifier: 'dayafter' }
-            ];
-            
+            const days = [{
+                name: 'Today',
+                date: today,
+                identifier: 'today'
+            }, {
+                name: tomorrow.toLocaleDateString('en-US', {
+                    weekday: 'long'
+                }),
+                date: tomorrow,
+                identifier: 'tomorrow'
+            }, {
+                name: dayAfter.toLocaleDateString('en-US', {
+                    weekday: 'long'
+                }),
+                date: dayAfter,
+                identifier: 'dayafter'
+            }];
             let departKey, arriveKey;
-
             if (sectionType === 'castleton') {
-                if (isSwapped) { 
+                if (isSwapped) {
                     departKey = 'castleton';
                     arriveKey = 'hotel';
-                } else { 
+                } else {
                     departKey = 'hotel';
                     arriveKey = 'castleton';
                 }
-            } else { 
+            } else {
                 if (isSwapped) {
                     departKey = 'hathersage';
                     arriveKey = 'hotel';
-                } else { 
+                } else {
                     departKey = 'hotel';
                     arriveKey = 'hathersage';
                 }
             }
-            
             let isNextBusFound = false;
             let firstNextBusElement = null;
-
             days.forEach(day => {
                 const dayKey = getDayKey(day.date);
                 let trips;
-
                 if (sectionType === 'castleton') {
                     trips = isSwapped ? timetable[dayKey].toSheffield : timetable[dayKey].toCastleton;
-                } else { 
+                } else {
                     trips = isSwapped ? timetable[dayKey].toCastleton : timetable[dayKey].toSheffield;
                 }
-
                 container.appendChild(createDayHeader(day.name, day.identifier));
-
                 if (trips.length === 0) {
                     const slide = document.createElement('div');
                     slide.className = 'carousel-item bus-past p-4 text-center';
@@ -597,17 +688,13 @@
                     container.appendChild(slide);
                     return;
                 }
-
                 trips.forEach(trip => {
                     const slide = document.createElement('div');
                     slide.className = 'carousel-item p-4 text-center';
-
                     const departTime = trip[departKey];
                     const arriveTime = trip[arriveKey];
-
-                    let stateClass = 'bus-future'; 
+                    let stateClass = 'bus-future';
                     let countdownText = '&nbsp;';
-
                     if (day.identifier === 'today') {
                         if (departTime < nowTimeStr) {
                             stateClass = 'bus-past';
@@ -615,12 +702,11 @@
                             stateClass = 'bus-next';
                             countdownText = calculateCountdown(departTime, now);
                             isNextBusFound = true;
-                            firstNextBusElement = slide; 
+                            firstNextBusElement = slide;
                         } else {
                             stateClass = 'bus-upcoming';
                         }
                     }
-                    
                     slide.dataset.day = day.identifier;
                     slide.dataset.time = departTime;
                     slide.classList.add(stateClass);
@@ -632,18 +718,17 @@
                     container.appendChild(slide);
                 });
             });
-
             if (firstNextBusElement) {
-                firstNextBusElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                firstNextBusElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'nearest',
+                    inline: 'center'
+                });
             }
         }
 
-        /**
-         * Master function to update titles and re-render carousels.
-         */
         function updateScheduleView() {
             const now = new Date();
-
             if (isCastletonSwapped) {
                 titleCastleton.textContent = '⬅️ To Hotel';
                 subtitleCastleton.textContent = 'Departs from Castleton';
@@ -652,7 +737,6 @@
                 subtitleCastleton.textContent = 'Departs from Hotel (Bike & Boot)';
             }
             renderFullCarousel(nextBusCastletonContainer, 'castleton', isCastletonSwapped, now);
-
             if (isHathersageSwapped) {
                 titleHathersage.textContent = '⬅️ To Hotel';
                 subtitleHathersage.textContent = 'Departs from Hathersage';
@@ -663,20 +747,27 @@
             renderFullCarousel(nextBusHathersageContainer, 'hathersage', isHathersageSwapped, now);
         }
 
-        /**
-         * Main update function, called every second.
-         */
         function updateDisplay() {
             const now = new Date();
             const nowTimeStr = now.toTimeString().substring(0, 5);
 
-            const clockOptions = { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true };
-            largeClockDisplay.textContent = now.toLocaleTimeString('en-US', clockOptions);
-
-            const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            if (isDarkMode) {
+                const clockOptions = { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: false };
+                largeClockDisplay.textContent = now.toLocaleTimeString('en-GB', clockOptions);
+            } else {
+                const clockOptions = { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true };
+                largeClockDisplay.textContent = now.toLocaleTimeString('en-US', clockOptions);
+            }
+            
+            const dateOptions = {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            };
             currentDateDisplay.textContent = now.toLocaleDateString('en-US', dateOptions);
-
-            if (now.toTimeString().substring(0,8) === '00:00:00') {
+            
+            if (now.toTimeString().substring(0, 8) === '00:00:00') {
                 updateScheduleView();
             } else {
                 updateCarouselStates(nextBusCastletonContainer, 'castleton', isCastletonSwapped, now, nowTimeStr);
@@ -684,41 +775,21 @@
             }
         }
 
-        /**
-         * Efficiently updates states and countdowns.
-         */
         function updateCarouselStates(container, sectionType, isSwapped, now, nowTimeStr) {
             const allItems = container.querySelectorAll('.carousel-item');
             let nextBusFound = false;
-            let departKey, scheduleTrips;
-            const dayKey = getDayKey(now);
-
-            if (sectionType === 'castleton') {
-                departKey = isSwapped ? 'castleton' : 'hotel';
-                scheduleTrips = isSwapped ? timetable[dayKey].toSheffield : timetable[dayKey].toCastleton;
-            } else {
-                departKey = isSwapped ? 'hathersage' : 'hotel';
-                scheduleTrips = isSwapped ? timetable[dayKey].toCastleton : timetable[dayKey].toSheffield;
-            }
-
-            const nextBus = scheduleTrips.find(bus => bus[departKey] >= nowTimeStr);
-
             allItems.forEach(item => {
                 const timeEl = item.querySelector('.time');
                 if (!timeEl) return;
-
                 const itemTime = timeEl.textContent;
                 const countdownEl = item.querySelector('.countdown');
                 const isToday = item.dataset.day === 'today';
-
                 if (!isToday) return;
-
                 item.classList.remove('bus-next', 'bus-past', 'bus-upcoming');
-
                 if (itemTime < nowTimeStr) {
                     item.classList.add('bus-past');
                     if (countdownEl.innerHTML !== '&nbsp;') countdownEl.innerHTML = '&nbsp;';
-                } else if (nextBus && itemTime === nextBus[departKey] && !nextBusFound) {
+                } else if (!nextBusFound) {
                     item.classList.add('bus-next');
                     countdownEl.textContent = calculateCountdown(itemTime, now);
                     nextBusFound = true;
@@ -729,15 +800,10 @@
             });
         }
 
-        /**
-         * Enables drag-to-scroll and wheel-to-scroll on an element.
-         */
         function enableCarouselInteraction(wrapper) {
             let isDown = false;
             let startX;
             let scrollLeft;
-            let wheelingTimeout;
-
             wrapper.addEventListener('mousedown', (e) => {
                 if (e.button !== 0) return;
                 isDown = true;
@@ -745,50 +811,41 @@
                 startX = e.pageX - wrapper.offsetLeft;
                 scrollLeft = wrapper.scrollLeft;
             });
-
             wrapper.addEventListener('mouseleave', () => {
                 isDown = false;
                 wrapper.classList.remove('grabbing');
             });
-
             wrapper.addEventListener('mouseup', () => {
                 isDown = false;
                 wrapper.classList.remove('grabbing');
             });
-
             wrapper.addEventListener('mousemove', (e) => {
                 if (!isDown) return;
                 e.preventDefault();
                 const x = e.pageX - wrapper.offsetLeft;
-                const walk = (x - startX); 
+                const walk = (x - startX);
                 wrapper.scrollLeft = scrollLeft - walk;
             });
-            
             wrapper.addEventListener('wheel', (e) => {
                 if (e.deltaY === 0) return;
                 e.preventDefault();
                 wrapper.scrollLeft += e.deltaY;
-            }, { passive: false });
+            }, {
+                passive: false
+            });
         }
-
-
-        // --- INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', () => {
             updateScheduleView();
-
             enableCarouselInteraction(castletonCarouselWrapper);
             enableCarouselInteraction(sheffieldCarouselWrapper);
-
             swapCastletonBtn.addEventListener('click', () => {
                 isCastletonSwapped = !isCastletonSwapped;
                 updateScheduleView();
             });
-
             swapHathersageBtn.addEventListener('click', () => {
                 isHathersageSwapped = !isHathersageSwapped;
                 updateScheduleView();
             });
-
             updateDisplay();
             setInterval(updateDisplay, 1000);
         });
