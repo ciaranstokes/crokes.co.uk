@@ -265,8 +265,18 @@
             <!-- "To Castleton" Section -->
             <section>
                 <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
-                    <h2 class="text-2xl font-bold mb-4">➡️ To Castleton</h2>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 -mt-3">Departs from Hotel (Bike & Boot)</p>
+                    <!-- Section Header with Swap Button -->
+                    <div class="flex justify-between items-center mb-4">
+                        <div>
+                            <h2 id="title-castleton" class="text-2xl font-bold">➡️ To Castleton</h2>
+                            <p id="subtitle-castleton" class="text-sm text-gray-500 dark:text-gray-400 -mt-1">Departs from Hotel (Bike & Boot)</p>
+                        </div>
+                        <button id="swap-castleton" title="Swap Direction" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                            </svg>
+                        </button>
+                    </div>
                     <!-- Carousel Wrapper -->
                     <div id="carousel-wrapper-castleton" class="carousel-wrapper">
                         <!-- Carousel Container (populated by JS) -->
@@ -281,12 +291,22 @@
             <!-- "To Hathersage / Sheffield" Section -->
             <section>
                 <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
-                    <h2 class="text-2xl font-bold mb-4">⬅️ To Hathersage / Sheffield</h2>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 -mt-3">Departs from Hotel (Bike & Boot)</p>
+                    <!-- Section Header with Swap Button -->
+                    <div class="flex justify-between items-center mb-4">
+                        <div>
+                            <h2 id="title-hathersage" class="text-2xl font-bold">➡️ To Hathersage / Sheffield</h2>
+                            <p id="subtitle-hathersage" class="text-sm text-gray-500 dark:text-gray-400 -mt-1">Departs from Hotel (Bike & Boot)</p>
+                        </div>
+                        <button id="swap-hathersage" title="Swap Direction" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                            </svg>
+                        </button>
+                    </div>
                     <!-- Carousel Wrapper -->
-                    <div id="carousel-wrapper-sheffield" class="carousel-wrapper">
+                    <div id="carousel-wrapper-hathersage" class="carousel-wrapper">
                         <!-- Carousel Container (populated by JS) -->
-                        <div id="next-bus-sheffield-container" class="carousel-container">
+                        <div id="next-bus-hathersage-container" class="carousel-container">
                             <!-- JS will populate this -->
                             <div class="text-center p-4 w-full text-gray-500">Loading...</div>
                         </div>
@@ -399,14 +419,36 @@
             }
         };
 
+        // --- STATE ---
+        let isCastletonSwapped = false;
+        let isHathersageSwapped = false;
+
         // --- DOM Elements ---
         const currentTimeDisplay = document.getElementById('current-time');
+        
         const nextBusCastletonContainer = document.getElementById('next-bus-castleton-container');
-        const nextBusSheffieldContainer = document.getElementById('next-bus-sheffield-container');
+        const nextBusHathersageContainer = document.getElementById('next-bus-hathersage-container');
+        
         const castletonCarouselWrapper = document.getElementById('carousel-wrapper-castleton');
-        const sheffieldCarouselWrapper = document.getElementById('carousel-wrapper-sheffield');
+        const sheffieldCarouselWrapper = document.getElementById('carousel-wrapper-hathersage');
 
-        let nextBusElement = null; // To store the element for the next bus
+        const swapCastletonBtn = document.getElementById('swap-castleton');
+        const swapHathersageBtn = document.getElementById('swap-hathersage');
+
+        const titleCastleton = document.getElementById('title-castleton');
+        const subtitleCastleton = document.getElementById('subtitle-castleton');
+        const titleHathersage = document.getElementById('title-hathersage');
+        const subtitleHathersage = document.getElementById('subtitle-hathersage');
+
+
+        /**
+         * Returns a new Date object offset by a number of days.
+         */
+        function getOffsetDate(date, daysOffset) {
+            const newDate = new Date(date);
+            newDate.setDate(date.getDate() + daysOffset);
+            return newDate;
+        }
 
         /**
          * Returns the correct timetable key ('monfri', 'saturday', 'sunday') for a given Date object.
@@ -451,29 +493,54 @@
         /**
          * Renders the entire 3-day schedule into a carousel.
          */
-        function renderFullCarousel(container, direction, now) {
+        function renderFullCarousel(container, sectionType, isSwapped, now) {
             container.innerHTML = ''; // Clear existing slides
             const nowTimeStr = now.toTimeString().substring(0, 5); // "HH:MM"
 
             const today = new Date(now);
-            const tomorrow = new Date(today);
-            tomorrow.setDate(today.getDate() + 1);
-            const dayAfter = new Date(today);
-            dayAfter.setDate(today.getDate() + 2);
+            const tomorrow = getOffsetDate(now, 1);
+            const dayAfter = getOffsetDate(now, 2);
 
             const days = [
                 { name: 'Today', date: today, identifier: 'today' },
                 { name: tomorrow.toLocaleDateString('en-US', { weekday: 'long' }), date: tomorrow, identifier: 'tomorrow' },
                 { name: dayAfter.toLocaleDateString('en-US', { weekday: 'long' }), date: dayAfter, identifier: 'dayafter' }
             ];
+            
+            let departKey, arriveKey;
 
-            const arriveProp = (direction === 'toCastleton') ? 'castleton' : 'hathersage';
+            // Determine keys based on section and swap state
+            if (sectionType === 'castleton') {
+                if (isSwapped) { // Castleton -> Hotel
+                    departKey = 'castleton';
+                    arriveKey = 'hotel';
+                } else { // Hotel -> Castleton
+                    departKey = 'hotel';
+                    arriveKey = 'castleton';
+                }
+            } else { // hathersage section
+                if (isSwapped) { // Hathersage -> Hotel
+                    departKey = 'hathersage';
+                    arriveKey = 'hotel';
+                } else { // Hotel -> Hathersage
+                    departKey = 'hotel';
+                    arriveKey = 'hathersage';
+                }
+            }
+            
             let isNextBusFound = false;
             let firstNextBusElement = null; // Store the DOM element for the *very* next bus
 
             days.forEach(day => {
                 const dayKey = getDayKey(day.date);
-                const trips = (direction === 'toCastleton') ? timetable[dayKey].toCastleton : timetable[dayKey].toSheffield;
+                let trips;
+
+                // Get correct schedule array for the day
+                if (sectionType === 'castleton') {
+                    trips = isSwapped ? timetable[dayKey].toSheffield : timetable[dayKey].toCastleton;
+                } else { // hathersage
+                    trips = isSwapped ? timetable[dayKey].toCastleton : timetable[dayKey].toSheffield;
+                }
 
                 // Add day header
                 container.appendChild(createDayHeader(day.name, day.identifier));
@@ -490,15 +557,18 @@
                     const slide = document.createElement('div');
                     slide.className = 'carousel-item p-4 text-center'; // Base classes
 
+                    const departTime = trip[departKey];
+                    const arriveTime = trip[arriveKey];
+
                     let stateClass = 'bus-future'; // Default for tomorrow/day after
                     let countdownText = '&nbsp;';
 
                     if (day.identifier === 'today') {
-                        if (trip.hotel < nowTimeStr) {
+                        if (departTime < nowTimeStr) {
                             stateClass = 'bus-past';
                         } else if (!isNextBusFound) {
                             stateClass = 'bus-next';
-                            countdownText = calculateCountdown(trip.hotel, now);
+                            countdownText = calculateCountdown(departTime, now);
                             isNextBusFound = true;
                             firstNextBusElement = slide; // This is the one to scroll to
                         } else {
@@ -507,12 +577,12 @@
                     }
                     
                     slide.dataset.day = day.identifier; // Tag the slide with its day
-                    slide.dataset.time = trip.hotel; // Tag the slide with its time
+                    slide.dataset.time = departTime; // Tag the slide with its time
                     slide.classList.add(stateClass);
                     slide.innerHTML = `
-                        <div class="time text-4xl sm:text-5xl font-extrabold">${trip.hotel}</div>
+                        <div class="time text-4xl sm:text-5xl font-extrabold">${departTime}</div>
                         <div class="countdown text-lg font-medium">${countdownText}</div>
-                        <div class="arrival text-md font-medium">Arrives ${trip[arriveProp]}</div>
+                        <div class="arrival text-md font-medium">Arrives ${arriveTime}</div>
                     `;
                     container.appendChild(slide);
                 });
@@ -520,17 +590,42 @@
 
             // If we found a "next bus", scroll it into view
             if (firstNextBusElement) {
-                // Check if this carousel is for the global 'nextBusElement'
-                if (direction === 'toCastleton') {
-                    nextBusElement = firstNextBusElement;
-                }
                 firstNextBusElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
             }
+        }
+
+        /**
+         * Master function to update titles and re-render carousels.
+         * Called on init and on swap.
+         */
+        function updateScheduleView() {
+            const now = new Date();
+
+            // 1. Castleton Section
+            if (isCastletonSwapped) {
+                titleCastleton.textContent = '⬅️ To Hotel';
+                subtitleCastleton.textContent = 'Departs from Castleton';
+            } else {
+                titleCastleton.textContent = '➡️ To Castleton';
+                subtitleCastleton.textContent = 'Departs from Hotel (Bike & Boot)';
+            }
+            renderFullCarousel(nextBusCastletonContainer, 'castleton', isCastletonSwapped, now);
+
+            // 2. Hathersage Section
+            if (isHathersageSwapped) {
+                titleHathersage.textContent = '⬅️ To Hotel';
+                subtitleHathersage.textContent = 'Departs from Hathersage';
+            } else {
+                titleHathersage.textContent = '➡️ To Hathersage / Sheffield';
+                subtitleHathersage.textContent = 'Departs from Hotel (Bike & Boot)';
+            }
+            renderFullCarousel(nextBusHathersageContainer, 'hathersage', isHathersageSwapped, now);
         }
 
 
         /**
          * This is the main update function, called every second.
+         * Only updates time and countdowns.
          */
         function updateDisplay() {
             // --- 1. Get Current Time ---
@@ -547,28 +642,34 @@
             // --- 2. Check for Day Change (at midnight) ---
             if (nowTimeStr === '00:00' && now.getSeconds() === 0) { // Only run once at 00:00:00
                 // Full re-render of carousels for new day
-                renderFullCarousel(nextBusCastletonContainer, 'toCastleton', now);
-                renderFullCarousel(nextBusSheffieldContainer, 'toSheffield', now);
+                updateScheduleView();
             } else {
                 // --- 3. Just update countdowns and states ---
-                const dayKey = getDayKey(now);
-                const { toCastleton, toSheffield } = timetable[dayKey];
-                const nextCastletonBus = toCastleton.find(bus => bus.hotel >= nowTimeStr);
-                const nextSheffieldBus = toSheffield.find(bus => bus.hotel >= nowTimeStr);
-
-                // Update 'To Castleton' carousel
-                updateCarouselStates(nextBusCastletonContainer, nextCastletonBus, now, nowTimeStr);
-                // Update 'To Sheffield' carousel
-                updateCarouselStates(nextBusSheffieldContainer, nextSheffieldBus, now, nowTimeStr);
+                updateCarouselStates(nextBusCastletonContainer, 'castleton', isCastletonSwapped, now, nowTimeStr);
+                updateCarouselStates(nextBusHathersageContainer, 'hathersage', isHathersageSwapped, now, nowTimeStr);
             }
         }
 
         /**
          * Efficiently updates states and countdowns without rebuilding the whole DOM.
          */
-        function updateCarouselStates(container, nextBus, now, nowTimeStr) {
+        function updateCarouselStates(container, sectionType, isSwapped, now, nowTimeStr) {
             const allItems = container.querySelectorAll('.carousel-item');
             let nextBusFound = false;
+
+            let departKey, scheduleTrips;
+            const dayKey = getDayKey(now);
+
+            // Get the correct departure key and schedule for *today*
+            if (sectionType === 'castleton') {
+                departKey = isSwapped ? 'castleton' : 'hotel';
+                scheduleTrips = isSwapped ? timetable[dayKey].toSheffield : timetable[dayKey].toCastleton;
+            } else {
+                departKey = isSwapped ? 'hathersage' : 'hotel';
+                scheduleTrips = isSwapped ? timetable[dayKey].toCastleton : timetable[dayKey].toSheffield;
+            }
+
+            const nextBus = scheduleTrips.find(bus => bus[departKey] >= nowTimeStr);
 
             allItems.forEach(item => {
                 const timeEl = item.querySelector('.time');
@@ -586,7 +687,7 @@
                 if (itemTime < nowTimeStr) {
                     item.classList.add('bus-past');
                     if (countdownEl.innerHTML !== '&nbsp;') countdownEl.innerHTML = '&nbsp;';
-                } else if (nextBus && itemTime === nextBus.hotel && !nextBusFound) {
+                } else if (nextBus && itemTime === nextBus[departKey] && !nextBusFound) {
                     item.classList.add('bus-next');
                     countdownEl.textContent = calculateCountdown(itemTime, now);
                     nextBusFound = true;
@@ -637,14 +738,23 @@
 
         // --- INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', () => {
-            const now = new Date();
             // Set initial state
-            renderFullCarousel(nextBusCastletonContainer, 'toCastleton', now);
-            renderFullCarousel(nextBusSheffieldContainer, 'toSheffield', now);
+            updateScheduleView();
 
             // Enable drag scrolling on desktop
             enableDragScroll(castletonCarouselWrapper);
             enableDragScroll(sheffieldCarouselWrapper);
+
+            // Add button listeners
+            swapCastletonBtn.addEventListener('click', () => {
+                isCastletonSwapped = !isCastletonSwapped;
+                updateScheduleView();
+            });
+
+            swapHathersageBtn.addEventListener('click', () => {
+                isHathersageSwapped = !isHathersageSwapped;
+                updateScheduleView();
+            });
 
             // Run the update once immediately
             updateDisplay();
