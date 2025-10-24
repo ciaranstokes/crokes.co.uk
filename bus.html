@@ -9,8 +9,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Doto&display=swap" rel="stylesheet">
     <style>
-        /* Apply Inter font */
+        /* --- Light Mode Styles --- */
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f1f5f9;
@@ -243,6 +244,75 @@
             color: #93c5fd;
             /* dark:blue-300 */
         }
+        
+        /* --- Dark Mode Dot Matrix Styles --- */
+        @media (prefers-color-scheme: dark) {
+            body {
+                font-family: 'Doto', monospace; /* Dot matrix font */
+                background-color: #0c0c0c; /* Dark background */
+                color: #ffb700; /* Amber text color */
+            }
+
+            /* Glowing text effect */
+            .glow {
+                text-shadow: 0 0 5px rgba(255, 183, 0, 0.7),
+                             0 0 10px rgba(255, 183, 0, 0.5),
+                             0 0 15px rgba(255, 183, 0, 0.3);
+            }
+
+            h1, #large-clock {
+                letter-spacing: 2px;
+            }
+
+            .carousel-item {
+                background-color: transparent !important;
+                border: none !important;
+                box-shadow: none !important;
+                opacity: 1 !important;
+                color: #ffb700; /* Amber */
+                transition: all 0.3s ease-in-out;
+            }
+
+            /* Style for the next bus - brighter glow */
+            .bus-next {
+                color: #ffdd00 !important; /* Brighter yellow */
+                transform: scale(1.05);
+            }
+            .bus-next .time, .bus-next .countdown {
+                 text-shadow: 0 0 8px rgba(255, 221, 0, 0.8),
+                             0 0 15px rgba(255, 221, 0, 0.6),
+                             0 0 25px rgba(255, 221, 0, 0.4);
+            }
+
+            /* Style for upcoming buses */
+            .bus-upcoming {
+                color: #ffb700 !important; /* Standard Amber */
+            }
+
+            /* Style for past buses - dimmed */
+            .bus-past {
+                color: #4a3400 !important; /* Dimmed amber/brown */
+            }
+
+            .bus-future {
+                color: #ffb700 !important;
+            }
+
+            .bus-past .time,
+            .bus-past .countdown,
+            .bus-past .arrival {
+                text-shadow: none;
+            }
+
+            .carousel-day-header h4 {
+                color: #ffdd00;
+            }
+            
+            .card-background {
+                 background-color: #1a1a1a;
+                 border: 1px solid #333;
+            }
+        }
     </style>
 </head>
 
@@ -251,18 +321,18 @@
     <div class="container mx-auto p-4 md:p-8 max-w-7xl">
 
         <header class="text-center mb-6 md:mb-8">
-            <h1 class="text-4xl md:text-5xl font-extrabold text-blue-600 dark:text-blue-400">Bus Schedule</h1>
-            <div id="large-clock" class="text-6xl md:text-8xl font-bold text-gray-800 dark:text-gray-200 my-4"></div>
+            <h1 class="text-4xl md:text-5xl font-extrabold text-blue-600 dark:text-blue-400 glow">Bus Schedule</h1>
+            <div id="large-clock" class="text-6xl md:text-8xl font-bold text-gray-800 dark:text-gray-200 my-4 glow"></div>
             <p id="current-date" class="text-xl md:text-2xl text-gray-600 dark:text-gray-400 font-medium">Loading...</p>
         </header>
 
         <div class="flex flex-col gap-8">
 
             <section>
-                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 card-background">
                     <div class="flex justify-between items-center mb-4">
                         <div>
-                            <h2 id="title-castleton" class="text-2xl font-bold">➡️ To Castleton</h2>
+                            <h2 id="title-castleton" class="text-2xl font-bold glow">➡️ To Castleton</h2>
                             <p id="subtitle-castleton" class="text-sm text-gray-500 dark:text-gray-400 -mt-1">Departs from Hotel (Bike & Boot)</p>
                         </div>
                         <button id="swap-castleton" title="Swap Direction" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
@@ -280,10 +350,10 @@
             </section>
 
             <section>
-                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 card-background">
                     <div class="flex justify-between items-center mb-4">
                         <div>
-                            <h2 id="title-hathersage" class="text-2xl font-bold">➡️ To Hathersage</h2>
+                            <h2 id="title-hathersage" class="text-2xl font-bold glow">➡️ To Hathersage</h2>
                             <p id="subtitle-hathersage" class="text-sm text-gray-500 dark:text-gray-400 -mt-1">Departs from Hotel (Bike & Boot)</p>
                         </div>
                         <button id="swap-hathersage" title="Swap Direction" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
@@ -300,7 +370,9 @@
                 </div>
             </section>
 
-        </div> </div> <script>
+        </div>
+    </div>
+    <script>
         // --- DATA: Bus Timetable ---
         const timetable = {
             'monfri': {
