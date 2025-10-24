@@ -31,6 +31,8 @@
             scroll-snap-type: x mandatory;
             /* Smooth scrolling on touch devices */
             -webkit-overflow-scrolling: touch;
+            /* Disable overscroll/bounce effect on touch */
+            overscroll-behavior-x: contain;
             /* Hide scrollbar */
             scrollbar-width: none;
             /* Firefox */
@@ -740,8 +742,9 @@
                 // Prevent default vertical page scroll
                 e.preventDefault();
                 // Scroll horizontally instead
-                wrapper.scrollLeft += e.deltaY;
-            });
+                // Tuned multiplier for scroll wheel speed
+                wrapper.scrollLeft += e.deltaY * 0.5;
+            }, { passive: false }); // Add passive: false to ensure preventDefault works
         }
 
 
@@ -774,5 +777,8 @@
 </body>
 
 </html>
+
+
+
 
 
