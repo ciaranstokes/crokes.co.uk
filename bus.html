@@ -730,8 +730,17 @@
                 if (!isDown) return;
                 e.preventDefault();
                 const x = e.pageX - wrapper.offsetLeft;
-                const walk = (x - startX) * 2; // Multiplier for faster scrolling
+                // Reduced multiplier from 2 to 1 for less sensitivity
+                const walk = (x - startX) * 1; 
                 wrapper.scrollLeft = scrollLeft - walk;
+            });
+
+            // Add wheel event listener for horizontal scrolling
+            wrapper.addEventListener('wheel', (e) => {
+                // Prevent default vertical page scroll
+                e.preventDefault();
+                // Scroll horizontally instead
+                wrapper.scrollLeft += e.deltaY;
             });
         }
 
@@ -765,4 +774,5 @@
 </body>
 
 </html>
+
 
