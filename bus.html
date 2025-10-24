@@ -5,9 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Next Bus: Hotel to Castleton</title>
-    <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Load Inter font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap" rel="stylesheet">
@@ -27,8 +25,6 @@
         /* --- Carousel Styles --- */
         .carousel-wrapper {
             overflow-x: auto;
-            /* Enables smooth snapping */
-            scroll-snap-type: x mandatory;
             /* Smooth scrolling on touch devices */
             -webkit-overflow-scrolling: touch;
             /* Disable overscroll/bounce effect on touch */
@@ -252,22 +248,18 @@
 
 <body class="dark:text-gray-100 min-h-screen transition-colors duration-300">
 
-    <!-- Main Container -->
     <div class="container mx-auto p-4 md:p-8 max-w-7xl">
 
-        <!-- Header -->
-        <header class="mb-6 md:mb-8">
+        <header class="text-center mb-6 md:mb-8">
             <h1 class="text-4xl md:text-5xl font-extrabold text-blue-600 dark:text-blue-400">Bus Schedule</h1>
-            <p id="current-time" class="text-xl md:text-2xl text-gray-700 dark:text-gray-300 font-medium">Loading...</p>
+            <div id="large-clock" class="text-6xl md:text-8xl font-bold text-gray-800 dark:text-gray-200 my-4"></div>
+            <p id="current-date" class="text-xl md:text-2xl text-gray-600 dark:text-gray-400 font-medium">Loading...</p>
         </header>
 
-        <!-- Main Content Grid -->
         <div class="flex flex-col gap-8">
 
-            <!-- "To Castleton" Section -->
             <section>
                 <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
-                    <!-- Section Header with Swap Button -->
                     <div class="flex justify-between items-center mb-4">
                         <div>
                             <h2 id="title-castleton" class="text-2xl font-bold">➡️ To Castleton</h2>
@@ -279,21 +271,16 @@
                             </svg>
                         </button>
                     </div>
-                    <!-- Carousel Wrapper -->
                     <div id="carousel-wrapper-castleton" class="carousel-wrapper">
-                        <!-- Carousel Container (populated by JS) -->
                         <div id="next-bus-castleton-container" class="carousel-container">
-                            <!-- JS will populate this -->
                             <div class="text-center p-4 w-full text-gray-500">Loading...</div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- "To Hathersage / Sheffield" Section -->
             <section>
                 <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
-                    <!-- Section Header with Swap Button -->
                     <div class="flex justify-between items-center mb-4">
                         <div>
                             <h2 id="title-hathersage" class="text-2xl font-bold">➡️ To Hathersage / Sheffield</h2>
@@ -305,29 +292,16 @@
                             </svg>
                         </button>
                     </div>
-                    <!-- Carousel Wrapper -->
                     <div id="carousel-wrapper-hathersage" class="carousel-wrapper">
-                        <!-- Carousel Container (populated by JS) -->
                         <div id="next-bus-hathersage-container" class="carousel-container">
-                            <!-- JS will populate this -->
                             <div class="text-center p-4 w-full text-gray-500">Loading...</div>
                         </div>
                     </div>
                 </div>
             </section>
 
-        </div> <!-- End Main Content -->
-
-    </div> <!-- End Main Container -->
-
-    <script>
+        </div> </div> <script>
         // --- DATA: Bus Timetable ---
-        // 'hotel' = Bamford, Sickleholme/Bus Turnaround
-        // 'hathersage' = Hathersage, Main Rd/George Hotel
-        // 'castleton' = Castleton, How Ln/Bus Station
-        //
-        // NOTE: Times for 'hotel' in the 'toSheffield' direction
-        // are 5 minutes *before* the 'Bamford, Sickleholme' stop time.
         const timetable = {
             'monfri': {
                 'toCastleton': [
@@ -335,29 +309,29 @@
                     { 'hotel': '09:14', 'hathersage': '09:10', 'castleton': '09:26' },
                     { 'hotel': '10:29', 'hathersage': '10:25', 'castleton': '10:54' },
                     { 'hotel': '11:54', 'hathersage': '11:50', 'castleton': '12:06' },
-                    { 'hotel': '12:48', 'hathersage': '12:44', 'castleton': '13:13' }, // 272 from Bradwell
+                    { 'hotel': '12:48', 'hathersage': '12:44', 'castleton': '13:13' },
                     { 'hotel': '14:11', 'hathersage': '14:07', 'castleton': '14:23' },
-                    { 'hotel': '15:21', 'hathersage': '15:17', 'castleton': '15:45' }, // 272 from Bradwell
+                    { 'hotel': '15:21', 'hathersage': '15:17', 'castleton': '15:45' },
                     { 'hotel': '16:41', 'hathersage': '16:37', 'castleton': '16:53' },
-                    { 'hotel': '17:36', 'hathersage': '17:32', 'castleton': '18:01' }, // 272 from Bradwell
-                    { 'hotel': '18:34', 'hathersage': '18:30', 'castleton': '18:59' }, // 272 from Bradwell
+                    { 'hotel': '17:36', 'hathersage': '17:32', 'castleton': '18:01' },
+                    { 'hotel': '18:34', 'hathersage': '18:30', 'castleton': '18:59' },
                     { 'hotel': '19:28', 'hathersage': '19:24', 'castleton': '19:40' },
                     { 'hotel': '22:01', 'hathersage': '21:57', 'castleton': '22:23' },
                     { 'hotel': '23:37', 'hathersage': '23:33', 'castleton': '23:59' }
                 ],
                 'toSheffield': [
-                    { 'hotel': '07:25', 'hathersage': '07:35', 'castleton': '07:19' }, // Original Bamford 07:30
-                    { 'hotel': '08:50', 'hathersage': '09:00', 'castleton': '08:30' }, // Original Bamford 08:55
-                    { 'hotel': '09:36', 'hathersage': '09:46', 'castleton': '09:30' }, // Original Bamford 09:41
-                    { 'hotel': '11:20', 'hathersage': '11:30', 'castleton': '11:00' }, // Original Bamford 11:25
-                    { 'hotel': '12:20', 'hathersage': '12:30', 'castleton': '12:14' }, // Original Bamford 12:25
-                    { 'hotel': '13:44', 'hathersage': '13:54', 'castleton': '13:24' }, // Original Bamford 13:49
-                    { 'hotel': '14:41', 'hathersage': '14:51', 'castleton': '14:35' }, // Original Bamford 14:46
-                    { 'hotel': '16:20', 'hathersage': '16:30', 'castleton': '16:00' }, // Original Bamford 16:25
-                    { 'hotel': '17:20', 'hathersage': '17:30', 'castleton': '17:00' }, // Original Bamford 17:25
-                    { 'hotel': '18:35', 'hathersage': '18:45', 'castleton': '18:15' }, // Original Bamford 18:40
-                    { 'hotel': '19:48', 'hathersage': '19:58', 'castleton': '19:30' }, // Original Bamford 19:53
-                    { 'hotel': '22:43', 'hathersage': '22:53', 'castleton': '22:25' }  // Original Bamford 22:48
+                    { 'hotel': '07:25', 'hathersage': '07:35', 'castleton': '07:19' },
+                    { 'hotel': '08:50', 'hathersage': '09:00', 'castleton': '08:30' },
+                    { 'hotel': '09:36', 'hathersage': '09:46', 'castleton': '09:30' },
+                    { 'hotel': '11:20', 'hathersage': '11:30', 'castleton': '11:00' },
+                    { 'hotel': '12:20', 'hathersage': '12:30', 'castleton': '12:14' },
+                    { 'hotel': '13:44', 'hathersage': '13:54', 'castleton': '13:24' },
+                    { 'hotel': '14:41', 'hathersage': '14:51', 'castleton': '14:35' },
+                    { 'hotel': '16:20', 'hathersage': '16:30', 'castleton': '16:00' },
+                    { 'hotel': '17:20', 'hathersage': '17:30', 'castleton': '17:00' },
+                    { 'hotel': '18:35', 'hathersage': '18:45', 'castleton': '18:15' },
+                    { 'hotel': '19:48', 'hathersage': '19:58', 'castleton': '19:30' },
+                    { 'hotel': '22:43', 'hathersage': '22:53', 'castleton': '22:25' }
                 ]
             },
             'saturday': {
@@ -377,24 +351,24 @@
                     { 'hotel': '23:37', 'hathersage': '23:33', 'castleton': '23:59' }
                 ],
                 'toSheffield': [
-                    { 'hotel': '07:25', 'hathersage': '07:35', 'castleton': '07:19' }, // Original Bamford 07:30
-                    { 'hotel': '08:50', 'hathersage': '09:00', 'castleton': '08:30' }, // Original Bamford 08:55
-                    { 'hotel': '09:36', 'hathersage': '09:46', 'castleton': '09:30' }, // Original Bamford 09:41
-                    { 'hotel': '11:20', 'hathersage': '11:30', 'castleton': '11:00' }, // Original Bamford 11:25
-                    { 'hotel': '12:20', 'hathersage': '12:30', 'castleton': '12:14' }, // Original Bamford 12:25
-                    { 'hotel': '13:44', 'hathersage': '13:54', 'castleton': '13:24' }, // Original Bamford 13:49
-                    { 'hotel': '14:41', 'hathersage': '14:51', 'castleton': '14:35' }, // Original Bamford 14:46
-                    { 'hotel': '16:20', 'hathersage': '16:30', 'castleton': '16:00' }, // Original Bamford 16:25
-                    { 'hotel': '17:20', 'hathersage': '17:30', 'castleton': '17:00' }, // Original Bamford 17:25
-                    { 'hotel': '18:35', 'hathersage': '18:45', 'castleton': '18:15' }, // Original Bamford 18:40
-                    { 'hotel': '19:48', 'hathersage': '19:58', 'castleton': '19:30' }, // Original Bamford 19:53
-                    { 'hotel': '22:43', 'hathersage': '22:53', 'castleton': '22:25' }  // Original Bamford 22:48
+                    { 'hotel': '07:25', 'hathersage': '07:35', 'castleton': '07:19' },
+                    { 'hotel': '08:50', 'hathersage': '09:00', 'castleton': '08:30' },
+                    { 'hotel': '09:36', 'hathersage': '09:46', 'castleton': '09:30' },
+                    { 'hotel': '11:20', 'hathersage': '11:30', 'castleton': '11:00' },
+                    { 'hotel': '12:20', 'hathersage': '12:30', 'castleton': '12:14' },
+                    { 'hotel': '13:44', 'hathersage': '13:54', 'castleton': '13:24' },
+                    { 'hotel': '14:41', 'hathersage': '14:51', 'castleton': '14:35' },
+                    { 'hotel': '16:20', 'hathersage': '16:30', 'castleton': '16:00' },
+                    { 'hotel': '17:20', 'hathersage': '17:30', 'castleton': '17:00' },
+                    { 'hotel': '18:35', 'hathersage': '18:45', 'castleton': '18:15' },
+                    { 'hotel': '19:48', 'hathersage': '19:58', 'castleton': '19:30' },
+                    { 'hotel': '22:43', 'hathersage': '22:53', 'castleton': '22:25' }
                 ]
             },
             'sunday': {
                 'toCastleton': [
                     { 'hotel': '09:14', 'hathersage': '09:10', 'castleton': '09:39' },
-                    { 'hotel': '10:14', 'hathersage': '10:10', 'castleton': '10:26' }, // Note: Arrives Castleton *before* Hathersage? PDF is odd. Using listed times.
+                    { 'hotel': '10:14', 'hathersage': '10:10', 'castleton': '10:26' },
                     { 'hotel': '11:14', 'hathersage': '11:10', 'castleton': '11:39' },
                     { 'hotel': '12:18', 'hathersage': '12:14', 'castleton': '12:30' },
                     { 'hotel': '13:18', 'hathersage': '13:14', 'castleton': '13:43' },
@@ -406,17 +380,17 @@
                     { 'hotel': '22:02', 'hathersage': '21:58', 'castleton': '22:24' }
                 ],
                 'toSheffield': [
-                    { 'hotel': '10:26', 'hathersage': '10:36', 'castleton': '10:20' }, // Original Bamford 10:31
-                    { 'hotel': '11:26', 'hathersage': '11:36', 'castleton': '11:06' }, // Original Bamford 11:31
-                    { 'hotel': '12:26', 'hathersage': '12:36', 'castleton': '12:20' }, // Original Bamford 12:31
-                    { 'hotel': '13:26', 'hathersage': '13:36', 'castleton': '13:06' }, // Original Bamford 13:31
-                    { 'hotel': '14:26', 'hathersage': '14:36', 'castleton': '14:20' }, // Original Bamford 14:31
-                    { 'hotel': '15:26', 'hathersage': '15:36', 'castleton': '15:06' }, // Original Bamford 15:31
-                    { 'hotel': '16:26', 'hathersage': '16:36', 'castleton': '16:20' }, // Original Bamford 16:31
-                    { 'hotel': '17:26', 'hathersage': '17:36', 'castleton': '17:06' }, // Original Bamford 17:31
-                    { 'hotel': '18:26', 'hathersage': '18:36', 'castleton': '18:20' }, // Original Bamford 18:31
-                    { 'hotel': '20:33', 'hathersage': '20:43', 'castleton': '20:15' }, // Original Bamford 20:38
-                    { 'hotel': '22:43', 'hathersage': '22:53', 'castleton': '22:25' }  // Original Bamford 22:48
+                    { 'hotel': '10:26', 'hathersage': '10:36', 'castleton': '10:20' },
+                    { 'hotel': '11:26', 'hathersage': '11:36', 'castleton': '11:06' },
+                    { 'hotel': '12:26', 'hathersage': '12:36', 'castleton': '12:20' },
+                    { 'hotel': '13:26', 'hathersage': '13:36', 'castleton': '13:06' },
+                    { 'hotel': '14:26', 'hathersage': '14:36', 'castleton': '14:20' },
+                    { 'hotel': '15:26', 'hathersage': '15:36', 'castleton': '15:06' },
+                    { 'hotel': '16:26', 'hathersage': '16:36', 'castleton': '16:20' },
+                    { 'hotel': '17:26', 'hathersage': '17:36', 'castleton': '17:06' },
+                    { 'hotel': '18:26', 'hathersage': '18:36', 'castleton': '18:20' },
+                    { 'hotel': '20:33', 'hathersage': '20:43', 'castleton': '20:15' },
+                    { 'hotel': '22:43', 'hathersage': '22:53', 'castleton': '22:25' }
                 ]
             }
         };
@@ -426,7 +400,8 @@
         let isHathersageSwapped = false;
 
         // --- DOM Elements ---
-        const currentTimeDisplay = document.getElementById('current-time');
+        const largeClockDisplay = document.getElementById('large-clock');
+        const currentDateDisplay = document.getElementById('current-date');
         
         const nextBusCastletonContainer = document.getElementById('next-bus-castleton-container');
         const nextBusHathersageContainer = document.getElementById('next-bus-hathersage-container');
@@ -470,7 +445,6 @@
             const busTime = new Date(now);
             busTime.setHours(hours, mins, 0, 0);
 
-            // Handle buses that are technically "tomorrow" (e.g., 00:05)
             if (busTime < now && hours < 5) {
                 busTime.setDate(busTime.getDate() + 1);
             }
@@ -496,8 +470,8 @@
          * Renders the entire 3-day schedule into a carousel.
          */
         function renderFullCarousel(container, sectionType, isSwapped, now) {
-            container.innerHTML = ''; // Clear existing slides
-            const nowTimeStr = now.toTimeString().substring(0, 5); // "HH:MM"
+            container.innerHTML = ''; 
+            const nowTimeStr = now.toTimeString().substring(0, 5); 
 
             const today = new Date(now);
             const tomorrow = getOffsetDate(now, 1);
@@ -511,40 +485,37 @@
             
             let departKey, arriveKey;
 
-            // Determine keys based on section and swap state
             if (sectionType === 'castleton') {
-                if (isSwapped) { // Castleton -> Hotel
+                if (isSwapped) { 
                     departKey = 'castleton';
                     arriveKey = 'hotel';
-                } else { // Hotel -> Castleton
+                } else { 
                     departKey = 'hotel';
                     arriveKey = 'castleton';
                 }
-            } else { // hathersage section
-                if (isSwapped) { // Hathersage -> Hotel
+            } else { 
+                if (isSwapped) {
                     departKey = 'hathersage';
                     arriveKey = 'hotel';
-                } else { // Hotel -> Hathersage
+                } else { 
                     departKey = 'hotel';
                     arriveKey = 'hathersage';
                 }
             }
             
             let isNextBusFound = false;
-            let firstNextBusElement = null; // Store the DOM element for the *very* next bus
+            let firstNextBusElement = null;
 
             days.forEach(day => {
                 const dayKey = getDayKey(day.date);
                 let trips;
 
-                // Get correct schedule array for the day
                 if (sectionType === 'castleton') {
                     trips = isSwapped ? timetable[dayKey].toSheffield : timetable[dayKey].toCastleton;
-                } else { // hathersage
+                } else { 
                     trips = isSwapped ? timetable[dayKey].toCastleton : timetable[dayKey].toSheffield;
                 }
 
-                // Add day header
                 container.appendChild(createDayHeader(day.name, day.identifier));
 
                 if (trips.length === 0) {
@@ -557,12 +528,12 @@
 
                 trips.forEach(trip => {
                     const slide = document.createElement('div');
-                    slide.className = 'carousel-item p-4 text-center'; // Base classes
+                    slide.className = 'carousel-item p-4 text-center';
 
                     const departTime = trip[departKey];
                     const arriveTime = trip[arriveKey];
 
-                    let stateClass = 'bus-future'; // Default for tomorrow/day after
+                    let stateClass = 'bus-future'; 
                     let countdownText = '&nbsp;';
 
                     if (day.identifier === 'today') {
@@ -572,14 +543,14 @@
                             stateClass = 'bus-next';
                             countdownText = calculateCountdown(departTime, now);
                             isNextBusFound = true;
-                            firstNextBusElement = slide; // This is the one to scroll to
+                            firstNextBusElement = slide; 
                         } else {
                             stateClass = 'bus-upcoming';
                         }
                     }
                     
-                    slide.dataset.day = day.identifier; // Tag the slide with its day
-                    slide.dataset.time = departTime; // Tag the slide with its time
+                    slide.dataset.day = day.identifier;
+                    slide.dataset.time = departTime;
                     slide.classList.add(stateClass);
                     slide.innerHTML = `
                         <div class="time text-4xl sm:text-5xl font-extrabold">${departTime}</div>
@@ -590,7 +561,6 @@
                 });
             });
 
-            // If we found a "next bus", scroll it into view
             if (firstNextBusElement) {
                 firstNextBusElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
             }
@@ -598,12 +568,10 @@
 
         /**
          * Master function to update titles and re-render carousels.
-         * Called on init and on swap.
          */
         function updateScheduleView() {
             const now = new Date();
 
-            // 1. Castleton Section
             if (isCastletonSwapped) {
                 titleCastleton.textContent = '⬅️ To Hotel';
                 subtitleCastleton.textContent = 'Departs from Castleton';
@@ -613,7 +581,6 @@
             }
             renderFullCarousel(nextBusCastletonContainer, 'castleton', isCastletonSwapped, now);
 
-            // 2. Hathersage Section
             if (isHathersageSwapped) {
                 titleHathersage.textContent = '⬅️ To Hotel';
                 subtitleHathersage.textContent = 'Departs from Hathersage';
@@ -624,45 +591,36 @@
             renderFullCarousel(nextBusHathersageContainer, 'hathersage', isHathersageSwapped, now);
         }
 
-
         /**
-         * This is the main update function, called every second.
-         * Only updates time and countdowns.
+         * Main update function, called every second.
          */
         function updateDisplay() {
-            // --- 1. Get Current Time ---
             const now = new Date();
-            const nowTimeStr = now.toTimeString().substring(0, 5); // "HH:MM"
+            const nowTimeStr = now.toTimeString().substring(0, 5);
 
-            // Format for display: "Friday, 7:04 PM"
-            const timeOptions = { hour: 'numeric', minute: '2-digit' };
-            const dateOptions = { weekday: 'long' };
-            const timeString = now.toLocaleTimeString('en-US', timeOptions);
-            const dateString = now.toLocaleDateString('en-US', dateOptions);
-            currentTimeDisplay.textContent = `${dateString}, ${timeString}`;
+            const clockOptions = { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true };
+            largeClockDisplay.textContent = now.toLocaleTimeString('en-US', clockOptions);
 
-            // --- 2. Check for Day Change (at midnight) ---
-            if (nowTimeStr === '00:00' && now.getSeconds() === 0) { // Only run once at 00:00:00
-                // Full re-render of carousels for new day
+            const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            currentDateDisplay.textContent = now.toLocaleDateString('en-US', dateOptions);
+
+            if (now.toTimeString().substring(0,8) === '00:00:00') {
                 updateScheduleView();
             } else {
-                // --- 3. Just update countdowns and states ---
                 updateCarouselStates(nextBusCastletonContainer, 'castleton', isCastletonSwapped, now, nowTimeStr);
                 updateCarouselStates(nextBusHathersageContainer, 'hathersage', isHathersageSwapped, now, nowTimeStr);
             }
         }
 
         /**
-         * Efficiently updates states and countdowns without rebuilding the whole DOM.
+         * Efficiently updates states and countdowns.
          */
         function updateCarouselStates(container, sectionType, isSwapped, now, nowTimeStr) {
             const allItems = container.querySelectorAll('.carousel-item');
             let nextBusFound = false;
-
             let departKey, scheduleTrips;
             const dayKey = getDayKey(now);
 
-            // Get the correct departure key and schedule for *today*
             if (sectionType === 'castleton') {
                 departKey = isSwapped ? 'castleton' : 'hotel';
                 scheduleTrips = isSwapped ? timetable[dayKey].toSheffield : timetable[dayKey].toCastleton;
@@ -675,15 +633,14 @@
 
             allItems.forEach(item => {
                 const timeEl = item.querySelector('.time');
-                if (!timeEl) return; // Skip day headers or empty placeholders
+                if (!timeEl) return;
 
                 const itemTime = timeEl.textContent;
                 const countdownEl = item.querySelector('.countdown');
                 const isToday = item.dataset.day === 'today';
 
-                if (!isToday) return; // Don't touch future days
+                if (!isToday) return;
 
-                // Reset classes
                 item.classList.remove('bus-next', 'bus-past', 'bus-upcoming');
 
                 if (itemTime < nowTimeStr) {
@@ -700,17 +657,16 @@
             });
         }
 
-
         /**
-         * Adds click-and-drag scrolling to a carousel element.
+         * Enables drag-to-scroll and wheel-to-scroll on an element.
          */
-        function enableDragScroll(wrapper) {
+        function enableCarouselInteraction(wrapper) {
             let isDown = false;
             let startX;
             let scrollLeft;
+            let wheelingTimeout;
 
             wrapper.addEventListener('mousedown', (e) => {
-                // Ignore if not left mouse button
                 if (e.button !== 0) return;
                 isDown = true;
                 wrapper.classList.add('grabbing');
@@ -732,32 +688,25 @@
                 if (!isDown) return;
                 e.preventDefault();
                 const x = e.pageX - wrapper.offsetLeft;
-                // Reduced multiplier from 2 to 1 for less sensitivity
-                const walk = (x - startX) * 1; 
+                const walk = (x - startX); 
                 wrapper.scrollLeft = scrollLeft - walk;
             });
-
-            // Add wheel event listener for horizontal scrolling
+            
             wrapper.addEventListener('wheel', (e) => {
-                // Prevent default vertical page scroll
+                if (e.deltaY === 0) return;
                 e.preventDefault();
-                // Scroll horizontally instead
-                // Tuned multiplier for scroll wheel speed
-                wrapper.scrollLeft += e.deltaY * 0.5;
-            }, { passive: false }); // Add passive: false to ensure preventDefault works
+                wrapper.scrollLeft += e.deltaY;
+            }, { passive: false });
         }
 
 
         // --- INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', () => {
-            // Set initial state
             updateScheduleView();
 
-            // Enable drag scrolling on desktop
-            enableDragScroll(castletonCarouselWrapper);
-            enableDragScroll(sheffieldCarouselWrapper);
+            enableCarouselInteraction(castletonCarouselWrapper);
+            enableCarouselInteraction(sheffieldCarouselWrapper);
 
-            // Add button listeners
             swapCastletonBtn.addEventListener('click', () => {
                 isCastletonSwapped = !isCastletonSwapped;
                 updateScheduleView();
@@ -768,17 +717,10 @@
                 updateScheduleView();
             });
 
-            // Run the update once immediately
             updateDisplay();
-            // Then update every second
             setInterval(updateDisplay, 1000);
         });
     </script>
 </body>
 
 </html>
-
-
-
-
-
