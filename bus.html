@@ -15,7 +15,6 @@
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f1f5f9;
-            /* gray-100 */
         }
 
         .card-background {
@@ -144,7 +143,8 @@
             body {
                 font-family: 'Doto', monospace;
                 background-color: #0c0c0c;
-                /* NOTE: Removed the global `color` property to prevent conflicts */
+                color: #ffb700;
+                /* Base amber color */
             }
 
             h1,
@@ -168,11 +168,35 @@
                 border: none !important;
                 box-shadow: none !important;
                 opacity: 1 !important;
-                color: #ffb700;
             }
 
-            .bus-next {
+            /* --- FIX: Specific color overrides for dark mode time elements --- */
+            .bus-next,
+            .bus-next .time {
                 color: #ffdd00 !important;
+                /* Brighter yellow */
+            }
+
+            .bus-upcoming,
+            .bus-upcoming .time {
+                color: #ffb700 !important;
+                /* Standard Amber */
+            }
+
+            .bus-past,
+            .bus-past .time {
+                color: #4a3400 !important;
+                /* Dimmed amber/brown */
+            }
+
+            .bus-future,
+            .bus-future .time {
+                color: #ffb700 !important;
+            }
+
+            /* --- End of FIX --- */
+
+            .bus-next {
                 transform: scale(1.05);
             }
 
@@ -183,23 +207,15 @@
                     0 0 25px rgba(255, 221, 0, 0.4);
             }
 
-            .bus-upcoming {
-                color: #ffb700 !important;
-            }
-
             .bus-past {
-                color: #4a3400 !important;
                 opacity: 1;
+                /* Reset opacity from light mode */
             }
 
             .bus-past .time,
             .bus-past .countdown,
             .bus-past .arrival {
                 text-shadow: none;
-            }
-
-            .bus-future {
-                color: #ffb700 !important;
             }
 
             .carousel-day-header h4 {
