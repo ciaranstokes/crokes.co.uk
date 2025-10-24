@@ -22,11 +22,6 @@
             background-color: white;
         }
 
-        h1,
-        #large-clock {
-            letter-spacing: normal;
-        }
-
         /* --- Base Carousel Layout (for both modes) --- */
         .carousel-wrapper {
             overflow-x: auto;
@@ -49,7 +44,6 @@
         }
 
         .carousel-container {
-            display: flex;
             gap: 1rem;
             padding-left: 0.25rem;
             padding-right: 0.25rem;
@@ -150,7 +144,7 @@
             body {
                 font-family: 'Doto', monospace;
                 background-color: #0c0c0c;
-                color: #ffb700;
+                /* NOTE: Removed the global `color` property to prevent conflicts */
             }
 
             h1,
@@ -215,7 +209,7 @@
     </style>
 </head>
 
-<body class="dark:text-gray-100 min-h-screen transition-colors duration-300">
+<body class="dark:text-amber-400 min-h-screen transition-colors duration-300">
 
     <div class="container mx-auto p-4 md:p-8 max-w-7xl">
 
@@ -241,7 +235,7 @@
                         </button>
                     </div>
                     <div id="carousel-wrapper-castleton" class="carousel-wrapper">
-                        <div id="next-bus-castleton-container" class="carousel-container">
+                        <div id="next-bus-castleton-container" class="carousel-container flex">
                             <div class="text-center p-4 w-full text-gray-500">Loading...</div>
                         </div>
                     </div>
@@ -262,7 +256,7 @@
                         </button>
                     </div>
                     <div id="carousel-wrapper-hathersage" class="carousel-wrapper">
-                        <div id="next-bus-hathersage-container" class="carousel-container">
+                        <div id="next-bus-hathersage-container" class="carousel-container flex">
                             <div class="text-center p-4 w-full text-gray-500">Loading...</div>
                         </div>
                     </div>
@@ -752,13 +746,23 @@
             const nowTimeStr = now.toTimeString().substring(0, 5);
 
             if (isDarkMode) {
-                const clockOptions = { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: false };
+                const clockOptions = {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                };
                 largeClockDisplay.textContent = now.toLocaleTimeString('en-GB', clockOptions);
             } else {
-                const clockOptions = { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true };
+                const clockOptions = {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: true
+                };
                 largeClockDisplay.textContent = now.toLocaleTimeString('en-US', clockOptions);
             }
-            
+
             const dateOptions = {
                 weekday: 'long',
                 year: 'numeric',
@@ -766,7 +770,7 @@
                 day: 'numeric'
             };
             currentDateDisplay.textContent = now.toLocaleDateString('en-US', dateOptions);
-            
+
             if (now.toTimeString().substring(0, 8) === '00:00:00') {
                 updateScheduleView();
             } else {
