@@ -283,306 +283,92 @@
     </div>
     <script>
         // --- DATA: Bus Timetable ---
+        // Data updated from Sheffield Bus Service 271/272 PDF valid from 2 November 2025.
+        // 'hotel' corresponds to "Bamford, Sickleholme/Bus Turnaround".
         const timetable = {
             'monfri': {
-                'toCastleton': [{
-                    'hotel': '08:14',
-                    'hathersage': '08:10',
-                    'castleton': '08:26'
-                }, {
-                    'hotel': '09:14',
-                    'hathersage': '09:10',
-                    'castleton': '09:26'
-                }, {
-                    'hotel': '10:29',
-                    'hathersage': '10:25',
-                    'castleton': '10:54'
-                }, {
-                    'hotel': '11:54',
-                    'hathersage': '11:50',
-                    'castleton': '12:06'
-                }, {
-                    'hotel': '12:48',
-                    'hathersage': '12:44',
-                    'castleton': '13:13'
-                }, {
-                    'hotel': '14:11',
-                    'hathersage': '14:07',
-                    'castleton': '14:23'
-                }, {
-                    'hotel': '15:21',
-                    'hathersage': '15:17',
-                    'castleton': '15:45'
-                }, {
-                    'hotel': '16:41',
-                    'hathersage': '16:37',
-                    'castleton': '16:53'
-                }, {
-                    'hotel': '17:36',
-                    'hathersage': '17:32',
-                    'castleton': '18:01'
-                }, {
-                    'hotel': '18:34',
-                    'hathersage': '18:30',
-                    'castleton': '18:59'
-                }, {
-                    'hotel': '19:28',
-                    'hathersage': '19:24',
-                    'castleton': '19:40'
-                }, {
-                    'hotel': '22:01',
-                    'hathersage': '21:57',
-                    'castleton': '22:23'
-                }, {
-                    'hotel': '23:37',
-                    'hathersage': '23:33',
-                    'castleton': '23:59'
-                }],
-                'toSheffield': [{
-                    'hotel': '07:25',
-                    'hathersage': '07:35',
-                    'castleton': '07:19'
-                }, {
-                    'hotel': '08:50',
-                    'hathersage': '09:00',
-                    'castleton': '08:30'
-                }, {
-                    'hotel': '09:36',
-                    'hathersage': '09:46',
-                    'castleton': '09:30'
-                }, {
-                    'hotel': '11:20',
-                    'hathersage': '11:30',
-                    'castleton': '11:00'
-                }, {
-                    'hotel': '12:20',
-                    'hathersage': '12:30',
-                    'castleton': '12:14'
-                }, {
-                    'hotel': '13:44',
-                    'hathersage': '13:54',
-                    'castleton': '13:24'
-                }, {
-                    'hotel': '14:41',
-                    'hathersage': '14:51',
-                    'castleton': '14:35'
-                }, {
-                    'hotel': '16:20',
-                    'hathersage': '16:30',
-                    'castleton': '16:00'
-                }, {
-                    'hotel': '17:20',
-                    'hathersage': '17:30',
-                    'castleton': '17:00'
-                }, {
-                    'hotel': '18:35',
-                    'hathersage': '18:45',
-                    'castleton': '18:15'
-                }, {
-                    'hotel': '19:48',
-                    'hathersage': '19:58',
-                    'castleton': '19:30'
-                }, {
-                    'hotel': '22:43',
-                    'hathersage': '22:53',
-                    'castleton': '22:25'
-                }]
+                'toCastleton': [
+                    { 'hotel': '08:14', 'hathersage': '08:10', 'castleton': '08:26' },
+                    { 'hotel': '09:14', 'hathersage': '09:10', 'castleton': '09:26' },
+                    { 'hotel': '10:29', 'hathersage': '10:25', 'castleton': '10:54' },
+                    { 'hotel': '11:54', 'hathersage': '11:50', 'castleton': '12:06' },
+                    { 'hotel': '12:48', 'hathersage': '12:44', 'castleton': '13:13' },
+                    { 'hotel': '14:11', 'hathersage': '14:07', 'castleton': '14:23' },
+                    { 'hotel': '15:21', 'hathersage': '15:17', 'castleton': '15:45' },
+                    { 'hotel': '16:41', 'hathersage': '16:37', 'castleton': '16:53' },
+                    { 'hotel': '17:36', 'hathersage': '17:32', 'castleton': '18:01' },
+                    { 'hotel': '18:34', 'hathersage': '18:30', 'castleton': '18:59' },
+                    { 'hotel': '19:28', 'hathersage': '19:24', 'castleton': '19:40' },
+                    { 'hotel': '22:01', 'hathersage': '21:57', 'castleton': '22:23' },
+                    { 'hotel': '23:37', 'hathersage': '23:33', 'castleton': '23:59' }
+                ],
+                'toSheffield': [
+                    { 'hotel': '07:30', 'hathersage': '07:35', 'castleton': '07:19' },
+                    { 'hotel': '08:55', 'hathersage': '09:00', 'castleton': '08:30' },
+                    { 'hotel': '09:41', 'hathersage': '09:46', 'castleton': '09:30' },
+                    { 'hotel': '11:25', 'hathersage': '11:30', 'castleton': '11:00' },
+                    { 'hotel': '12:25', 'hathersage': '12:30', 'castleton': '12:14' },
+                    { 'hotel': '13:49', 'hathersage': '13:54', 'castleton': '13:24' },
+                    { 'hotel': '14:46', 'hathersage': '14:51', 'castleton': '14:35' },
+                    { 'hotel': '16:25', 'hathersage': '16:30', 'castleton': '16:00' },
+                    { 'hotel': '17:25', 'hathersage': '17:30', 'castleton': '17:00' },
+                    { 'hotel': '18:40', 'hathersage': '18:45', 'castleton': '18:15' },
+                    { 'hotel': '19:53', 'hathersage': '19:58', 'castleton': '19:30' },
+                    { 'hotel': '22:48', 'hathersage': '22:53', 'castleton': '22:25' }
+                ]
             },
             'saturday': {
-                'toCastleton': [{
-                    'hotel': '08:14',
-                    'hathersage': '08:10',
-                    'castleton': '08:26'
-                }, {
-                    'hotel': '09:14',
-                    'hathersage': '09:10',
-                    'castleton': '09:26'
-                }, {
-                    'hotel': '10:29',
-                    'hathersage': '10:25',
-                    'castleton': '10:54'
-                }, {
-                    'hotel': '11:54',
-                    'hathersage': '11:50',
-                    'castleton': '12:06'
-                }, {
-                    'hotel': '12:48',
-                    'hathersage': '12:44',
-                    'castleton': '13:13'
-                }, {
-                    'hotel': '14:11',
-                    'hathersage': '14:07',
-                    'castleton': '14:23'
-                }, {
-                    'hotel': '15:18',
-                    'hathersage': '15:14',
-                    'castleton': '15:43'
-                }, {
-                    'hotel': '16:41',
-                    'hathersage': '16:37',
-                    'castleton': '16:53'
-                }, {
-                    'hotel': '17:33',
-                    'hathersage': '17:29',
-                    'castleton': '17:58'
-                }, {
-                    'hotel': '18:33',
-                    'hathersage': '18:29',
-                    'castleton': '18:58'
-                }, {
-                    'hotel': '19:28',
-                    'hathersage': '19:24',
-                    'castleton': '19:40'
-                }, {
-                    'hotel': '22:02',
-                    'hathersage': '21:58',
-                    'castleton': '22:24'
-                }, {
-                    'hotel': '23:37',
-                    'hathersage': '23:33',
-                    'castleton': '23:59'
-                }],
-                'toSheffield': [{
-                    'hotel': '07:25',
-                    'hathersage': '07:35',
-                    'castleton': '07:19'
-                }, {
-                    'hotel': '08:50',
-                    'hathersage': '09:00',
-                    'castleton': '08:30'
-                }, {
-                    'hotel': '09:36',
-                    'hathersage': '09:46',
-                    'castleton': '09:30'
-                }, {
-                    'hotel': '11:20',
-                    'hathersage': '11:30',
-                    'castleton': '11:00'
-                }, {
-                    'hotel': '12:20',
-                    'hathersage': '12:30',
-                    'castleton': '12:14'
-                }, {
-                    'hotel': '13:44',
-                    'hathersage': '13:54',
-                    'castleton': '13:24'
-                }, {
-                    'hotel': '14:41',
-                    'hathersage': '14:51',
-                    'castleton': '14:35'
-                }, {
-                    'hotel': '16:20',
-                    'hathersage': '16:30',
-                    'castleton': '16:00'
-                }, {
-                    'hotel': '17:20',
-                    'hathersage': '17:30',
-                    'castleton': '17:00'
-                }, {
-                    'hotel': '18:35',
-                    'hathersage': '18:45',
-                    'castleton': '18:15'
-                }, {
-                    'hotel': '19:48',
-                    'hathersage': '19:58',
-                    'castleton': '19:30'
-                }, {
-                    'hotel': '22:43',
-                    'hathersage': '22:53',
-                    'castleton': '22:25'
-                }]
+                'toCastleton': [
+                    { 'hotel': '08:14', 'hathersage': '08:10', 'castleton': '08:26' },
+                    { 'hotel': '09:14', 'hathersage': '09:10', 'castleton': '09:26' },
+                    { 'hotel': '10:29', 'hathersage': '10:25', 'castleton': '10:54' },
+                    { 'hotel': '11:54', 'hathersage': '11:50', 'castleton': '12:06' },
+                    { 'hotel': '12:48', 'hathersage': '12:44', 'castleton': '13:13' },
+                    { 'hotel': '14:11', 'hathersage': '14:07', 'castleton': '14:23' },
+                    { 'hotel': '15:18', 'hathersage': '15:14', 'castleton': '15:43' },
+                    { 'hotel': '16:41', 'hathersage': '16:37', 'castleton': '16:53' },
+                    { 'hotel': '17:33', 'hathersage': '17:29', 'castleton': '17:58' },
+                    { 'hotel': '18:33', 'hathersage': '18:29', 'castleton': '18:58' },
+                    { 'hotel': '19:28', 'hathersage': '19:24', 'castleton': '19:40' },
+                    { 'hotel': '22:02', 'hathersage': '21:58', 'castleton': '22:24' },
+                    { 'hotel': '23:37', 'hathersage': '23:33', 'castleton': '23:59' }
+                ],
+                'toSheffield': [
+                    { 'hotel': '07:30', 'hathersage': '07:35', 'castleton': '07:19' },
+                    { 'hotel': '08:55', 'hathersage': '09:00', 'castleton': '08:30' },
+                    { 'hotel': '09:41', 'hathersage': '09:46', 'castleton': '09:30' },
+                    { 'hotel': '11:25', 'hathersage': '11:30', 'castleton': '11:00' },
+                    { 'hotel': '12:25', 'hathersage': '12:30', 'castleton': '12:14' },
+                    { 'hotel': '13:49', 'hathersage': '13:54', 'castleton': '13:24' },
+                    { 'hotel': '14:46', 'hathersage': '14:51', 'castleton': '14:35' },
+                    { 'hotel': '16:25', 'hathersage': '16:30', 'castleton': '16:00' },
+                    { 'hotel': '17:25', 'hathersage': '17:30', 'castleton': '17:00' },
+                    { 'hotel': '18:40', 'hathersage': '18:45', 'castleton': '18:15' },
+                    { 'hotel': '19:53', 'hathersage': '19:58', 'castleton': '19:30' },
+                    { 'hotel': '22:48', 'hathersage': '22:53', 'castleton': '22:25' }
+                ]
             },
             'sunday': {
-                'toCastleton': [{
-                    'hotel': '09:14',
-                    'hathersage': '09:10',
-                    'castleton': '09:39'
-                }, {
-                    'hotel': '10:14',
-                    'hathersage': '10:10',
-                    'castleton': '10:26'
-                }, {
-                    'hotel': '11:14',
-                    'hathersage': '11:10',
-                    'castleton': '11:39'
-                }, {
-                    'hotel': '12:18',
-                    'hathersage': '12:14',
-                    'castleton': '12:30'
-                }, {
-                    'hotel': '13:18',
-                    'hathersage': '13:14',
-                    'castleton': '13:43'
-                }, {
-                    'hotel': '14:18',
-                    'hathersage': '14:14',
-                    'castleton': '14:30'
-                }, {
-                    'hotel': '15:18',
-                    'hathersage': '15:14',
-                    'castleton': '15:43'
-                }, {
-                    'hotel': '16:18',
-                    'hathersage': '16:14',
-                    'castleton': '16:30'
-                }, {
-                    'hotel': '17:18',
-                    'hathersage': '17:14',
-                    'castleton': '17:43'
-                }, {
-                    'hotel': '19:31',
-                    'hathersage': '19:27',
-                    'castleton': '19:53'
-                }, {
-                    'hotel': '22:02',
-                    'hathersage': '21:58',
-                    'castleton': '22:24'
-                }],
-                'toSheffield': [{
-                    'hotel': '10:26',
-                    'hathersage': '10:36',
-                    'castleton': '10:20'
-                }, {
-                    'hotel': '11:26',
-                    'hathersage': '11:36',
-                    'castleton': '11:06'
-                }, {
-                    'hotel': '12:26',
-                    'hathersage': '12:36',
-                    'castleton': '12:20'
-                }, {
-                    'hotel': '13:26',
-                    'hathersage': '13:36',
-                    'castleton': '13:06'
-                }, {
-                    'hotel': '14:26',
-                    'hathersage': '14:36',
-                    'castleton': '14:20'
-                }, {
-                    'hotel': '15:26',
-                    'hathersage': '15:36',
-                    'castleton': '15:06'
-                }, {
-                    'hotel': '16:26',
-                    'hathersage': '16:36',
-                    'castleton': '16:20'
-                }, {
-                    'hotel': '17:26',
-                    'hathersage': '17:36',
-                    'castleton': '17:06'
-                }, {
-                    'hotel': '18:26',
-                    'hathersage': '18:36',
-                    'castleton': '18:20'
-                }, {
-                    'hotel': '20:33',
-                    'hathersage': '20:43',
-                    'castleton': '20:15'
-                }, {
-                    'hotel': '22:43',
-                    'hathersage': '22:53',
-                    'castleton': '22:25'
-                }]
+                'toCastleton': [
+                    { 'hotel': '09:44', 'hathersage': '09:40', 'castleton': '10:09' },
+                    { 'hotel': '11:14', 'hathersage': '11:10', 'castleton': '11:39' },
+                    { 'hotel': '12:48', 'hathersage': '12:44', 'castleton': '13:13' },
+                    { 'hotel': '14:18', 'hathersage': '14:14', 'castleton': '14:43' },
+                    { 'hotel': '15:48', 'hathersage': '15:44', 'castleton': '16:13' },
+                    { 'hotel': '17:18', 'hathersage': '17:14', 'castleton': '17:43' },
+                    { 'hotel': '19:31', 'hathersage': '19:27', 'castleton': '19:53' },
+                    { 'hotel': '22:02', 'hathersage': '21:58', 'castleton': '22:24' }
+                ],
+                'toSheffield': [
+                    { 'hotel': '10:50', 'hathersage': '10:55', 'castleton': '10:25' },
+                    { 'hotel': '12:20', 'hathersage': '12:25', 'castleton': '11:55' },
+                    { 'hotel': '13:50', 'hathersage': '13:55', 'castleton': '13:25' },
+                    { 'hotel': '15:20', 'hathersage': '15:25', 'castleton': '14:55' },
+                    { 'hotel': '16:50', 'hathersage': '16:55', 'castleton': '16:25' },
+                    { 'hotel': '18:45', 'hathersage': '18:50', 'castleton': '18:20' },
+                    { 'hotel': '20:38', 'hathersage': '20:43', 'castleton': '20:15' },
+                    { 'hotel': '22:48', 'hathersage': '22:53', 'castleton': '22:25' }
+                ]
             }
         };
 
