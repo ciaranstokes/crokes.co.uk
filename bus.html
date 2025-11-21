@@ -4,287 +4,422 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Next Bus: Hotel to Castleton</title>
+    <title>Peak District: Hotel to Castleton</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Doto&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700;800&family=Crimson+Text:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
     <style>
-        /* --- Base and Light Mode Styles --- */
+        /* --- THEME CONFIGURATION --- */
+        :root {
+            /* Default (Day) Variables */
+            --bg-gradient-start: #f0f7f4;
+            --bg-gradient-end: #e6f0ec;
+            
+            --hill-1: #d1e7dd;
+            --hill-2: #a8d5ba;
+            --hill-3: #86bf9e;
+            
+            --card-bg: rgba(255, 255, 255, 0.8);
+            --box-bg: #ffffff;
+            --box-border: #e2e8f0;
+            
+            --ink-primary: #2d3748;
+            --ink-secondary: #718096;
+            
+            --accent-primary: #558b6e;
+            --accent-secondary: #4a7c96;
+            
+            --star-opacity: 0; /* Hidden by default */
+        }
+
+        /* --- DYNAMIC THEMES --- */
+
+        /* SUNRISE (Warm Orange) */
+        body.theme-sunrise {
+            --bg-gradient-start: #fff0dc;
+            --bg-gradient-end: #fccb90;
+            --hill-1: #fcd5a9;
+            --hill-2: #fbbd7e;
+            --hill-3: #e69c5e;
+            --ink-primary: #4a2c2c;
+            --ink-secondary: #7c4a4a;
+            --accent-primary: #d97706; /* Amber */
+            --accent-secondary: #b45309;
+            --card-bg: rgba(255, 247, 237, 0.8);
+            --star-opacity: 0;
+        }
+
+        /* DAY (Sage Green - Default) */
+        body.theme-day {
+            /* Inherits root */
+        }
+
+        /* SUNSET (Rich Orange/Pink) */
+        body.theme-sunset {
+            --bg-gradient-start: #ffecd2;
+            --bg-gradient-end: #fcb69f;
+            --hill-1: #ffcba4;
+            --hill-2: #ff9a8b;
+            --hill-3: #d87093;
+            --ink-primary: #4a1d1d;
+            --ink-secondary: #823e3e;
+            --accent-primary: #db2777; /* Pink/Rose */
+            --accent-secondary: #9d174d;
+            --card-bg: rgba(255, 245, 245, 0.8);
+            --star-opacity: 0;
+        }
+
+        /* TWILIGHT (Indigo) */
+        body.theme-twilight {
+            --bg-gradient-start: #4b6cb7;
+            --bg-gradient-end: #182848;
+            --hill-1: #6a82fb;
+            --hill-2: #4b6cb7;
+            --hill-3: #2d3a68;
+            --card-bg: rgba(30, 41, 59, 0.6);
+            --box-bg: rgba(30, 41, 59, 0.8);
+            --box-border: #475569;
+            --ink-primary: #f1f5f9;
+            --ink-secondary: #cbd5e1;
+            --accent-primary: #818cf8; /* Indigo */
+            --accent-secondary: #c7d2fe;
+            --star-opacity: 0.8; /* Stars appear */
+        }
+
+        /* NIGHT (Dark Blue/Slate - Not Black) */
+        body.theme-night {
+            --bg-gradient-start: #1e293b; /* Slate 800 */
+            --bg-gradient-end: #0f172a;   /* Slate 900 */
+            --hill-1: #334155;
+            --hill-2: #1e293b;
+            --hill-3: #0f172a;
+            --card-bg: rgba(15, 23, 42, 0.7);
+            --box-bg: rgba(30, 41, 59, 0.8);
+            --box-border: #334155;
+            --ink-primary: #f8fafc;
+            --ink-secondary: #94a3b8;
+            --accent-primary: #38bdf8; /* Sky Blue */
+            --accent-secondary: #e0f2fe;
+            --star-opacity: 1; /* Stars fully visible */
+        }
+
+        /* --- GLOBAL STYLES --- */
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f1f5f9;
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-paper); /* Fallback */
+            color: var(--ink-primary);
+            transition: all 1s ease-in-out; /* Smooth transition between themes */
+            position: relative;
+            min-height: 100vh;
+            overflow-x: hidden;
         }
 
-        .card-background {
-            background-color: white;
+        h1, h2, h3, .serif-font {
+            font-family: 'Outfit', sans-serif;
         }
 
-        /* --- Base Carousel Layout (for both modes) --- */
+        /* DYNAMIC BACKGROUND */
+        .nature-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(to bottom, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+            transition: background 1s ease;
+        }
+        
+        /* HILLS SVG (Using currentColor to inherit CSS vars) */
+        .nature-hills {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 50vh;
+            transition: opacity 1s ease;
+        }
+
+        .nature-hills path {
+            transition: fill 1s ease;
+        }
+
+        /* STARS */
+        .stars-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 60%; /* Only in the sky area */
+            pointer-events: none;
+            opacity: var(--star-opacity);
+            transition: opacity 2s ease;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle var(--duration) ease-in-out infinite;
+            opacity: var(--opacity);
+        }
+
+        @keyframes twinkle {
+            0%, 100% { transform: scale(1); opacity: var(--opacity); }
+            50% { transform: scale(1.5); opacity: 1; }
+        }
+
+        /* --- CARDS --- */
+        .card-container {
+            background-color: var(--card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.05);
+            backdrop-filter: blur(12px);
+            transition: background-color 1s ease;
+        }
+
+        /* --- CAROUSEL --- */
         .carousel-wrapper {
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
             overscroll-behavior-x: contain;
             scrollbar-width: none;
             cursor: grab;
-            padding-top: 0.5rem;
-            padding-bottom: 0.5rem;
-            margin-top: -0.5rem;
-            margin-bottom: -0.5rem;
+            padding: 4rem 1rem;
+            margin: -1rem 0;
         }
-
-        .carousel-wrapper.grabbing {
-            cursor: grabbing;
-        }
-
-        .carousel-wrapper::-webkit-scrollbar {
-            display: none;
-        }
-
+        .carousel-wrapper::-webkit-scrollbar { display: none; }
+        .carousel-wrapper.grabbing { cursor: grabbing; }
+        
         .carousel-container {
-            gap: 1rem;
-            padding-left: 0.25rem;
-            padding-right: 0.25rem;
+            display: flex;
+            gap: 3rem; 
+            padding: 0 1rem;
         }
 
+        /* --- BOX STYLE ITEMS --- */
         .carousel-item {
-            scroll-snap-align: start;
+            scroll-snap-align: center;
             flex-shrink: 0;
-            width: 60%;
-            transform-origin: center center;
-            border-radius: 0.75rem;
+            width: 280px;
+            height: 160px;
+            background-color: var(--box-bg);
+            border: 1px solid var(--box-border);
+            border-radius: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
             user-select: none;
-            transition: all 0.2s ease-in-out;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
         }
 
-        @media (min-width: 640px) {
-            .carousel-item {
-                width: 31%;
-            }
+        @media (min-width: 768px) {
+            .carousel-item { width: 320px; height: 180px; }
         }
 
+        /* --- DAY HEADERS --- */
         .carousel-day-header {
-            flex-shrink: 0;
-            width: auto;
-            padding-left: 0.5rem;
-            padding-right: 0.5rem;
             display: flex;
             align-items: center;
+            justify-content: center;
             scroll-snap-align: start;
-            user-select: none;
         }
-
         .carousel-day-header h4 {
-            font-size: 1.25rem;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            font-size: 0.85rem;
+            text-transform: uppercase;
             font-weight: 700;
+            letter-spacing: 0.2em;
+            color: var(--ink-secondary);
+            border-left: 2px solid var(--accent-primary);
+            padding-left: 1rem;
+            height: 100px;
             white-space: nowrap;
-            padding-bottom: 1.25rem;
+            margin-right: 1rem;
+            opacity: 0.4;
+            transition: color 1s ease, border-color 1s ease;
         }
-
         .carousel-day-header.today h4 {
-            font-size: 1.5rem;
+            opacity: 1;
         }
 
-        /* --- Light Mode Theming --- */
+        /* --- STATUS STYLES --- */
         .bus-next {
-            background-color: #dbeafe;
-            color: #1e3a8a;
-            border: 1px solid #93c5fd;
-            transform: scale(1.03);
+            border: 2px solid var(--accent-primary);
+            transform: scale(1.1);
+            box-shadow: 0 20px 25px -5px rgba(0,0,0, 0.2);
+            z-index: 10;
+            background-color: var(--box-bg);
         }
-
-        .bus-next .time {
-            color: #2563eb;
-        }
-
-        .bus-upcoming {
-            background-color: #ffffff;
-            color: #374151;
-            border: 1px solid #e5e7eb;
-        }
-
-        .bus-upcoming .time {
-            color: #111827;
-        }
-
+        
         .bus-past {
-            background-color: #f9fafb;
-            color: #9ca3af;
-            border: 1px solid #f3f4f6;
-            opacity: 0.7;
+            opacity: 0.4;
+            background-color: rgba(128, 128, 128, 0.1);
+            box-shadow: none;
+            border-style: dashed;
+        }
+        
+        /* --- TYPOGRAPHY --- */
+        .time-large {
+            font-family: 'Outfit', sans-serif;
+            font-size: 4rem;
+            line-height: 1;
+            font-weight: 800;
+            color: var(--ink-primary);
+            letter-spacing: 0.05em;
+            transition: color 1s ease;
+        }
+        
+        .arrival-text {
+            margin-top: 0.5rem;
+            font-size: 1rem;
+            color: var(--ink-secondary);
+            font-weight: 500;
+            transition: color 1s ease;
+        }
+        
+        .countdown-badge {
+            position: absolute;
+            top: -12px;
+            background-color: var(--accent-primary);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 99px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            transition: background-color 1s ease;
         }
 
-        .bus-past .time {
-            color: #9ca3af;
+        /* --- UI ELEMENTS --- */
+        .swap-btn {
+            background-color: var(--box-bg);
+            border: 1px solid var(--box-border);
+            color: var(--ink-primary);
+            transition: all 0.3s ease;
+        }
+        .swap-btn:hover {
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+            transform: rotate(180deg);
+        }
+        
+        .hero-clock {
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1;
+            color: var(--ink-primary);
+            transition: color 1s ease;
         }
 
-        .bus-future {
-            background-color: #ffffff;
-            color: #374151;
-            border: 1px solid #e5e7eb;
+        .location-dot {
+            color: var(--accent-secondary);
+            transition: color 1s ease;
         }
 
-        .bus-future .time {
-            color: #111827;
-        }
-
-        .carousel-day-header h4 {
-            color: #3b82f6;
-        }
-
-        .carousel-day-header.today h4 {
-            color: #1d4ed8;
-        }
-
-        /* --- Dark Mode Theming (Dot Matrix) --- */
-        @media (prefers-color-scheme: dark) {
-            body {
-                font-family: 'Doto', monospace;
-                background-color: #0c0c0c;
-                color: #ffb700;
-                /* Base amber color */
-            }
-
-            h1,
-            #large-clock {
-                letter-spacing: 2px;
-            }
-
-            .glow {
-                text-shadow: 0 0 5px rgba(255, 183, 0, 0.7),
-                    0 0 10px rgba(255, 183, 0, 0.5),
-                    0 0 15px rgba(255, 183, 0, 0.3);
-            }
-
-            .card-background {
-                background-color: #1a1a1a;
-                border: 1px solid #333;
-            }
-
-            .carousel-item {
-                background-color: transparent !important;
-                border: none !important;
-                box-shadow: none !important;
-                opacity: 1 !important;
-            }
-
-            /* --- FIX: Specific color overrides for dark mode time elements --- */
-            .bus-next,
-            .bus-next .time {
-                color: #ffdd00 !important;
-                /* Brighter yellow */
-            }
-
-            .bus-upcoming,
-            .bus-upcoming .time {
-                color: #ffb700 !important;
-                /* Standard Amber */
-            }
-
-            .bus-past,
-            .bus-past .time {
-                color: #4a3400 !important;
-                /* Dimmed amber/brown */
-            }
-
-            .bus-future,
-            .bus-future .time {
-                color: #ffb700 !important;
-            }
-
-            /* --- End of FIX --- */
-
-            .bus-next {
-                transform: scale(1.05);
-            }
-
-            .bus-next .time,
-            .bus-next .countdown {
-                text-shadow: 0 0 8px rgba(255, 221, 0, 0.8),
-                    0 0 15px rgba(255, 221, 0, 0.6),
-                    0 0 25px rgba(255, 221, 0, 0.4);
-            }
-
-            .bus-past {
-                opacity: 1;
-                /* Reset opacity from light mode */
-            }
-
-            .bus-past .time,
-            .bus-past .countdown,
-            .bus-past .arrival {
-                text-shadow: none;
-            }
-
-            .carousel-day-header h4 {
-                color: #ffdd00 !important;
-            }
-        }
     </style>
 </head>
 
-<body class="dark:text-amber-400 min-h-screen transition-colors duration-300">
+<body class="p-4 md:p-8 theme-day">
+    
+    <div class="nature-bg">
+        <!-- Stars will be injected here by JS -->
+        <div id="stars-container" class="stars-container"></div>
+        
+        <svg class="nature-hills" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" preserveAspectRatio="none">
+            <path style="fill: var(--hill-1); opacity: 0.5" d="M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+            <path style="fill: var(--hill-2); opacity: 0.5" d="M0,256L48,245.3C96,235,192,213,288,192C384,171,480,149,576,165.3C672,181,768,235,864,250.7C960,267,1056,245,1152,224C1248,203,1344,181,1392,170.7L1440,160L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+            <path style="fill: var(--hill-3); opacity: 0.6" d="M0,96L48,128C96,160,192,224,288,240C384,256,480,224,576,197.3C672,171,768,149,864,160C960,171,1056,213,1152,218.7C1248,224,1344,192,1392,176L1440,160L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+        </svg>
+    </div>
 
-    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
+    <div class="container mx-auto max-w-6xl relative">
 
-        <header class="text-center mb-6 md:mb-8">
-            <h1 class="text-4xl md:text-5xl font-extrabold text-blue-600 dark:text-amber-400 glow">Bus Schedule</h1>
-            <div id="large-clock" class="text-6xl md:text-8xl font-bold text-gray-800 dark:text-amber-400 my-4 glow"></div>
-            <p id="current-date" class="text-xl md:text-2xl text-gray-600 dark:text-gray-400 font-medium">Loading...</p>
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 pt-6">
+            <div>
+                <h1 class="text-5xl md:text-6xl font-bold text-[var(--ink-primary)] tracking-tight mb-2 serif-font">Bus Schedule</h1>
+                <p id="current-date" class="text-[var(--ink-secondary)] font-sans font-medium text-xl border-l-4 border-[var(--accent-primary)] pl-4">Loading date...</p>
+            </div>
+            <div id="large-clock" class="hero-clock text-7xl md:text-8xl mt-8 md:mt-0 drop-shadow-sm font-sans">
+                --:--
+            </div>
         </header>
 
-        <div class="flex flex-col gap-8">
+        <div class="flex flex-col gap-10">
 
-            <section>
-                <div class="rounded-2xl shadow-lg p-6 card-background">
-                    <div class="flex justify-between items-center mb-4">
-                        <div>
-                            <h2 id="title-castleton" class="text-2xl font-bold text-gray-800 dark:text-amber-400 glow">➡️ To Castleton</h2>
-                            <p id="subtitle-castleton" class="text-sm text-gray-500 dark:text-gray-400 -mt-1">Departs from Hotel (Bike & Boot)</p>
-                        </div>
-                        <button id="swap-castleton" title="Swap Direction" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+            <!-- CASTLETON SECTION -->
+            <section class="card-container p-6 md:p-10">
+                <div class="flex justify-between items-start mb-2 border-b border-[var(--box-border)] pb-4">
+                    <div>
+                        <h2 id="title-castleton" class="text-3xl md:text-4xl font-bold text-[var(--ink-primary)] flex items-center gap-3 serif-font">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 location-dot" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
                             </svg>
-                        </button>
-                    </div>
-                    <div id="carousel-wrapper-castleton" class="carousel-wrapper">
-                        <div id="next-bus-castleton-container" class="carousel-container flex">
-                            <div class="text-center p-4 w-full text-gray-500">Loading...</div>
+                            To Castleton
+                        </h2>
+                        <div class="flex items-center gap-2 mt-2 ml-11">
+                            <p id="subtitle-castleton" class="text-lg text-[var(--ink-secondary)] font-sans">Departs from Hotel (Bamford)</p>
                         </div>
+                    </div>
+                    <button id="swap-castleton" class="swap-btn p-4 rounded-full shadow-sm" title="Swap Direction">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                        </svg>
+                    </button>
+                </div>
+                
+                <div id="carousel-wrapper-castleton" class="carousel-wrapper">
+                    <div id="next-bus-castleton-container" class="carousel-container">
+                        <div class="text-center p-8 w-full text-gray-500 text-xl italic serif-font">Calculating route...</div>
                     </div>
                 </div>
             </section>
 
-            <section>
-                <div class="rounded-2xl shadow-lg p-6 card-background">
-                    <div class="flex justify-between items-center mb-4">
-                        <div>
-                            <h2 id="title-hathersage" class="text-2xl font-bold text-gray-800 dark:text-amber-400 glow">➡️ To Hathersage</h2>
-                            <p id="subtitle-hathersage" class="text-sm text-gray-500 dark:text-gray-400 -mt-1">Departs from Hotel (Bike & Boot)</p>
-                        </div>
-                        <button id="swap-hathersage" title="Swap Direction" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+            <!-- HATHERSAGE SECTION -->
+            <section class="card-container p-6 md:p-10">
+                <div class="flex justify-between items-start mb-2 border-b border-[var(--box-border)] pb-4">
+                    <div>
+                        <h2 id="title-hathersage" class="text-3xl md:text-4xl font-bold text-[var(--ink-primary)] flex items-center gap-3 serif-font">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 location-dot" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
                             </svg>
-                        </button>
-                    </div>
-                    <div id="carousel-wrapper-hathersage" class="carousel-wrapper">
-                        <div id="next-bus-hathersage-container" class="carousel-container flex">
-                            <div class="text-center p-4 w-full text-gray-500">Loading...</div>
+                            To Hathersage
+                        </h2>
+                        <div class="flex items-center gap-2 mt-2 ml-11">
+                            <p id="subtitle-hathersage" class="text-lg text-[var(--ink-secondary)] font-sans">Departs from Hotel (Bamford)</p>
                         </div>
+                    </div>
+                    <button id="swap-hathersage" class="swap-btn p-4 rounded-full shadow-sm" title="Swap Direction">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div id="carousel-wrapper-hathersage" class="carousel-wrapper">
+                    <div id="next-bus-hathersage-container" class="carousel-container">
+                        <div class="text-center p-8 w-full text-gray-500 text-xl italic serif-font">Calculating route...</div>
                     </div>
                 </div>
             </section>
 
         </div>
+        
+        <footer class="text-center mt-20 pb-8 text-[var(--ink-secondary)] text-sm serif-font italic">
+            <p class="bg-white/60 inline-block px-6 py-2 rounded-full border border-[var(--box-border)] shadow-sm">
+                Data valid from 2 November 2025
+            </p>
+        </footer>
     </div>
+
     <script>
         // --- DATA: Bus Timetable ---
-        // Data updated from Sheffield Bus Service 271/272 PDF valid from 2 November 2025.
-        // 'hotel' corresponds to "Bamford, Sickleholme/Bus Turnaround".
         const timetable = {
             'monfri': {
                 'toCastleton': [
@@ -376,6 +511,7 @@
         const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
         let isCastletonSwapped = false;
         let isHathersageSwapped = false;
+        let starsGenerated = false;
 
         // --- DOM Elements ---
         const largeClockDisplay = document.getElementById('large-clock');
@@ -390,6 +526,51 @@
         const subtitleCastleton = document.getElementById('subtitle-castleton');
         const titleHathersage = document.getElementById('title-hathersage');
         const subtitleHathersage = document.getElementById('subtitle-hathersage');
+        const starsContainer = document.getElementById('stars-container');
+
+        function generateStars() {
+            if (starsGenerated) return;
+            for (let i = 0; i < 50; i++) {
+                const star = document.createElement('div');
+                star.classList.add('star');
+                const x = Math.random() * 100;
+                const y = Math.random() * 100;
+                const size = Math.random() * 2 + 1;
+                const duration = Math.random() * 3 + 2;
+                const opacity = Math.random() * 0.7 + 0.3;
+                
+                star.style.left = `${x}%`;
+                star.style.top = `${y}%`;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.setProperty('--duration', `${duration}s`);
+                star.style.setProperty('--opacity', opacity);
+                
+                starsContainer.appendChild(star);
+            }
+            starsGenerated = true;
+        }
+
+        function updateTheme(now) {
+            const hour = now.getHours();
+            document.body.classList.remove('theme-sunrise', 'theme-day', 'theme-sunset', 'theme-twilight', 'theme-night');
+
+            // Define Ranges
+            if (hour >= 5 && hour < 9) {
+                document.body.classList.add('theme-sunrise');
+            } else if (hour >= 9 && hour < 17) {
+                document.body.classList.add('theme-day');
+            } else if (hour >= 17 && hour < 20) {
+                document.body.classList.add('theme-sunset');
+            } else if (hour >= 20 && hour < 22) {
+                document.body.classList.add('theme-twilight');
+            } else {
+                document.body.classList.add('theme-night');
+            }
+            
+            // Always generate stars so they are ready for night themes
+            generateStars();
+        }
 
         function getOffsetDate(date, daysOffset) {
             const newDate = new Date(date);
@@ -414,8 +595,7 @@
             const diffMs = busTime - now;
             const diffMins = Math.round(diffMs / 60000);
             if (diffMins <= 0) return 'Due now';
-            if (isDarkMode) return `in ${diffMins} min`;
-            return `in ${diffMins} ${diffMins === 1 ? 'minute' : 'minutes'}`;
+            return `in ${diffMins} min`;
         }
 
         function createDayHeader(dayName, dayIdentifier) {
@@ -479,24 +659,25 @@
                 container.appendChild(createDayHeader(day.name, day.identifier));
                 if (trips.length === 0) {
                     const slide = document.createElement('div');
-                    slide.className = 'carousel-item bus-past p-4 text-center';
-                    slide.innerHTML = '<div class="font-medium">No services</div>';
+                    slide.className = 'carousel-item bus-past text-center';
+                    slide.innerHTML = '<div class="font-medium text-gray-400">No services</div>';
                     container.appendChild(slide);
                     return;
                 }
                 trips.forEach(trip => {
                     const slide = document.createElement('div');
-                    slide.className = 'carousel-item p-4 text-center';
+                    slide.className = 'carousel-item';
                     const departTime = trip[departKey];
                     const arriveTime = trip[arriveKey];
                     let stateClass = 'bus-future';
-                    let countdownText = '&nbsp;';
+                    let countdownHtml = '';
                     if (day.identifier === 'today') {
                         if (departTime < nowTimeStr) {
                             stateClass = 'bus-past';
                         } else if (!isNextBusFound) {
                             stateClass = 'bus-next';
-                            countdownText = calculateCountdown(departTime, now);
+                            const countdownText = calculateCountdown(departTime, now);
+                            countdownHtml = `<div class="countdown-badge">${countdownText}</div>`;
                             isNextBusFound = true;
                             firstNextBusElement = slide;
                         } else {
@@ -507,71 +688,75 @@
                     slide.dataset.time = departTime;
                     slide.classList.add(stateClass);
                     slide.innerHTML = `
-                        <div class="time text-4xl sm:text-5xl font-extrabold">${departTime}</div>
-                        <div class="countdown text-lg font-medium">${countdownText}</div>
-                        <div class="arrival text-md font-medium">Arrives ${arriveTime}</div>
+                        ${countdownHtml}
+                        <div class="time time-large">${departTime}</div>
+                        <div class="arrival-text">Arrives ${arriveTime}</div>
                     `;
                     container.appendChild(slide);
                 });
             });
             if (firstNextBusElement) {
-                firstNextBusElement.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'nearest',
-                    inline: 'center'
-                });
+                // Slight delay to allow rendering
+                setTimeout(() => {
+                    // CHANGED: Replaced scrollIntoView with localized scrollTo to prevent page jumping
+                    const scrollWrapper = container.parentElement;
+                    
+                    // Calculate where the item is relative to the viewport
+                    const itemRect = firstNextBusElement.getBoundingClientRect();
+                    const wrapperRect = scrollWrapper.getBoundingClientRect();
+                    
+                    // Calculate the scroll position needed to center the item
+                    // scrollLeft + (distance from left of wrapper) - (half wrapper width) + (half item width)
+                    const relativeLeft = itemRect.left - wrapperRect.left;
+                    const targetScroll = scrollWrapper.scrollLeft + relativeLeft - (scrollWrapper.clientWidth / 2) + (firstNextBusElement.clientWidth / 2);
+
+                    scrollWrapper.scrollTo({
+                        left: targetScroll,
+                        behavior: 'smooth'
+                    });
+                }, 100);
             }
         }
 
         function updateScheduleView() {
             const now = new Date();
             if (isCastletonSwapped) {
-                titleCastleton.textContent = '⬅️ To Hotel';
+                titleCastleton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 location-dot" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg> To Hotel';
                 subtitleCastleton.textContent = 'Departs from Castleton';
             } else {
-                titleCastleton.textContent = '➡️ To Castleton';
-                subtitleCastleton.textContent = 'Departs from Hotel (Bike & Boot)';
+                titleCastleton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 location-dot" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg> To Castleton';
+                subtitleCastleton.textContent = 'Departs from Hotel (Bamford)';
             }
             renderFullCarousel(nextBusCastletonContainer, 'castleton', isCastletonSwapped, now);
             if (isHathersageSwapped) {
-                titleHathersage.textContent = '⬅️ To Hotel';
+                titleHathersage.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 location-dot" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg> To Hotel';
                 subtitleHathersage.textContent = 'Departs from Hathersage';
             } else {
-                titleHathersage.textContent = '➡️ To Hathersage';
-                subtitleHathersage.textContent = 'Departs from Hotel (Bike & Boot)';
+                titleHathersage.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 location-dot" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg> To Hathersage';
+                subtitleHathersage.textContent = 'Departs from Hotel (Bamford)';
             }
             renderFullCarousel(nextBusHathersageContainer, 'hathersage', isHathersageSwapped, now);
         }
 
         function updateDisplay() {
             const now = new Date();
+            updateTheme(now); // Check for theme update on every tick
+
             const nowTimeStr = now.toTimeString().substring(0, 5);
 
-            if (isDarkMode) {
-                const clockOptions = {
-                    hour: 'numeric',
-                    minute: '2-digit',
-                    second: '2-digit',
-                    hour12: false
-                };
-                largeClockDisplay.textContent = now.toLocaleTimeString('en-GB', clockOptions);
-            } else {
-                const clockOptions = {
-                    hour: 'numeric',
-                    minute: '2-digit',
-                    second: '2-digit',
-                    hour12: true
-                };
-                largeClockDisplay.textContent = now.toLocaleTimeString('en-US', clockOptions);
-            }
+            const clockOptions = {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: false
+            };
+            largeClockDisplay.textContent = now.toLocaleTimeString('en-GB', clockOptions);
 
             const dateOptions = {
                 weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
+                day: 'numeric',
+                month: 'long'
             };
-            currentDateDisplay.textContent = now.toLocaleDateString('en-US', dateOptions);
+            currentDateDisplay.textContent = now.toLocaleDateString('en-GB', dateOptions);
 
             if (now.toTimeString().substring(0, 8) === '00:00:00') {
                 updateScheduleView();
@@ -588,20 +773,27 @@
                 const timeEl = item.querySelector('.time');
                 if (!timeEl) return;
                 const itemTime = timeEl.textContent;
-                const countdownEl = item.querySelector('.countdown');
+                const badgeEl = item.querySelector('.countdown-badge');
                 const isToday = item.dataset.day === 'today';
-                if (!isToday) return;
+                
+                // Reset base state
                 item.classList.remove('bus-next', 'bus-past', 'bus-upcoming');
+                if(badgeEl) badgeEl.remove();
+
+                if (!isToday) return;
+                
                 if (itemTime < nowTimeStr) {
                     item.classList.add('bus-past');
-                    if (countdownEl.innerHTML !== '&nbsp;') countdownEl.innerHTML = '&nbsp;';
                 } else if (!nextBusFound) {
                     item.classList.add('bus-next');
-                    countdownEl.textContent = calculateCountdown(itemTime, now);
+                    const countdownText = calculateCountdown(itemTime, now);
+                    const badge = document.createElement('div');
+                    badge.className = 'countdown-badge';
+                    badge.textContent = countdownText;
+                    item.prepend(badge);
                     nextBusFound = true;
                 } else {
                     item.classList.add('bus-upcoming');
-                    if (countdownEl.innerHTML !== '&nbsp;') countdownEl.innerHTML = '&nbsp;';
                 }
             });
         }
@@ -657,5 +849,4 @@
         });
     </script>
 </body>
-
 </html>
