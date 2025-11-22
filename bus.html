@@ -31,6 +31,10 @@
             --accent-secondary: #4a7c96;
             
             --star-opacity: 0; /* Hidden by default */
+            --sun-opacity: 1;
+            --cloud-opacity: 0.9;
+            --sun-color: #fffdf5;
+            --sun-glow: rgba(255, 220, 150, 0.4);
         }
 
         /* --- DYNAMIC THEMES --- */
@@ -48,11 +52,21 @@
             --accent-secondary: #b45309;
             --card-bg: rgba(255, 247, 237, 0.8);
             --star-opacity: 0;
+            --sun-opacity: 0.8;
+            --cloud-opacity: 0.7;
+            --sun-color: #fff5e6;
+            --sun-glow: rgba(255, 180, 100, 0.5);
         }
 
         /* DAY (Sage Green - Default) */
         body.theme-day {
-            /* Inherits root */
+            /* Explicitly set to ensure overrides work */
+            --bg-gradient-start: #f0f7f4;
+            --bg-gradient-end: #e6f0ec;
+            --sun-opacity: 1;
+            --cloud-opacity: 0.85;
+            --sun-color: #ffffff;
+            --sun-glow: rgba(255, 240, 200, 0.5);
         }
 
         /* SUNSET (Rich Orange/Pink) */
@@ -68,6 +82,10 @@
             --accent-secondary: #9d174d;
             --card-bg: rgba(255, 245, 245, 0.8);
             --star-opacity: 0;
+            --sun-opacity: 0.7;
+            --cloud-opacity: 0.6;
+            --sun-color: #ffe0e0;
+            --sun-glow: rgba(255, 100, 100, 0.3);
         }
 
         /* TWILIGHT (Indigo) */
@@ -85,6 +103,8 @@
             --accent-primary: #818cf8; /* Indigo */
             --accent-secondary: #c7d2fe;
             --star-opacity: 0.8; /* Stars appear */
+            --sun-opacity: 0;
+            --cloud-opacity: 0.1;
         }
 
         /* NIGHT (Dark Blue/Slate - Not Black) */
@@ -102,6 +122,8 @@
             --accent-primary: #38bdf8; /* Sky Blue */
             --accent-secondary: #e0f2fe;
             --star-opacity: 1; /* Stars fully visible */
+            --sun-opacity: 0;
+            --cloud-opacity: 0;
         }
 
         /* --- GLOBAL STYLES --- */
@@ -129,6 +151,7 @@
             z-index: -1;
             background: linear-gradient(to bottom, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
             transition: background 1s ease;
+            overflow: hidden;
         }
         
         /* HILLS SVG (Using currentColor to inherit CSS vars) */
@@ -139,10 +162,92 @@
             width: 100%;
             height: 50vh;
             transition: opacity 1s ease;
+            z-index: 20; /* In front of sun/clouds */
         }
 
         .nature-hills path {
             transition: fill 1s ease;
+        }
+
+        /* --- WEATHER ELEMENTS --- */
+        
+        /* COZY SUN */
+        .sun-container {
+            position: absolute;
+            top: 8%;
+            right: 15%;
+            width: 200px;
+            height: 200px;
+            z-index: 5;
+            opacity: var(--sun-opacity);
+            transition: opacity 2s ease, transform 10s ease;
+            pointer-events: none;
+        }
+
+        .sun-core {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, var(--sun-color) 20%, transparent 70%);
+            border-radius: 50%;
+            box-shadow: 0 0 80px 30px var(--sun-glow);
+            animation: sunPulse 6s ease-in-out infinite alternate;
+        }
+
+        .sun-shimmer-orb {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            filter: blur(8px);
+            animation: bokehFloat 8s infinite ease-in-out;
+        }
+        
+        /* Random bokeh positioning */
+        .orb-1 { width: 40px; height: 40px; top: 20%; left: 30%; animation-delay: 0s; }
+        .orb-2 { width: 60px; height: 60px; top: 40%; left: 60%; animation-delay: -2s; }
+        .orb-3 { width: 30px; height: 30px; top: 60%; left: 20%; animation-delay: -4s; }
+
+        @keyframes sunPulse {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 0.9; }
+            100% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+        }
+
+        @keyframes bokehFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.2; }
+            50% { transform: translate(10px, -15px) scale(1.2); opacity: 0.5; }
+        }
+
+        /* CLOUDS */
+        .clouds-wrapper {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10; /* Behind hills, front of sun */
+            opacity: var(--cloud-opacity);
+            transition: opacity 2s ease;
+            pointer-events: none;
+        }
+
+        .cloud {
+            position: absolute;
+            fill: #ffffff;
+            filter: blur(4px) drop-shadow(0 10px 15px rgba(0,0,0,0.05));
+            opacity: 0.9;
+        }
+
+        .cloud-1 { top: 15%; left: -20%; width: 300px; animation: drift 60s linear infinite; }
+        .cloud-2 { top: 25%; left: -10%; width: 200px; animation: drift 45s linear infinite; animation-delay: -15s; }
+        .cloud-3 { top: 10%; left: -15%; width: 250px; animation: drift 75s linear infinite; animation-delay: -5s; opacity: 0.6; }
+        .cloud-4 { top: 35%; left: -25%; width: 180px; animation: drift 90s linear infinite; animation-delay: -30s; opacity: 0.5; }
+
+        @keyframes drift {
+            from { transform: translateX(-100%); }
+            to { transform: translateX(120vw); }
         }
 
         /* STARS */
@@ -155,6 +260,7 @@
             pointer-events: none;
             opacity: var(--star-opacity);
             transition: opacity 2s ease;
+            z-index: 1;
         }
 
         .star {
@@ -210,7 +316,7 @@
             border-radius: 20px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
             user-select: none;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -323,73 +429,36 @@
             transition: color 1s ease;
         }
 
-        /* --- QR BUTTON & MODAL --- */
-        .qr-btn {
-            background-color: var(--card-bg);
-            color: var(--ink-primary);
-            border: 1px solid var(--box-border);
-            border-radius: 12px;
-            padding: 0.5rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(8px);
-        }
-        .qr-btn:hover {
-            background-color: var(--accent-primary);
-            color: white;
-            border-color: var(--accent-primary);
-            transform: scale(1.05);
-        }
-
-        .qr-modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.4);
-            backdrop-filter: blur(5px);
-            z-index: 100;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
-        .qr-modal-overlay.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        /* REVERTED: Solid white card, no border */
-        .qr-card {
-            background-color: white; 
-            padding: 2rem;
-            border-radius: 24px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            transform: scale(0.8);
-            opacity: 0;
-            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
-            text-align: center;
-            max-width: 300px;
-            width: 90%;
-        }
-        .qr-modal-overlay.active .qr-card {
-            transform: scale(1);
-            opacity: 1;
-        }
-        .qr-card img {
-            margin: 0 auto 1rem auto;
-            border-radius: 12px;
-        }
-
     </style>
 </head>
 
 <body class="p-4 md:p-8 theme-day">
     
     <div class="nature-bg">
+        <!-- Hazy Cozy Sun -->
+        <div class="sun-container">
+            <div class="sun-shimmer-orb orb-1"></div>
+            <div class="sun-shimmer-orb orb-2"></div>
+            <div class="sun-shimmer-orb orb-3"></div>
+            <div class="sun-core"></div>
+        </div>
+
+        <!-- Drifting Clouds -->
+        <div class="clouds-wrapper">
+            <svg class="cloud cloud-1" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M18.42,9.22A7,7,0,0,0,5.06,10.87,4,4,0,0,0,6,18.5H19a3.5,3.5,0,0,0,0-7H18.42Z" />
+            </svg>
+            <svg class="cloud cloud-2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M18.42,9.22A7,7,0,0,0,5.06,10.87,4,4,0,0,0,6,18.5H19a3.5,3.5,0,0,0,0-7H18.42Z" />
+            </svg>
+            <svg class="cloud cloud-3" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M17,10a5,5,0,0,0-4.8,3.5A3.5,3.5,0,0,0,13,20.5h5a2.5,2.5,0,0,0,0-5H17Z" />
+            </svg>
+            <svg class="cloud cloud-4" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M18.42,9.22A7,7,0,0,0,5.06,10.87,4,4,0,0,0,6,18.5H19a3.5,3.5,0,0,0,0-7H18.42Z" />
+            </svg>
+        </div>
+
         <!-- Stars will be injected here by JS -->
         <div id="stars-container" class="stars-container"></div>
         
@@ -400,34 +469,11 @@
         </svg>
     </div>
 
-    <!-- QR MODAL -->
-    <div id="qr-modal" class="qr-modal-overlay">
-        <div class="qr-card">
-            <!-- Title removed -->
-            <!-- QR Code generated via API for simplicity -->
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://crokes.co.uk/bus" alt="Bus Updates QR Code" width="200" height="200">
-            <p class="text-sm text-gray-700 font-medium mb-4">or visit crokes.co.uk/bus</p>
-            <!-- Reverted button to solid style -->
-            <button id="close-qr" class="px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full font-medium text-sm transition shadow-sm">Close</button>
-        </div>
-    </div>
-
     <div class="container mx-auto max-w-6xl relative">
 
         <header class="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 pt-6">
             <div>
-                <div class="flex items-center gap-4 mb-2">
-                    <h1 class="text-5xl md:text-6xl font-bold text-[var(--ink-primary)] tracking-tight serif-font">Bus Schedule</h1>
-                    <!-- QR BUTTON -->
-                    <button id="open-qr" class="qr-btn" title="Show QR Code">
-                        <!-- Distinct 3-Square Finder Pattern -->
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12.42 13.584l.842 1.053a1.999 1.999 0 01-3.124 2.498L8 15.5a2 2 0 01-2.998-2.248l.842-3.368A2 2 0 017.787 8.12l3.368-.842a2 2 0 012.498 3.124l-1.234.986" opacity="0" /> <!-- spacer -->
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h6v6H3V3zm10 0h6v6h-6V3zm-10 10h6v6H3v-6z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M16 17v.01M16 20v.01M20 17v.01M20 20v.01M16 13h4M13 16v4M13 13v.01" />
-                        </svg>
-                    </button>
-                </div>
+                <h1 class="text-5xl md:text-6xl font-bold text-[var(--ink-primary)] tracking-tight mb-2 serif-font">Bus Schedule</h1>
                 <p id="current-date" class="text-[var(--ink-secondary)] font-sans font-medium text-xl border-l-4 border-[var(--accent-primary)] pl-4">Loading date...</p>
             </div>
             <div id="large-clock" class="hero-clock text-7xl md:text-8xl mt-8 md:mt-0 drop-shadow-sm font-sans">
@@ -611,11 +657,6 @@
         const titleHathersage = document.getElementById('title-hathersage');
         const subtitleHathersage = document.getElementById('subtitle-hathersage');
         const starsContainer = document.getElementById('stars-container');
-        
-        // QR Elements
-        const openQrBtn = document.getElementById('open-qr');
-        const closeQrBtn = document.getElementById('close-qr');
-        const qrModal = document.getElementById('qr-modal');
 
         function generateStars() {
             if (starsGenerated) return;
@@ -787,9 +828,15 @@
             if (firstNextBusElement) {
                 // Slight delay to allow rendering
                 setTimeout(() => {
+                    // CHANGED: Replaced scrollIntoView with localized scrollTo to prevent page jumping
                     const scrollWrapper = container.parentElement;
+                    
+                    // Calculate where the item is relative to the viewport
                     const itemRect = firstNextBusElement.getBoundingClientRect();
                     const wrapperRect = scrollWrapper.getBoundingClientRect();
+                    
+                    // Calculate the scroll position needed to center the item
+                    // scrollLeft + (distance from left of wrapper) - (half wrapper width) + (half item width)
                     const relativeLeft = itemRect.left - wrapperRect.left;
                     const targetScroll = scrollWrapper.scrollLeft + relativeLeft - (scrollWrapper.clientWidth / 2) + (firstNextBusElement.clientWidth / 2);
 
@@ -888,7 +935,7 @@
             wrapper.addEventListener('mousedown', (e) => {
                 if (e.button !== 0) return;
                 isDown = true;
-                wrapper.classList.remove('is-dragging'); // Reset drag flag
+                wrapper.classList.add('grabbing');
                 startX = e.pageX - wrapper.offsetLeft;
                 scrollLeft = wrapper.scrollLeft;
             });
@@ -899,20 +946,12 @@
             wrapper.addEventListener('mouseup', () => {
                 isDown = false;
                 wrapper.classList.remove('grabbing');
-                // We don't remove is-dragging immediately to allow click handler to check it
-                setTimeout(() => wrapper.classList.remove('is-dragging'), 100);
             });
             wrapper.addEventListener('mousemove', (e) => {
                 if (!isDown) return;
                 e.preventDefault();
                 const x = e.pageX - wrapper.offsetLeft;
                 const walk = (x - startX);
-                
-                // If moved more than 5 pixels, consider it a drag
-                if (Math.abs(walk) > 5) {
-                     wrapper.classList.add('is-dragging');
-                }
-                
                 wrapper.scrollLeft = scrollLeft - walk;
             });
             wrapper.addEventListener('wheel', (e) => {
@@ -923,24 +962,8 @@
                 passive: false
             });
         }
-        
-        function initQR() {
-            openQrBtn.addEventListener('click', () => {
-                qrModal.classList.add('active');
-            });
-            closeQrBtn.addEventListener('click', () => {
-                qrModal.classList.remove('active');
-            });
-            qrModal.addEventListener('click', (e) => {
-                if(e.target === qrModal) {
-                    qrModal.classList.remove('active');
-                }
-            });
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
             updateScheduleView();
-            initQR();
             enableCarouselInteraction(castletonCarouselWrapper);
             enableCarouselInteraction(sheffieldCarouselWrapper);
             swapCastletonBtn.addEventListener('click', () => {
