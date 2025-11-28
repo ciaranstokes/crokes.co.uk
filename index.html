@@ -1083,7 +1083,8 @@
                     startDateFormatted: getFormattedDate(startDate),
                     endDateFormatted: getFormattedDate(endDate),
                     reportDateFormatted: getFormattedDate(reportDate),
-                    bedPreference: extractBedPreference(block)
+                    bedPreference: extractBedPreference(block),
+                    isVacantRecord: false // Explicit flag
                 };
 
                 const cleanedBlock = block; // The whole block contains notes
@@ -1117,7 +1118,30 @@
                 return roomData;
             }
 
-            // --- UPDATED function for Turnaround logic to REMOVE DUPLICATES ---
+            // --- NEW: Parsing Logic for Vacant Rooms ---
+            function parseVacantLine(line) {
+                // Regex to capture Room ID and Status (Departure / Dirty Room OR Room is Clean)
+                // Looks for: Start of line, Room ID (3 digits), any text, then specific status
+                const match = line.match(/^\s*(\d{3})\s+.*\s+(Departure \/ Dirty Room|Room is Clean)/);
+                if (!match) return null;
+
+                const room = match[1];
+                const hkStatus = match[2];
+
+                return {
+                    room: room,
+                    isVacantRecord: true,
+                    hkStatus: hkStatus, // "Departure / Dirty Room" or "Room is Clean"
+                    // Default props to prevent errors during processing
+                    status: 'Unknown', // Will be determined in merge
+                    pet: 0, twin: 0, double: 0, daybed: 0, trundle: 0,
+                    customerName: 'Vacant',
+                    guests: 0,
+                    BarecaVoucherValue: 0
+                };
+            }
+
+            // --- UPDATED function for Turnaround logic to REMOVE DUPLICATES and MERGE VACANT STATUS ---
             function processTurnarounds(rooms) {
                 const roomsByNumber = {};
                 // Group by room number
@@ -1131,58 +1155,91 @@
                 for (const roomNumber in roomsByNumber) {
                     let entries = roomsByNumber[roomNumber];
 
-                    // --- 1. Deduplication Step ---
-                    // If multiple entries exist for the exact same room/customer/status, merge them.
-                    // This handles split payments/multiple lines in the report for one booking.
-                    if (entries.length > 1) {
+                    // Separate actual reservations from vacant status records
+                    let reservations = entries.filter(e => !e.isVacantRecord);
+                    const vacantRecords = entries.filter(e => e.isVacantRecord);
+
+                    // --- 1. Deduplication Step for Reservations ---
+                    if (reservations.length > 1) {
                         const uniqueEntries = [];
                         const seenSignatures = new Set();
 
-                        entries.forEach(e => {
-                            // Signature based on Name and Status. If same person staying in same room, it's one entry.
+                        reservations.forEach(e => {
                             const sig = `${e.status}-${e.customerName}`;
                             if (!seenSignatures.has(sig)) {
                                 seenSignatures.add(sig);
                                 uniqueEntries.push(e);
                             } else {
-                                // If duplicate found, merge "flags" (pet/twin/extras) to the existing one
+                                // Merge flags
                                 const existing = uniqueEntries.find(u => `${u.status}-${u.customerName}` === sig);
                                 if (existing) {
                                     existing.pet = Math.max(existing.pet, e.pet);
                                     existing.twin = Math.max(existing.twin, e.twin);
                                     existing.daybed = Math.max(existing.daybed, e.daybed);
                                     existing.trundle = Math.max(existing.trundle, e.trundle);
-                                    // Merge extras if needed
                                     HK_EXTRA_PRODUCTS.forEach(prod => {
                                         existing[prod.key] = Math.max(existing[prod.key], e[prod.key]);
                                     });
                                 }
                             }
                         });
-                        entries = uniqueEntries;
+                        reservations = uniqueEntries;
                     }
 
-                    // --- 2. Turnaround Logic ---
-                    if (entries.length > 1) {
-                        const departure = entries.find(r => r.status === 'Depart');
-                        const arrival = entries.find(r => r.status === 'Arrival');
+                    // --- 2. Logic: Merge Vacant Status into Reservations OR Create Ghost Entry ---
+                    if (reservations.length > 0) {
+                        const vacantStatus = vacantRecords.length > 0 ? vacantRecords[0].hkStatus : null;
 
-                        if (departure && arrival) {
-                            if (departure.customerName.toLowerCase() === arrival.customerName.toLowerCase()) {
-                                finalRooms.push({ ...arrival, status: 'Stay' });
+                        reservations.forEach(res => {
+                            // Logic: If room is Arrival but Dirty, mark as Turnaround (Depart/Arrive) to show "Used Last Night"
+                            if (res.status === 'Arrival') {
+                                if (vacantStatus === 'Departure / Dirty Room') {
+                                    res.status = 'Depart/Arrive';
+                                    // Assumed logic: if turnaround, and twin requested, assume turnaround is relevant for twin alert
+                                    res.isTwinTurnaround = (res.twin > 0);
+                                }
+                                // If 'Room is Clean', it remains 'Arrival' (Used Last Night = No)
+                            }
+                        });
+
+                        // Standard Turnaround Logic for multiple reservations (Depart + Arrival)
+                        if (reservations.length > 1) {
+                            const departure = reservations.find(r => r.status === 'Depart');
+                            const arrival = reservations.find(r => r.status === 'Arrival' || r.status === 'Depart/Arrive');
+
+                            if (departure && arrival) {
+                                if (departure.customerName.toLowerCase() === arrival.customerName.toLowerCase()) {
+                                    finalRooms.push({ ...arrival, status: 'Stay' });
+                                } else {
+                                    finalRooms.push({ ...arrival, status: 'Depart/Arrive', isTwinTurnaround: departure.twin > 0 && arrival.twin > 0 });
+                                }
                             } else {
-                                finalRooms.push({ ...arrival, status: 'Depart/Arrive', isTwinTurnaround: departure.twin > 0 && arrival.twin > 0 });
+                                // Fallback: pick the "heaviest" entry
+                                const bestEntry = reservations.reduce((prev, current) => {
+                                    return (prev.pet + prev.twin) > (current.pet + current.twin) ? prev : current;
+                                });
+                                finalRooms.push(bestEntry);
                             }
                         } else {
-                            // If we still have multiple entries (e.g. 2 arrivals for same room??), pick one.
-                            // Prioritize the one with flags set.
-                             const bestEntry = entries.reduce((prev, current) => {
-                                return (prev.pet + prev.twin) > (current.pet + current.twin) ? prev : current;
-                            });
-                            finalRooms.push(bestEntry);
+                            finalRooms.push(reservations[0]);
                         }
+
                     } else {
-                        finalRooms.push(entries[0]);
+                        // No reservation, check vacant records for "Dirty" rooms (Ghost Departures)
+                        if (vacantRecords.length > 0) {
+                            const vac = vacantRecords[0];
+                            if (vac.hkStatus === 'Departure / Dirty Room') {
+                                // Room is empty but dirty -> Used last night -> Treat as Departure
+                                finalRooms.push({
+                                    room: vac.room,
+                                    status: 'Depart', // This triggers "Used Last Night" tick
+                                    customerName: 'Vacant',
+                                    pet: 0, twin: 0, daybed: 0, trundle: 0, guests: 0, double: 1,
+                                    BarecaVoucherValue: 0
+                                });
+                            }
+                            // If "Room is Clean", we ignore it (it's empty and clean, no tasks).
+                        }
                     }
                 }
                 return finalRooms.sort((a,b) => parseInt(a.room) - parseInt(b.room));
@@ -1257,29 +1314,52 @@
                 updateStatus('Parsing...', 'loading');
                 const reportDate = new Date(reportDateStr + 'T00:00:00');
 
-                // --- Updated Logic for Grouping Lines into Blocks ---
+                // --- Updated Logic for Grouping Lines into Blocks AND Extracting Vacant Lines ---
                 const lines = rawText.split('\n');
                 const blocks = [];
+                const vacantLines = []; // Store lines about vacant rooms
                 let currentBlock = '';
+
                 // Matches the start of a Reservation Line: Date Date ... Room (e.g. 28/Nov/2025 ... 105)
                 const resLineRegex = /\d{2}\/[A-Za-z]{3}\/\d{4}.*\d{2}\/[A-Za-z]{3}\/\d{4}.*\b\d{3}\b/;
+                // Matches the "Vacant Room" lines (Room ID ... Status)
+                const vacantLineRegex = /^\s*\d{3}\s+.*\s+(Departure \/ Dirty Room|Room is Clean)/;
 
                 lines.forEach(line => {
-                    // Check if this line is a new Reservation Header
+                    // 1. Check for Reservation Header
                     if (resLineRegex.test(line)) {
                         if (currentBlock) blocks.push(currentBlock);
                         currentBlock = line;
-                    } else {
-                        // Otherwise it's a note line, append to current block
+                    }
+                    // 2. Check for Vacant Room Line
+                    else if (vacantLineRegex.test(line)) {
+                        vacantLines.push(line);
+                        // Vacant lines usually end a block or are separate, but if inside a block, add to block?
+                        // Actually, they appear in a separate section. Treat independently.
+                        if (currentBlock) {
+                             blocks.push(currentBlock);
+                             currentBlock = '';
+                        }
+                    }
+                    // 3. Otherwise append to current block (notes)
+                    else {
                         if (currentBlock) currentBlock += '\n' + line;
                     }
                 });
                 if (currentBlock) blocks.push(currentBlock);
                 // --------------------------------------------------
 
-                if (blocks.length === 0) { updateStatus('No valid room data found. Check data is correct.', 'error'); return; }
-                const allRoomsRaw = blocks.map(block => parseBlock(block, reportDate)).filter(Boolean);
-                processedRooms = processTurnarounds(allRoomsRaw);
+                if (blocks.length === 0 && vacantLines.length === 0) { updateStatus('No valid room data found. Check data is correct.', 'error'); return; }
+
+                // Parse Reservations
+                const reservationRooms = blocks.map(block => parseBlock(block, reportDate)).filter(Boolean);
+                // Parse Vacant Lines
+                const vacantRooms = vacantLines.map(line => parseVacantLine(line)).filter(Boolean);
+
+                // Combine them for processing
+                const allRawData = [...reservationRooms, ...vacantRooms];
+
+                processedRooms = processTurnarounds(allRawData);
 
                 if (processedRooms.length > 0) {
                     renderOutput(processedRooms);
@@ -1561,19 +1641,18 @@
 
                 table.innerHTML = headerHtml; table.appendChild(tbody); tableWrapper.appendChild(table); return tableWrapper;
             }
-            // Update createScreenListSection to handle simple string/comma separation or itemized list
-            function createScreenListSection(title, content) {
+            // Update createPrintListSection to handle simple string/comma separation or itemized list
+            function createPrintListSection(title, content) {
                 const container = document.createElement('div');
-                container.className = 'mb-4 bg-white p-4 rounded-2xl shadow-sm border';
+                container.style.marginBottom = '1rem';
 
-                let listContent;
                 if (Array.isArray(content)) {
                     // Itemized list for complex content (e.g., Extras List)
-                    listContent = content.map(item => `<li>${item}</li>`).join('');
-                    container.innerHTML = `<h3 class="text-lg font-bold text-sky-800 mb-2">${title}</h3><ul class="list-none space-y-1 text-base">${listContent}</ul>`;
+                    const listContent = content.map(item => `<li>${item}</li>`).join('');
+                    container.innerHTML = `<h3 style="font-size: 1.25rem; font-weight: bold; margin-bottom: 0.5rem; color: #075985;">${title}</h3><ul style="list-style: none; font-size: 1.1rem; padding-left: 0;">${listContent}</ul>`;
                 } else {
                     // Simple string/comma-separated list (e.g., Staying Rooms)
-                    container.innerHTML = `<h3 class="text-lg font-bold text-sky-800 mb-2">${title}</h3><p class="text-base">${content}</p>`;
+                     container.innerHTML = `<h3 style="font-size: 1.25rem; font-weight: bold; margin-bottom: 0.5rem; color: #075985;">${title}</h3><p style="font-size: 1.1rem;">${content}</p>`;
                 }
 
                 return container;
@@ -1849,4 +1928,3 @@
     </script>
 </body>
 </html>
-```
