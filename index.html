@@ -1,0 +1,1852 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rezlynx Repository</title>
+    <!-- Favicon: Custom icon with a fire emoji on a purple background -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50%25' y='85%25' style='font-size:90px;text-anchor:middle;'%3E%E2%9A%A1%3C/text%3E%3C/svg%3E" type="image/svg+xml">    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* --- General Super App Styles --- */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #faf5ff;
+        }
+        .card {
+            box-shadow: 0 10px 30px -5px rgba(109, 40, 217, 0.1), 0 4px 10px -2px rgba(109, 40, 217, 0.05);
+            border-width: 1px;
+            border-radius: 1.5rem;
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            cursor: pointer;
+        }
+        input[type="date"] {
+            appearance: none;
+            -moz-appearance: none;
+            position: relative;
+            padding-right: 3rem;
+        }
+        .app-content {
+            display: none; /* All app views are hidden by default */
+        }
+        .app-content.active {
+            display: block; /* The active app view is shown */
+        }
+        .nav-button.active {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        }
+
+        /* --- HK Plan Generator Styles --- */
+        .control-area {
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            background-color: white;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e0f2fe;
+        }
+
+        .compact-display span {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        /* --- Print Specific Styles --- */
+        @media print {
+            body {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                background-color: #ffffff !important;
+                font-size: 10pt; /* Adjusted base print font size */
+            }
+            .no-print { display: none !important; }
+
+            /* HK Plan Print */
+            #print-table-container { display: block !important; }
+            .print-table-classic { width: 100%; border-collapse: collapse; margin-bottom: 2rem; }
+            .floor-section-print { page-break-inside: avoid; margin-bottom: 2rem; }
+            .print-table-classic th, .print-table-classic td {
+                border: 1px solid #334155;
+                padding: 0.3rem;
+                text-align: center;
+                font-size: 11px;
+                color: black !important;
+            }
+            .print-table-classic th {
+                font-weight: bold;
+                font-size: 12px;
+            }
+            .print-table-classic th:first-child, .print-table-classic td:first-child {
+                background-color: #f1f5f9 !important;
+                text-align: left;
+                font-weight: bold;
+            }
+
+            .print-table-classic td {
+                line-height: 1.1;
+            }
+            .print-table-classic td > span {
+                font-size: 0.65rem !important;
+                line-height: 1 !important;
+                display: inline-block;
+            }
+            .print-table-classic td > span > span {
+                font-size: 8px !important;
+            }
+
+            #print-table-container h3 {
+                font-size: 1rem !important;
+            }
+            #print-table-container ul, #print-table-container p {
+                font-size: 0.9rem !important;
+            }
+            #print-table-container ul li span {
+                 font-size: 1rem !important;
+            }
+
+            /* Kitchen Products Print */
+            @page { size: A4 portrait; margin: 0.4in 0.75in; }
+            #kitchen-app-container #results, #kitchen-app-container #results * { visibility: visible; }
+            #kitchen-app-container #results { position: absolute; left: 0; top: 0; width: 100%; padding: 0; }
+            #kitchen-app-container #reportTitle { display: block !important; color: #581c87 !important; text-align: center; font-size: 1.5rem; font-weight: bold; margin-bottom: 1rem; }
+            #kitchen-app-container table { width: 100%; border-collapse: separate; border-spacing: 0; }
+            #kitchen-app-container thead { background-color: #fae8ff !important; }
+            #kitchen-app-container th { padding: 12px 24px; text-align: center; font-size: 0.9rem; font-weight: bold; color: #581c87 !important; text-transform: uppercase; letter-spacing: 0.05em; border: none; }
+            #kitchen-app-container th:first-child { border-top-left-radius: 1rem; }
+            #kitchen-app-container th:last-child { border-top-right-radius: 1rem; }
+            #kitchen-app-container td { padding: 16px 24px; text-align: center; font-size: 1rem; border-bottom: 1px solid #fae8ff; color: #1f2937; }
+            #kitchen-app-container tr:last-child td { border-bottom: none; }
+            #kitchen-app-container td:nth-child(2), #kitchen-app-container td:nth-child(3) { font-weight: 600; }
+            #kitchen-app-container td div span:first-child { font-weight: bold; color: #000 !important; }
+            #kitchen-app-container td div { display: flex !important; align-items: center; justify-content: center; gap: 0.5rem; }
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-1 min-h-screen">
+
+    <div class="max-w-screen-2xl mx-auto">
+        <header class="text-center mb-10">
+            <!-- Title can go here if needed -->
+        </header>
+
+        <!-- Navigation Links Card -->
+        <div class="card bg-white p-6 sm:p-10 rounded-3xl border-violet-100 mt-6 md:mt-12 no-print">
+            <div id="main-nav" class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <a href="#" data-target="home-app" class="nav-button bg-gray-500 text-white font-bold h-24 rounded-2xl hover:bg-gray-600 transition duration-150 shadow-md transform hover:scale-[1.03] active:scale-[0.98] flex items-center justify-center p-3 active">
+                    <span class="text-center">Home Hub</span>
+                </a>
+                <a href="#" data-target="breakfast-app" class="nav-button bg-emerald-500 text-white font-bold h-24 rounded-2xl hover:bg-emerald-600 transition duration-150 shadow-md transform hover:scale-[1.03] active:scale-[0.98] flex items-center justify-center p-3">
+                    <span class="text-center">Breakfast List</span>
+                </a>
+                <a href="#" data-target="kitchen-app" class="nav-button bg-pink-500 text-white font-bold h-24 rounded-2xl hover:bg-pink-600 transition duration-150 shadow-md transform hover:scale-[1.03] active:scale-[0.98] flex items-center justify-center p-3">
+                    <span class="text-center">Kitchen List</span>
+                </a>
+                <a href="#" data-target="hk-app" class="nav-button bg-sky-500 text-white font-bold h-24 rounded-2xl hover:bg-sky-600 transition duration-150 shadow-md transform hover:scale-[1.03] active:scale-[0.98] flex items-center justify-center p-3">
+                    <span class="text-center">Housekeeping Plan</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- App Content Area -->
+        <div class="mt-8">
+
+            <!-- HOME / MASTER HUB APP -->
+            <div id="home-app" class="app-content active">
+                 <div class="w-full mb-12">
+                    <div class="card bg-white p-12 sm:p-16 rounded-3xl border-violet-100 flex flex-col justify-center items-center text-center shadow-lg">
+                        <h2 class="text-4xl font-extrabold text-gray-800 mb-6 tracking-tight">Welcome</h2>
+                        <p class="text-2xl text-gray-600 font-medium">Mews is dead long live the king</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BREAKFAST TRACKER APP -->
+            <div id="breakfast-app" class="app-content">
+                <div class="container mx-auto px-4 py-8 lg:py-12">
+                    <header class="text-center mb-8 lg:mb-12 no-print">
+                        <div class="inline-flex items-center justify-center gap-3 bg-green-100 text-green-800 px-6 py-3 rounded-3xl hover:bg-green-200 transition duration-150 shadow-md">
+                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+                             <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight">Breakfast List</h1>
+                        </div>
+                    </header>
+                    <main class="bg-white/70 backdrop-blur-sm p-6 lg:p-8 rounded-3xl shadow-xl shadow-green-200/50">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 lg:gap-8">
+                            <div class="flex flex-col gap-6 no-print">
+                                <div class="bg-white p-6 rounded-2xl border border-gray-200/80">
+                                    <label for="orderData" class="block text-sm font-bold text-green-800 mb-2">Breakfast Data (Paste Here)</label>
+                                    <textarea id="orderData" oninput="breakfast_calculateTotal()" rows="4" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-green-300 focus:border-green-400 transition duration-150 ease-in-out" placeholder="Start by pasting your breakfast report data..."></textarea>
+                                    <div class="mt-4 text-sm text-gray-600">
+                                        <h4 class="font-semibold text-gray-700 mb-2">Instructions:</h4>
+                                        <ol class="list-decimal list-inside space-y-1">
+                                            <li>In Rezlynx, go to <strong>Product Distribution</strong> and choose the required date.</li>
+                                            <li>Tick <strong>Product Group</strong></li>
+                                            <li>Tick <strong>Product</strong></li>
+                                            <li>Press <strong>Viewer</strong></li>
+                                            <li>Press <strong>Ctrl + A</strong> to highlight all the data.</li>
+                                            <li>Press <strong>Ctrl + C</strong> to copy the data.</li>
+                                            <li>Come back here and press <strong>Ctrl + V</strong> to paste the data.</li>
+                                            <li>Press the <strong>Print</strong> button</li>
+                                        </ol>
+                                    </div>
+                                </div>
+                                <div class="bg-green-100 p-6 rounded-2xl text-center border border-green-200">
+                                    <h2 class="text-lg font-semibold text-green-800 mb-2">Total Breakfasts</h2>
+                                    <p id="totalAmount" class="text-6xl font-extrabold text-green-600">0</p>
+                                </div>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <button onclick="breakfast_print()" class="flex items-center justify-center text-center bg-green-500 text-white font-bold py-4 px-4 rounded-2xl hover:bg-green-600 focus:outline-none focus:ring-4 focus:ring-green-300 transform hover:scale-[1.03] transition-all duration-200">
+                                        Print Report
+                                    </button>
+                                    <button onclick="breakfast_clearData()" class="flex items-center justify-center text-center bg-gray-400 text-white font-bold py-4 px-4 rounded-2xl hover:bg-gray-500 focus:outline-none focus:ring-4 focus:ring-gray-300 transform hover:scale-[1.03] transition-all duration-200">
+                                        Clear Data
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="mt-8 lg:mt-0">
+                                <div class="bg-white p-6 rounded-2xl border border-gray-200/80 h-full">
+                                    <h3 class="text-xl font-semibold text-gray-800 mb-4 text-center">Breakfast List</h3>
+                                    <div class="overflow-auto h-[450px] rounded-xl border border-gray-200">
+                                        <table class="min-w-full divide-y divide-gray-200">
+                                            <thead class="bg-green-50 sticky top-0">
+                                                <tr>
+                                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-green-800 uppercase tracking-wider">Room</th>
+                                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-green-800 uppercase tracking-wider">Guest</th>
+                                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-green-800 uppercase tracking-wider">Total Amount</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="ordersTableBody" class="bg-white divide-y divide-gray-100">
+                                                <tr><td colspan="3" class="px-6 py-12 text-center text-gray-500"><div class="flex flex-col items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-10 h-10 text-gray-300"><path d="M4 6h16"></path><path d="M4 12h16"></path><path d="M4 18h16"></path></svg><span>No data processed yet.</span></div></td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            </div>
+
+            <!-- KITCHEN PRODUCTS APP -->
+            <div id="kitchen-app" class="app-content">
+                <div id="kitchen-app-container" class="container mx-auto p-4 sm:p-6 md:p-8">
+                     <header class="flex items-center gap-4 mb-8 no-print">
+                         <div class="flex items-center justify-center gap-3 bg-pink-100 text-pink-800 px-6 py-3 rounded-3xl hover:bg-pink-200 transition duration-150 shadow-md">
+                            <h1 class="text-3xl md:text-4xl font-bold text-purple-900">Kitchen List</h1>
+                        </div>
+                        <!-- Date Picker -->
+                        <div class="relative">
+                            <input type="date" id="kitchen-date-picker" class="w-full py-3 px-4 border border-gray-300 bg-white rounded-xl focus:ring-4 focus:ring-pink-200 transition duration-200 text-base appearance-none">
+                             <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        </div>
+                    </header>
+                    <main class="bg-white p-6 sm:p-8 rounded-3xl shadow-xl">
+                        <div id="input-section" class="grid grid-cols-1 md:grid-cols-2 md:gap-8 items-start no-print">
+                            <div class="flex flex-col h-full">
+                                <label for="kitchen_rawData" class="block text-base font-bold text-purple-800 mb-2">Breakfast Data (Paste Here)</label>
+                                <textarea id="kitchen_rawData" rows="10" class="w-full p-4 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-fuchsia-500 focus:border-fuchsia-500 transition flex-grow" placeholder="Paste data here..."></textarea>
+                                <div class="mt-6 flex flex-col sm:flex-row justify-start items-center gap-4">
+                                    <button id="kitchen_mainPrintBtn" class="flex items-center justify-center gap-2 w-full sm:w-auto bg-fuchsia-600 text-white font-bold py-3 px-6 rounded-2xl hover:bg-fuchsia-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-fuchsia-500 transition-transform transform hover:scale-[1.03]"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg><span>Print Report</span></button>
+                                    <button id="kitchen_clearBtn" class="flex items-center justify-center gap-2 w-full sm:w-auto bg-fuchsia-100 text-fuchsia-800 font-bold py-3 px-6 rounded-2xl hover:bg-fuchsia-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-fuchsia-400 transition-transform transform hover:scale-[1.03]"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg><span>Clear</span></button>
+                                </div>
+                            </div>
+                            <div class="bg-fuchsia-50 p-6 rounded-2xl mt-6 md:mt-0">
+                                <h3 class="flex items-center text-lg font-bold text-purple-800 mb-4"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 h-5 w-5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg><span>Instructions</span></h3>
+                                <ol class="list-decimal list-inside space-y-3 text-gray-700">
+                                    <li>Generate the Daily Kitchen Products on Master Mews Hub.</li>
+                                    <li>Press <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">Ctrl</kbd> + <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">A</kbd></li>
+                                    <li>Press <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">Ctrl</kbd> + <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">C</kbd></li>
+                                    <li>Come back here and press <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">Ctrl</kbd> + <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">V</kbd></li>
+                                    <li>The report will generate automatically below.</li>
+                                </ol>
+                            </div>
+                        </div>
+                        <div id="kitchen_error-message" class="hidden mt-6 p-4 bg-pink-100 text-pink-700 border border-pink-300 rounded-2xl"><p><strong class="font-bold">Parsing Error:</strong> Could not find the required data.</p></div>
+                        <h2 id="reportTitle" class="text-2xl font-bold text-center my-4 hidden">Kitchen List</h2>
+                        <div id="results" class="mt-8"></div>
+                    </main>
+                </div>
+            </div>
+
+            <!-- HOUSEKEEPING (HK) APP -->
+            <div id="hk-app" class="app-content">
+                <div class="container mx-auto my-10 max-w-5xl no-print">
+                    <header class="flex items-center gap-4 mb-6">
+                         <div class="flex items-center justify-center gap-3 bg-sky-100 text-sky-800 px-6 py-3 rounded-3xl hover:bg-sky-200 transition duration-150 shadow-md">
+                            <h1 class="text-4xl font-extrabold text-center text-sky-700">Housekeeping Plan</h1>
+                        </div>
+                        <!-- Date Picker -->
+                        <div class="relative">
+                            <input type="date" id="hk-date-picker" class="w-full py-3 px-4 border border-gray-300 bg-white rounded-xl focus:ring-4 focus:ring-sky-200 transition duration-200 text-base appearance-none">
+                             <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        </div>
+                    </header>
+                    <div class="control-area mb-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="md:col-span-1 flex flex-col justify-start">
+                                <h2 class="text-xl font-extrabold text-sky-700 mb-4">Report Details</h2>
+                                <label for="reportDate" class="block text-base font-semibold text-gray-700 mb-2">Report Date:</label>
+                                <input type="date" id="reportDate" class="w-full p-4 border-2 border-cyan-300 bg-cyan-50 rounded-2xl text-cyan-700 font-bold focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition shadow-inner">
+                                <div class="mt-4 flex flex-col gap-3">
+                                    <button id="clearDataBtn" class="w-full bg-red-500 text-white font-extrabold py-3 px-6 rounded-2xl shadow-lg hover:bg-red-600 hover:scale-[1.03] transform transition duration-300 ease-in-out flex items-center justify-center text-lg"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 mr-3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>Clear Data</button>
+                                    <button id="printBtn" class="w-full bg-cyan-500 text-white font-extrabold py-3 px-8 rounded-2xl shadow-lg hover:bg-cyan-600 hover:scale-[1.03] transform transition duration-300 ease-in-out text-lg flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 mr-3"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>Print Checklist</button>
+                                    <div id="status" class="text-center mt-2 text-sky-600 font-medium text-sm"></div>
+                                </div>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label for="dataText" class="block text-xl font-extrabold text-sky-700 mb-4">Reservation Data (Paste Here)</label>
+                                <textarea id="dataText" rows="12" placeholder="Generate the House Status report in Rezlynx ticking report name and include boxes and view report;Press Ctrl A, Ctrl C, then paste here with Ctrl V" class="w-full p-4 border border-sky-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition shadow-inner resize-none min-h-[300px]"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="control-area mt-6">
+                        <h2 class="text-2xl font-extrabold text-sky-700 mb-6 text-center">Print Options & Customization</h2>
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            <div class="p-5 bg-sky-50 rounded-2xl shadow-lg border border-sky-200">
+                                <h3 class="text-xl font-bold text-sky-700 mb-4">Table Rows</h3>
+                                <div class="grid grid-cols-2 gap-4 text-sm md:text-base" id="rowCheckboxes">
+                                    <div class="flex items-center"><input type="checkbox" id="showUsedLastNightRow" class="form-checkbox h-5 w-5 text-sky-500 rounded-md"><label for="showUsedLastNightRow" class="ml-2">Used Last Night</label></div>
+                                    <div class="flex items-center"><input type="checkbox" id="showArrivingTodayRow" class="form-checkbox h-5 w-5 text-sky-500 rounded-md"><label for="showArrivingTodayRow" class="ml-2">Arriving Today</label></div>
+                                    <div class="flex items-center"><input type="checkbox" id="showGuestsRow" class="form-checkbox h-5 w-5 text-sky-500 rounded-md"><label for="showGuestsRow" class="ml-2">Guests</label></div>
+                                    <div class="flex items-center"><input type="checkbox" id="showPetRow" checked class="form-checkbox h-5 w-5 text-sky-500 rounded-md"><label for="showPetRow" class="ml-2">Pet</label></div>
+                                    <div class="flex items-center"><input type="checkbox" id="showTwinRow" checked class="form-checkbox h-5 w-5 text-sky-500 rounded-md"><label for="showTwinRow" class="ml-2">Twin</label></div>
+                                    <div class="flex items-center"><input type="checkbox" id="showDaybedRow" checked class="form-checkbox h-5 w-5 text-sky-500 rounded-md"><label for="showDaybedRow" class="ml-2">Daybed</label></div>
+                                    <div class="flex items-center"><input type="checkbox" id="showTrundleRow" checked class="form-checkbox h-5 w-5 text-sky-500 rounded-md"><label for="showTrundleRow" class="ml-2">Trundle</label></div>
+                                    <div class="flex items-center"><input type="checkbox" id="showExtrasRow" checked class="form-checkbox h-5 w-5 text-sky-500 rounded-md"><label for="showExtrasRow" class="ml-2 font-bold">Extra</label></div>
+                                </div>
+                            </div>
+                            <div class="p-5 bg-sky-50 rounded-2xl shadow-lg border border-sky-200">
+                                <h3 class="text-xl font-bold text-sky-700 mb-4">Info & Lists</h3>
+                                <div class="grid grid-cols-2 gap-4 text-sm md:text-base" id="listCheckboxes">
+                                    <div class="flex items-center"><input type="checkbox" id="showDepartingRoomInfo" class="form-checkbox h-5 w-5 text-sky-500 rounded-md"><label for="showDepartingRoomInfo" class="ml-2">Departing Info</label></div>
+                                    <div class="flex items-center"><input type="checkbox" id="showStayingRoomInfo" class="form-checkbox h-5 w-5 text-sky-500 rounded-md"><label for="showStayingRoomInfo" class="ml-2">Staying Info</label></div>
+                                    <div class="flex items-center"><input type="checkbox" id="showStayingRoomsList" checked class="form-checkbox h-5 w-5 text-sky-500 rounded-md"><label for="showStayingRoomsList" class="ml-2">Staying List</label></div>
+                                    <div class="flex items-center"><input type="checkbox" id="showPetRoomsList" class="form-checkbox h-5 w-5 text-sky-500 rounded-md"><label for="showPetRoomsList" class="ml-2">Pet List</label></div>
+                                    <div class="flex items-center"><input type="checkbox" id="showTwinRoomsList" class="form-checkbox h-5 w-5 text-sky-500 rounded-md"><label for="showTwinRoomsList" class="ml-2">Twin List</label></div>
+                                    <div class="flex items-center"><input type="checkbox" id="showExtrasRoomsList" checked class="form-checkbox h-5 w-5 text-sky-500 rounded-md"><label for="showExtrasRoomsList" class="ml-2">Extras List</label></div>
+                                </div>
+                            </div>
+                             <div class="p-5 bg-cyan-50 rounded-2xl shadow-lg border border-cyan-200 flex flex-col items-center justify-center">
+                                <h3 id="sparkleModeTitle" class="text-xl font-bold text-cyan-700 cursor-pointer hover:text-cyan-900 transition duration-150 inline-block p-1 rounded">Work Mode</h3>
+                                <p class="text-sm text-cyan-600 mb-4 text-center">&nbsp;</p>
+                                <div id="sparkleOptionsContainer" class="hidden flex flex-col gap-4 w-full">
+                                    <div class="flex items-center justify-between p-3 bg-white rounded-xl border border-cyan-200 shadow-sm">
+                                        <span class="text-gray-700 font-medium">Change Checkmark:</span>
+                                        <button id="changeTickBtn" class="font-bold text-sky-600 transition duration-300 ease-in-out hover:text-sky-800 hover:scale-[1.05] transform"><span id="currentTickEmoji" class="text-2xl">✔️</span></button>
+                                    </div>
+                                    <div class="flex items-center justify-between p-3 bg-white rounded-xl border border-cyan-200 shadow-sm">
+                                        <label class="block text-gray-700 font-medium">Pet Icon:</label>
+                                        <span id="petEmojiDisplay" class="text-2xl">🐶</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="no-print"><div id="output-container" class="container mx-auto p-4"><div id="placeholder" class="text-center text-gray-500 p-10">Your generated cleaning report will appear here.</div></div></div>
+                <div id="print-table-container" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- SUPER APP NAVIGATION LOGIC ---
+        document.addEventListener('DOMContentLoaded', function() {
+            const navButtons = document.querySelectorAll('#main-nav .nav-button');
+            const appContents = document.querySelectorAll('.app-content');
+
+            navButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    const targetId = this.dataset.target;
+
+                    // Update button active states
+                    navButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+
+                    // Show/hide app content
+                    appContents.forEach(content => {
+                        if (content.id === targetId) {
+                            content.classList.add('active');
+                        } else {
+                            content.classList.remove('active');
+                        }
+                    });
+                });
+            });
+
+             // Initialize all app scripts
+            master_init();
+            breakfast_init();
+            kitchen_init();
+            hk_init();
+        });
+
+        // --- MASTER HUB SCRIPT ---
+        function master_init() {
+            // Simplified master_init since date logic was removed from Home Hub UI
+        }
+
+        function master_getCurrentDateString() { const today = new Date(); const year = today.getFullYear(); const month = String(today.getMonth() + 1).padStart(2, '0'); const day = String(today.getDate()).padStart(2, '0'); return `${year}-${month}-${day}`; }
+        function master_addDaysToDate(dateString, days) { const date = new Date(dateString + 'T00:00:00Z'); date.setUTCDate(date.getUTCDate() + days); const year = date.getUTCFullYear(); const month = String(date.getUTCMonth() + 1).padStart(2, '0'); const day = String(date.getUTCDate()).padStart(2, '0'); return `${year}-${month}-${day}`; }
+        function master_updateLinks() {
+            // Function placeholder - keeping logic if needed later, currently headers are static
+        }
+
+        // --- BREAKFAST TRACKER SCRIPT ---
+        let breakfast_detectedDate = null; // Variable to store the date for the print function
+
+        function breakfast_init() {
+            // No specific init logic needed for now
+        }
+        function breakfast_formatDateForButton(date) { const day = date.getDate(); let suffix = 'th'; if (day % 10 === 1 && day !== 11) suffix = 'st'; else if (day % 10 === 2 && day !== 12) suffix = 'nd'; else if (day % 10 === 3 && day !== 13) suffix = 'rd'; const month = date.toLocaleDateString('en-GB', { month: 'short' }); return `${day}${suffix} ${month}`; }
+
+        function breakfast_calculateTotal() {
+            let data = document.getElementById('orderData').value;
+
+            // Auto-detect and set date from pasted data (Format: 29/Nov/2025)
+            const dateMatch = data.match(/(\d{2})\/([A-Za-z]{3})\/(\d{4})/);
+            if (dateMatch) {
+                const [_, day, monthStr, year] = dateMatch;
+                const months = {Jan:0, Feb:1, Mar:2, Apr:3, May:4, Jun:5, Jul:6, Aug:7, Sep:8, Oct:9, Nov:10, Dec:11};
+                // Store date object for printing
+                breakfast_detectedDate = new Date(year, months[monthStr], day);
+            }
+
+            const tableBody = document.getElementById('ordersTableBody');
+            tableBody.innerHTML = '';
+
+            const lines = data.split('\n');
+            const orders = {}; // Key: "Room|GuestName", Value: count
+            let totalBreakfasts = 0;
+
+            let currentRoom = null;
+            let currentGuest = null;
+
+            // Regex to find Room line: "101 BK000397/1 Mr Gareth Evans BREAKFAST"
+            const rowRegex = /^(\d{3})\s+(BK\S+)\s+(.+?)\s+BREAKFAST/;
+            // Regex to find Quantity line: "1 29/Nov/2025"
+            const quantityRegex = /\b(\d+)\s+(\d{2}\/[A-Za-z]{3}\/\d{4})/;
+
+            lines.forEach(line => {
+                line = line.trim();
+
+                // Check if this line is a new Guest/Breakfast Entry
+                const match = line.match(rowRegex);
+                if (match) {
+                    currentRoom = match[1];
+                    // Name is everything after Ref and before BREAKFAST
+                    // Clean up potential noise in name like "Bareca" if it leaked
+                    let rawName = match[3].trim();
+                    // Sometimes "Bareca" or "BuffetBreakfast" might be on this line if copy-paste was weird,
+                    // but the regex expects "BREAKFAST" after name.
+                    // Let's assume the name capture is clean enough or just strip known junk.
+                    currentGuest = rawName;
+                }
+
+                // Check if this line contains quantity + date
+                // This line usually follows the header, or is part of it.
+                // It can appear multiple times for the same room context if multiple items listed (though usually grouped).
+                const qMatch = line.match(quantityRegex);
+                if (qMatch && currentRoom && currentGuest) {
+                    const qty = parseInt(qMatch[1], 10);
+
+                    const key = `${currentRoom}|${currentGuest}`;
+                    if (!orders[key]) orders[key] = 0;
+                    orders[key] += qty;
+                }
+            });
+
+            // Convert map to array for table generation
+            const orderList = Object.keys(orders).map(key => {
+                const [room, guest] = key.split('|');
+                return { room, guest, amount: orders[key] };
+            });
+
+            // Sort by Room Number
+            orderList.sort((a, b) => parseInt(a.room) - parseInt(b.room));
+
+            if (orderList.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="3" class="px-6 py-12 text-center text-gray-500"><span>No breakfast orders found.</span></td></tr>`;
+                document.getElementById('totalAmount').textContent = '0';
+                return;
+            }
+
+            orderList.forEach(order => {
+                totalBreakfasts += order.amount;
+                const row = document.createElement('tr');
+                row.innerHTML = `<td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${order.room}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.guest}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.amount}</td>`;
+                tableBody.appendChild(row);
+            });
+
+            document.getElementById('totalAmount').textContent = totalBreakfasts;
+        }
+
+        function breakfast_clearData() { document.getElementById('orderData').value = ''; document.getElementById('totalAmount').textContent = '0'; document.getElementById('ordersTableBody').innerHTML = `<tr><td colspan="3" class="px-6 py-12 text-center text-gray-500"><span>No data processed yet.</span></td></tr>`; }
+
+        function breakfast_print() {
+            // Use the date detected from the pasted data, or fallback to the current date.
+            const printDate = breakfast_detectedDate || new Date();
+            breakfast_printTable(printDate);
+        }
+
+        function breakfast_formatDateWithSuffix(date) { const day = date.getDate(); let suffix = 'th'; if (day % 10 === 1 && day !== 11) suffix = 'st'; else if (day % 10 === 2 && day !== 12) suffix = 'nd'; else if (day % 10 === 3 && day !== 13) suffix = 'rd'; const weekday = date.toLocaleDateString('en-GB', { weekday: 'long' }); const month = date.toLocaleDateString('en-GB', { month: 'long' }); const year = date.getFullYear(); return `${weekday}, ${day}${suffix} ${month} ${year}`; }
+
+        function breakfast_printTable(date) {
+            const tableBody = document.getElementById('ordersTableBody');
+            if (!tableBody || tableBody.children[0].textContent.includes('No data')) {
+                return;
+            }
+            const totalBreakfasts = document.getElementById('totalAmount').textContent;
+            const formattedDate = breakfast_formatDateWithSuffix(date);
+
+            // 1. Parse all breakfast orders from the table
+            const allOrders = Array.from(tableBody.querySelectorAll('tr')).map(row => {
+                const cells = row.querySelectorAll('td');
+                if (cells.length < 3) return null;
+                return {
+                    room: cells[0].textContent.trim(),
+                    guest: cells[1].textContent.trim(),
+                    amount: cells[2].textContent.trim()
+                };
+            }).filter(Boolean); // Filter out any null entries
+
+            // 2. Group orders into floors
+            const groundFloor = allOrders.filter(o => parseInt(o.room, 10) <= 6);
+            const firstFloor = allOrders.filter(o => parseInt(o.room, 10) >= 101 && parseInt(o.room, 10) <= 130);
+            const secondFloor = allOrders.filter(o => parseInt(o.room, 10) >= 201 && parseInt(o.room, 10) <= 230);
+
+            // 3. Helper function to generate the HTML for one floor's table
+            const createFloorTableHTML = (title, orders) => {
+                if (orders.length === 0) return '';
+                let tableRows = orders.map(o => `
+                    <tr>
+                        <td>${o.room}</td>
+                        <td>${o.guest}</td>
+                        <td>${o.amount}</td>
+                    </tr>
+                `).join('');
+
+                return `
+                    <div class="floor-group">
+                        <h4>${title}</h4>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Room</th>
+                                    <th>Guest</th>
+                                    <th>Total Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${tableRows}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            };
+
+            // 4. Open the print window and write the new layout and styles
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`<html><head><title>Printable Breakfast Orders</title><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><style>
+                @media print { @page { size: A4 portrait; margin: 10mm; } }
+                body { font-family: 'Inter', sans-serif; font-size: 14pt; }
+
+                .header-container {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-end;
+                    margin-bottom: 20px;
+                    border-bottom: 2px solid #000;
+                    padding-bottom: 10px;
+                }
+                .main-title {
+                    background-color: #f0fff4;
+                    border-radius: 25px;
+                    color: #276749;
+                    padding: 5px 20px;
+                    font-size: 26pt;
+                    font-weight: 700;
+                    letter-spacing: 1px;
+                }
+                .info-block {
+                    text-align: right;
+                    font-size: 14pt;
+                    background-color: #f0fff4;
+                    border-radius: 25px;
+                    color: #276749;
+                    padding: 5px 20px;
+                    letter-spacing: 1px;
+                }
+
+                .content-container {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
+                    gap: 30px; /* Space between columns */
+                }
+                .column {
+                    flex: 1; /* Each column takes up equal space */
+                    display: flex;
+                    flex-direction: column;
+                    gap: 20px; /* Space between floor groups in the same column */
+                }
+                .floor-group h4 {
+                    text-align: center;
+                    font-size: 15pt;
+                    font-style: italic;
+                    margin: 0 0 5px 0;
+                    font-weight: 600;
+                }
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                }
+                th, td {
+                    border: 1px solid #ccc;
+                    padding: 4px 8px;
+                    text-align: left;
+                }
+                th {
+                    background-color: #f2f2f2;
+                    font-weight: bold;
+                }
+                td:first-child, th:first-child { width: 15%; text-align: center; }
+                td:last-child, th:last-child { width: 25%; text-align: center; }
+
+                body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            </style></head><body>
+                <div class="header-container">
+                    <div class="main-title">Breakfast List</div>
+                    <div class="info-block">
+                        <div>${formattedDate}</div>
+                        <div><strong>Total Breakfasts: ${totalBreakfasts}</strong></div>
+                    </div>
+                </div>
+
+                <div class="content-container">
+                    <div class="column">
+                        ${createFloorTableHTML('Ground Floor', groundFloor)}
+                        ${createFloorTableHTML('First Floor', firstFloor)}
+                    </div>
+                    <div class="column">
+                        ${createFloorTableHTML('Second Floor', secondFloor)}
+                    </div>
+                </div>
+            </body></html>`);
+            printWindow.document.close();
+            printWindow.focus();
+            setTimeout(() => { printWindow.print(); printWindow.close(); }, 250);
+        }
+
+
+
+        // --- KITCHEN PRODUCTS SCRIPT ---
+        function kitchen_init() {
+            const mainPrintBtn = document.getElementById('kitchen_mainPrintBtn');
+            const clearBtn = document.getElementById('kitchen_clearBtn');
+            const rawDataInput = document.getElementById('kitchen_rawData');
+            mainPrintBtn.addEventListener('click', () => { if (!document.querySelector('#kitchen-app #results').innerHTML.trim()) { alert("Please paste data to generate a report before printing."); } else { window.print(); } });
+            clearBtn.addEventListener('click', () => { rawDataInput.value = ''; kitchen_clearReportView(); rawDataInput.focus(); });
+            rawDataInput.addEventListener('input', kitchen_processDataAndDisplay);
+        }
+        const KITCHEN_BREAKFAST_EMOJIS = ['🥞', '🍳', '🥓', '🥐', '🧇', '🥣', '🍊', '☕️', '🍩', '🥑'];
+
+        function kitchen_parseData(text) {
+            const dateRegex = /\d{2}\/\d{2}\/\d{4}/g;
+            let dates = text.match(dateRegex) || [];
+            if (dates.length === 0) return null;
+
+            dates = [...new Set(dates)].sort((a, b) => {
+                const [dayA, monthA, yearA] = a.split('/');
+                const dateA = new Date(`${yearA}-${monthA}-${dayA}`);
+                const [dayB, monthB, yearB] = b.split('/');
+                const dateB = new Date(`${yearB}-${monthB}-${dayB}`);
+                return dateA - dateB;
+            });
+
+            if (dates.length === 0) return null;
+
+            let guestCounts = [];
+            let breakfastCounts = [];
+            const lines = text.split('\n');
+
+            for (const line of lines) {
+                const cleanedLine = line.replace(/\u00A0/g, ' ').trim();
+                const lowerLine = cleanedLine.toLowerCase();
+
+                if (lowerLine.startsWith('guests') && guestCounts.length === 0) {
+                    const parts = cleanedLine.split(/\s+/).filter(p => !isNaN(parseInt(p)));
+                    if (parts.length >= dates.length) {
+                        guestCounts = parts.slice(-dates.length).map(Number);
+                    }
+                }
+
+                if (lowerLine.startsWith('all products') && breakfastCounts.length === 0) {
+                    const parts = cleanedLine.split(/\s+/).filter(p => !isNaN(parseInt(p)));
+                    if (parts.length >= dates.length) {
+                        breakfastCounts = parts.slice(-dates.length).map(Number);
+                    }
+                }
+                else if (lowerLine.startsWith('breakfast') && breakfastCounts.length === 0) {
+                     const parts = cleanedLine.split(/\s+/).filter(p => !isNaN(parseInt(p)));
+                     if (parts.length >= dates.length) {
+                        breakfastCounts = parts.slice(-dates.length).map(Number);
+                    }
+                }
+            }
+
+            if (dates.length === 0 || guestCounts.length !== dates.length || breakfastCounts.length !== dates.length) {
+                return null;
+            }
+
+            return dates.map((date, index) => {
+                const [day, month, year] = date.split('/');
+                const dateObj = new Date(`${year}-${month}-${day}T00:00:00Z`);
+                const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'long', timeZone: 'UTC' });
+                return { date: date, day: dayName, guests: guestCounts[index] || 0, breakfasts: breakfastCounts[index] || 0 };
+            });
+        }
+
+        function kitchen_displayReport(data) {
+            const resultsDiv = document.querySelector('#kitchen-app #results');
+            const reportTitle = document.querySelector('#kitchen-app #reportTitle');
+            resultsDiv.innerHTML = ''; reportTitle.classList.remove('hidden');
+            const table = document.createElement('table'); table.className = 'min-w-full bg-white border-separate border-spacing-0';
+            table.innerHTML = `<thead class="bg-fuchsia-100"><tr><th class="px-6 py-3 text-center text-l font-bold text-purple-900 uppercase tracking-wider rounded-tl-2xl">Date</th><th class="px-6 py-3 text-center text-l font-bold text-purple-900 uppercase tracking-wider">Day</th><th class="px-6 py-3 text-center text-l font-bold text-purple-900 uppercase tracking-wider">Guests</th><th class="px-6 py-3 text-center text-l font-bold text-purple-900 uppercase tracking-wider rounded-tr-2xl">Breakfasts</th></tr></thead>
+                <tbody>${data.map((row, index) => `<tr class="hover:bg-fuchsia-50"><td class="px-6 py-4 text-center text-lg font-normal border-b border-fuchsia-100">${row.date}</td><td class="px-6 py-4 text-center text-lg font-semibold border-b border-fuchsia-100">${row.day}</td><td class="px-6 py-4 text-center text-lg font-semibold border-b border-fuchsia-100">${row.guests}</td><td class="px-6 py-4 text-center border-b border-fuchsia-100"><div class="flex items-center justify-center"><span class="text-lg font-bold text-fuchsia-600">${row.breakfasts}</span><span class="text-2xl ml-2">${KITCHEN_BREAKFAST_EMOJIS[Math.floor(Math.random() * KITCHEN_BREAKFAST_EMOJIS.length)]}</span></div></td></tr>`).join('')}</tbody>`;
+            resultsDiv.appendChild(table);
+        }
+        function kitchen_clearReportView() {
+            const reportTitle = document.querySelector('#kitchen-app #reportTitle');
+            const resultsDiv = document.querySelector('#kitchen-app #results');
+            const errorMessage = document.getElementById('kitchen_error-message');
+
+            if (reportTitle) reportTitle.classList.add('hidden');
+            if (resultsDiv) resultsDiv.innerHTML = '';
+            if (errorMessage) errorMessage.classList.add('hidden');
+        }
+        function kitchen_processDataAndDisplay() {
+            const rawText = document.getElementById('kitchen_rawData').value;
+            kitchen_clearReportView();
+            if (!rawText.trim()) return;
+            const data = kitchen_parseData(rawText);
+            if (data) {
+                kitchen_displayReport(data);
+            } else {
+                 document.getElementById('kitchen_error-message').classList.remove('hidden');
+            }
+        }
+
+// --- HK CLEANING PLAN SCRIPT ---
+        function hk_init() {
+            const dataTextInput = document.getElementById('dataText');
+            const printBtn = document.getElementById('printBtn');
+            const clearDataBtn = document.getElementById('clearDataBtn');
+            const outputContainer = document.getElementById('output-container');
+            const printTableContainer = document.getElementById('print-table-container');
+            const statusDiv = document.getElementById('status');
+            const placeholder = document.getElementById('placeholder');
+            const reportDateInput = document.getElementById('reportDate');
+
+            const showUsedLastNightRowCheckbox = document.getElementById('showUsedLastNightRow');
+            const showArrivingTodayRowCheckbox = document.getElementById('showArrivingTodayRow');
+            const showGuestsRowCheckbox = document.getElementById('showGuestsRow');
+            const showPetRowCheckbox = document.getElementById('showPetRow');
+            const showTwinRowCheckbox = document.getElementById('showTwinRow');
+            const showDaybedRowCheckbox = document.getElementById('showDaybedRow');
+            const showTrundleRowCheckbox = document.getElementById('showTrundleRow');
+            const showExtrasRowCheckbox = document.getElementById('showExtrasRow'); // NEW Checkbox
+            const showStayingRoomsListCheckbox = document.getElementById('showStayingRoomsList');
+            const showPetRoomsListCheckbox = document.getElementById('showPetRoomsList');
+            const showTwinRoomsListCheckbox = document.getElementById('showTwinRoomsList');
+            const showExtrasRoomsListCheckbox = document.getElementById('showExtrasRoomsList'); // NEW LIST CHECKBOX
+            const showDepartingRoomInfoCheckbox = document.getElementById('showDepartingRoomInfo');
+            const showStayingRoomInfoCheckbox = document.getElementById('showStayingRoomInfo');
+
+            const changeTickBtn = document.getElementById('changeTickBtn');
+            const currentTickEmojiSpan = document.getElementById('currentTickEmoji');
+            const petEmojiDisplay = document.getElementById('petEmojiDisplay');
+            const sparkleModeTitle = document.getElementById('sparkleModeTitle');
+            const sparkleOptionsContainer = document.getElementById('sparkleOptionsContainer');
+
+            let processedRooms = [];
+            const tickEmojis = ['✔️', '✅', '🟢', '⭐', '✨', '💜', '💙'];
+            let currentTickIndex = 0;
+            let isSparkleMode = false;
+
+            // --- HK EXTRA PRODUCTS CONSTANT ---
+            const HK_EXTRA_PRODUCTS = [
+                // MODIFIED: condition changed to 'DepartureDay'
+                { name: 'Late Check Out', key: 'LateCheckOut', emoji: '✈️', condition: 'DepartureDay', hasValue: false },
+                { name: 'Early Check In', key: 'EarlyCheckIn', emoji: '🛬', condition: 'ArrivalDay', hasValue: false }, // Plane landing emoji
+                { name: 'Cot', key: 'Cot', emoji: '🛏️', condition: 'Arrival', hasValue: false }, // Cot/Bed emoji
+                // MODIFIED: Bareca Voucher now tracks count AND value
+                { name: 'Bareca Voucher', key: 'BarecaVoucher', emoji: '💵', condition: 'Arrival', hasValue: true }, // Money emoji
+                { name: 'Boot Crew Voucher', key: 'BootCrewVoucher', emoji: '🥾💵', condition: 'Arrival', hasValue: true }, // Money emoji
+                { name: 'Complimentary Cocktail', key: 'CocktailVoucher', emoji: '🍹💵', condition: 'Arrival', hasValue: true }, // Money emoji
+                { name: 'Picnic', key: 'Picnic', emoji: '🧺', condition: 'Arrival', hasValue: false }, // Picnic basket emoji
+                { name: 'Prosecco', key: 'Prosecco', emoji: '🍾', condition: 'Arrival', hasValue: false }, // Champagne emoji
+                { name: 'Selection of 6 IPA\'s', key: 'Selectionof6IPAs', emoji: '🍺', condition: 'Arrival', hasValue: false }, // Beer emoji
+                { name: 'Birthday', key: 'Birthday', emoji: '🎉', condition: 'Arrival', hasValue: false }, // Birthday cake emoji
+                { name: 'Anniversary', key: 'Anniversary', emoji: '💝', condition: 'Arrival', hasValue: false } // Anniversary hearts emoji
+            ];
+
+            // --- NEW HELPER: Get value per unit from product name (e.g., gets 25 from Bareca Voucher (£25 Per Head)) ---
+           function getExtraValue(keyword, cleanedText) {
+                const keywordBase = keyword.replace(/ \(\£.*?\)/, '').toLowerCase();
+
+                // 1. First, try the original format: "Bareca Voucher (£25 Per Head)"
+                const perHeadRegex = new RegExp(`${keywordBase.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\s*\\(\\s*£(\\d+)\\s*Per Head\\)`, 'i');
+                const perHeadMatch = cleanedText.match(perHeadRegex);
+                if (perHeadMatch && perHeadMatch[1]) {
+                    return parseInt(perHeadMatch[1], 10);
+                }
+
+                // 2. If the keyword is a voucher, look for the generic format: "1 x £40 Voucher"
+                if (keywordBase.includes('voucher')) {
+                    // This regex finds a monetary value (£XX) followed by the word "Voucher"
+                    const genericVoucherRegex = /(?:\d+\s*x\s*)?£(\d+)\\s*Voucher/i;
+                    const genericMatch = cleanedText.match(genericVoucherRegex);
+                    if (genericMatch && genericMatch[1]) {
+                        return parseInt(genericMatch[1], 10);
+                    }
+                }
+
+                // 3. As a fallback, look for a format like: "£40 Boot Crew Voucher"
+                const directValueRegex = new RegExp(`(?:\\d+\\s*x\\s*)?£(\\d+)\\s*${keywordBase.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}`, 'i');
+                const directMatch = cleanedText.match(directValueRegex);
+                if (directMatch && directMatch[1]) {
+                    return parseInt(directMatch[1], 10);
+                }
+
+                return 0; // Return 0 if no value pattern is matched
+            }
+
+            // Helper to determine stay duration
+            function getStayDuration(dateRangeStr, reportDate) {
+                // Modified to handle old format "dd/mm - dd/mm" OR pre-calculated logic
+                // But for the new block parser, we already have Date objects.
+                // This function is kept for legacy compatibility if `dateRangeStr` is passed as "dd/mm - dd/mm"
+                const dateMatch = dateRangeStr.match(/(\d{2})\/(\d{2})\s*-\s*(\d{2})\/(\d{2})/);
+                if (!dateMatch) return 0;
+
+                const [, startDay, startMonth, endDay, endMonth] = dateMatch;
+                const year = reportDate.getFullYear();
+
+                let startDate = new Date(year, parseInt(startMonth, 10) - 1, parseInt(startDay, 10));
+                let endDate = new Date(year, parseInt(endMonth, 10) - 1, parseInt(endDay, 10));
+
+                if (endDate < startDate) {
+                    const reportMonth = reportDate.getMonth();
+                    if(reportMonth < 6 && parseInt(startMonth, 10) > 6) {
+                        startDate.setFullYear(year - 1);
+                    }
+                    endDate.setFullYear(startDate.getFullYear() + (parseInt(endMonth, 10) < parseInt(startMonth, 10) ? 1 : 0));
+                }
+
+                // Calculate duration in days (including end day, then subtract 1 for nights)
+                const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                return diffDays;
+            }
+
+            // Helper to get formatted date string for matching purposes
+            function getFormattedDate(date) {
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                return `${day}/${month}`;
+            }
+
+            // NEW HELPER: Extracts and cleans the Bed Preference from notes
+            function extractBedPreference(cleanedBlock) {
+                // Regex to find "BED PREFERENCE:" and capture the text after the *last* colon, up to a line break or end of string.
+                // Note: We search the whole block, not just the single line
+                const bedPrefMatch = cleanedBlock.match(/BED PREFERENCE:(.*?)(\n|$)/i);
+
+                if (bedPrefMatch && bedPrefMatch[1]) {
+                    let rawPreference = bedPrefMatch[1].trim();
+
+                    // Look for the last occurrence of the colon (which separates boilerplate from preference)
+                    // This handles cases like "Standard Double or Twin Room: 1 extra-large double - Standard Double or Twin Room: 1 extra-large double"
+                    const lastColonIndex = rawPreference.lastIndexOf(':');
+
+                    if (lastColonIndex !== -1) {
+                        // Return everything after the last colon and trim whitespace
+                        return rawPreference.substring(lastColonIndex + 1).trim();
+                    }
+                    // If no colon after "BED PREFERENCE:", return the raw text
+                    return rawPreference;
+                }
+
+                // If "BED PREFERENCE:" is not found, return null
+                return null;
+            }
+
+            // --- NEW: Robust Item Counter for the new columnar format ---
+            function getItemCount(keyword, cleanedBlock, duration = 0) {
+                let total = 0;
+                const keywordBase = keyword.replace(/ \(\£.*?\)/, '').toLowerCase();
+
+                // --- NEW: Special handling for birthdays, anniversaries, and honeymoons ---
+                if (keywordBase === 'birthday' || keywordBase === 'anniversary' || keywordBase === 'honeymoon') {
+                    let regex;
+                    if (keywordBase === 'birthday') {
+                        // Looks for birthday, bday, b-day, birth day, etc.
+                        regex = /\b(b-day|bday|birth\s?day)\b/i;
+                    } else if (keywordBase === 'anniversary') {
+                        // Looks for anniversary, aniversary, aniversary, etc.
+                        regex = /\b(an?n?iversary)\b/i;
+                    } else { // This is now the final fallback for "honeymoon"
+                        // Looks for honeymoon, honey moon, honymoon etc.
+                        regex = /\b(ho?n?ey\s?moon)\b/i;
+                    }
+
+                    if (regex.test(cleanedBlock)) {
+                        return 1; // Found a match, so we count it as 1
+                    }
+                }
+                // --- End of new section ---
+
+
+                // This part remains from your existing code to handle other items
+                const productRegex = new RegExp(`(\\d+)\\s*x\\s+${keywordBase.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}`, 'ig');
+                let match;
+                let productCount = 0;
+                while ((match = productRegex.exec(cleanedBlock.toLowerCase())) !== null) {
+                    productCount += parseInt(match[1], 10);
+                }
+
+                if (keywordBase.includes('pet guest')) {
+                    const secondPetRegex = new RegExp(`(second\\s*pet\\s*guest)|(2nd\\s*pet)|(1x pet)|(Pet,,15)`, 'ig');
+                    if (secondPetRegex.test(cleanedBlock.toLowerCase())) {
+                        // Check if it's "1x pet" specifically
+                         if (/1x pet/i.test(cleanedBlock) || /Pet,,15/i.test(cleanedBlock)) {
+                             // If productCount is 0, bump it to 1.
+                             if (productCount === 0) productCount = 1;
+                         }
+                    }
+
+                    // Logic for duration vs count
+                    if (duration > 0) {
+                        if (productCount > 0 && productCount === duration) {
+                            return 1;
+                        }
+                        if (productCount > duration) {
+                            if (duration > 0 && productCount % duration === 0) {
+                                return productCount / duration;
+                            }
+                        }
+                    }
+                    if (productCount > 0) return 1;
+                    return 0;
+                }
+
+                total = productCount;
+
+                if (total === 0) {
+                    // Implicit check (word exists without "X x")
+                    const implicitRegex = new RegExp(`(?!\\d\\s*x\\s*)\\b${keywordBase.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, 'ig');
+
+                    // FIX: TWIN LOGIC - Exclude Room Type Names that contain "Twin"
+                    if (keywordBase.includes('twin')) {
+                        // Strip out misleading Room Type names
+                        let textToSearch = cleanedBlock.replace(/MEDIUM DOUBLE\/TWIN ROOM/gi, "MEDIUM DOUBLE ROOM");
+                        textToSearch = textToSearch.replace(/MEDIUM DOUBLE\/TWIN ACCESS/gi, "MEDIUM DOUBLE ACCESS"); // <--- Added this
+                        textToSearch = textToSearch.replace(/Standard Double or Twin Room/gi, "Standard Double Room");
+
+                        if (implicitRegex.test(textToSearch.toLowerCase())) {
+                             total = 1;
+                        }
+                    }
+                    else if (implicitRegex.test(cleanedBlock.toLowerCase())) {
+                        if (keywordBase.includes('zedbed') || keywordBase.includes('daybed') || keywordBase.includes('trundle')) {
+                            total = 1;
+                        } else if (!keywordBase.includes('pet guest')) {
+                            total = 1;
+                        }
+                    }
+
+                    // Specific check for "1x pet" format in the text file provided
+                     if (keywordBase.includes('pet') && (/1x pet/i.test(cleanedBlock) || /Pet,,15/i.test(cleanedBlock))) {
+                        total = 1;
+                     }
+                }
+
+                // Extra check for "Twin Beds" if main twin check failed but text says "TWIN BEDS" explicitly
+                if (keywordBase.includes('twin') && total === 0) {
+                     if (cleanedBlock.toUpperCase().includes('TWIN BEDS') || cleanedBlock.toUpperCase().includes('MAKE THE BEDS AS: TWIN')) {
+                         total = 1;
+                     }
+                }
+
+                if (keywordBase.includes('zedbed') && (cleanedBlock.toUpperCase().includes('ZEDBED') || cleanedBlock.toLowerCase().includes('daybed'))) {
+                    if (total === 0) total = 1;
+                }
+
+                return total;
+            }
+
+            // --- NEW: Extracts extra product counts and values ---
+            function extractExtraProducts(cleanedBlock, duration) {
+                const extras = {};
+                HK_EXTRA_PRODUCTS.forEach(item => {
+                    // Pass duration info for pet logic
+                    const count = getItemCount(item.name, cleanedBlock, duration);
+                    extras[item.key] = count;
+
+                    if (item.hasValue) {
+                        if (count > 0) {
+                            const pricePerUnit = getExtraValue(item.name, cleanedBlock);
+                            // Store the total value (Count * PricePerUnit)
+                            extras[`${item.key}Value`] = count * pricePerUnit;
+                        } else {
+                            extras[`${item.key}Value`] = 0; // Ensure property exists even if count is zero
+                        }
+                    }
+                });
+                return extras;
+            }
+
+            // --- UPDATED: Core Parsing Logic for the Tabular Report Format ---
+            function parseBlock(block, reportDate) {
+                const lines = block.split('\n');
+                const mainLine = lines[0]; // The reservation line with dates and room
+
+                // Regex for the specific format:
+                // Matches: Date(dd/Mmm/yyyy) ... Date(dd/Mmm/yyyy) ... Room(\d{3})
+                // Columns are tab or space separated. We look for the date pattern specifically.
+                const match = mainLine.match(/(\d{2})\/([A-Za-z]{3})\/(\d{4})\s+(\d{2})\/([A-Za-z]{3})\/(\d{4}).*?\s+(\d{3})\s+/);
+
+                if (!match) return null;
+
+                const [_, startDay, startMonthStr, startYear, endDay, endMonthStr, endYear, room] = match;
+
+                // Map Month Str to Index
+                const months = {Jan:0, Feb:1, Mar:2, Apr:3, May:4, Jun:5, Jul:6, Aug:7, Sep:8, Oct:9, Nov:10, Dec:11};
+                const startDate = new Date(parseInt(startYear), months[startMonthStr], parseInt(startDay));
+                const endDate = new Date(parseInt(endYear), months[endMonthStr], parseInt(endDay));
+
+                // Name Extraction: Everything before the first date in the main line
+                const preDatePart = mainLine.substring(0, match.index);
+                // Clean up title (Mr, Mrs, etc) and tabs
+                let customerName = preDatePart.replace(/\t/g, ' ').trim();
+                // Optional: Remove titles if desired, but keeping them is safer for identification
+
+                // Guest Count Extraction: Look for numbers after the room number
+                // Pattern in file: Room Code Adults Children
+                // 105 02_MED_DBL 2 0
+                const postRoomPart = mainLine.substring(match.index + match[0].length);
+                const guestMatch = postRoomPart.match(/[^\s]+\s+(\d+)/);
+                let guestCount = guestMatch ? parseInt(guestMatch[1], 10) : 2; // Default to 2 if not found
+
+                // Calculate Status
+                const reportDateMidnight = new Date(reportDate.getFullYear(), reportDate.getMonth(), reportDate.getDate()).getTime();
+                const startDayMidnight = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate()).getTime();
+                const endDayMidnight = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate()).getTime();
+
+                let status = 'Stay';
+                if (startDayMidnight === reportDateMidnight) {
+                    status = 'Arrival';
+                } else if (endDayMidnight === reportDateMidnight) {
+                    status = 'Depart';
+                } else if (reportDateMidnight > startDayMidnight && reportDateMidnight < endDayMidnight) {
+                    status = 'Stay';
+                } else {
+                    // Vacant rooms or dates out of range (though vacants usually filtered out by regex)
+                    return null;
+                }
+
+                const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+                const duration = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                const roomData = {
+                    room: room,
+                    status: status,
+                    pet: 0,
+                    twin: 0,
+                    double: 0,
+                    daybed: 0,
+                    trundle: 0,
+                    customerName: customerName,
+                    guests: guestCount,
+                    BarecaVoucherValue: 0,
+                    startDateFormatted: getFormattedDate(startDate),
+                    endDateFormatted: getFormattedDate(endDate),
+                    reportDateFormatted: getFormattedDate(reportDate),
+                    bedPreference: extractBedPreference(block)
+                };
+
+                const cleanedBlock = block; // The whole block contains notes
+
+                // Room Type/Extras Parsing
+                roomData.pet = getItemCount('Pet Guest', cleanedBlock, duration);
+
+                // Step 1: Initial Twin check
+                roomData.twin = getItemCount('Twin Beds', cleanedBlock, duration) + getItemCount('Twin', cleanedBlock, duration);
+
+                // Step 2: OVERRIDE TWIN/DOUBLE BASED ON CLEANED BED PREFERENCE
+                if (roomData.bedPreference) {
+                    const preference = roomData.bedPreference.toLowerCase();
+                    if (preference.includes('double') || preference.includes('extra-large double') || preference.includes('queen') || preference.includes('king')) {
+                        roomData.twin = 0;
+                        roomData.double = 1;
+                    } else if (preference.includes('twin') || preference.includes('single')) {
+                        roomData.twin = 1;
+                        roomData.double = 0;
+                    }
+                }
+
+                roomData.daybed = getItemCount('ZedBed', cleanedBlock, duration) + getItemCount('Daybed', cleanedBlock, duration);
+                roomData.trundle = getItemCount('Trundle', cleanedBlock, duration);
+
+                if (roomData.twin === 0) roomData.double = 1;
+
+                // Extras
+                Object.assign(roomData, extractExtraProducts(cleanedBlock, duration));
+
+                return roomData;
+            }
+
+            // --- UPDATED function for Turnaround logic to REMOVE DUPLICATES ---
+            function processTurnarounds(rooms) {
+                const roomsByNumber = {};
+                // Group by room number
+                rooms.forEach(room => {
+                    if (!roomsByNumber[room.room]) roomsByNumber[room.room] = [];
+                    roomsByNumber[room.room].push(room);
+                });
+
+                const finalRooms = [];
+
+                for (const roomNumber in roomsByNumber) {
+                    let entries = roomsByNumber[roomNumber];
+
+                    // --- 1. Deduplication Step ---
+                    // If multiple entries exist for the exact same room/customer/status, merge them.
+                    // This handles split payments/multiple lines in the report for one booking.
+                    if (entries.length > 1) {
+                        const uniqueEntries = [];
+                        const seenSignatures = new Set();
+
+                        entries.forEach(e => {
+                            // Signature based on Name and Status. If same person staying in same room, it's one entry.
+                            const sig = `${e.status}-${e.customerName}`;
+                            if (!seenSignatures.has(sig)) {
+                                seenSignatures.add(sig);
+                                uniqueEntries.push(e);
+                            } else {
+                                // If duplicate found, merge "flags" (pet/twin/extras) to the existing one
+                                const existing = uniqueEntries.find(u => `${u.status}-${u.customerName}` === sig);
+                                if (existing) {
+                                    existing.pet = Math.max(existing.pet, e.pet);
+                                    existing.twin = Math.max(existing.twin, e.twin);
+                                    existing.daybed = Math.max(existing.daybed, e.daybed);
+                                    existing.trundle = Math.max(existing.trundle, e.trundle);
+                                    // Merge extras if needed
+                                    HK_EXTRA_PRODUCTS.forEach(prod => {
+                                        existing[prod.key] = Math.max(existing[prod.key], e[prod.key]);
+                                    });
+                                }
+                            }
+                        });
+                        entries = uniqueEntries;
+                    }
+
+                    // --- 2. Turnaround Logic ---
+                    if (entries.length > 1) {
+                        const departure = entries.find(r => r.status === 'Depart');
+                        const arrival = entries.find(r => r.status === 'Arrival');
+
+                        if (departure && arrival) {
+                            if (departure.customerName.toLowerCase() === arrival.customerName.toLowerCase()) {
+                                finalRooms.push({ ...arrival, status: 'Stay' });
+                            } else {
+                                finalRooms.push({ ...arrival, status: 'Depart/Arrive', isTwinTurnaround: departure.twin > 0 && arrival.twin > 0 });
+                            }
+                        } else {
+                            // If we still have multiple entries (e.g. 2 arrivals for same room??), pick one.
+                            // Prioritize the one with flags set.
+                             const bestEntry = entries.reduce((prev, current) => {
+                                return (prev.pet + prev.twin) > (current.pet + current.twin) ? prev : current;
+                            });
+                            finalRooms.push(bestEntry);
+                        }
+                    } else {
+                        finalRooms.push(entries[0]);
+                    }
+                }
+                return finalRooms.sort((a,b) => parseInt(a.room) - parseInt(b.room));
+            }
+
+
+            dataTextInput.addEventListener('input', () => { autoDetectReportDate(); if (dataTextInput.value.trim().length > 5) { parseAndGenerate(); } else { clearOutput(); } });
+            clearDataBtn.addEventListener('click', clearData);
+
+            printBtn.addEventListener('click', () => {
+                const landscapeStyle = document.createElement('style');
+                landscapeStyle.id = 'hk-landscape-style';
+                landscapeStyle.innerHTML = '@page { size: A4 landscape; margin: 0.5in; }';
+                document.head.appendChild(landscapeStyle);
+
+                window.print();
+
+                window.onafterprint = function() {
+                    const styleElement = document.getElementById('hk-landscape-style');
+                    if (styleElement) {
+                        styleElement.remove();
+                    }
+                    window.onafterprint = null;
+                };
+
+                setTimeout(() => {
+                    const styleElement = document.getElementById('hk-landscape-style');
+                    if (styleElement) {
+                        styleElement.remove();
+                    }
+                }, 1000);
+            });
+
+            sparkleModeTitle.addEventListener('click', () => { isSparkleMode = !isSparkleMode; updateSparkleMode(isSparkleMode); });
+            changeTickBtn.addEventListener('click', () => { if (isSparkleMode) { currentTickIndex = (currentTickIndex + 1) % tickEmojis.length; currentTickEmojiSpan.textContent = tickEmojis[currentTickIndex]; if (processedRooms.length > 0) renderOutput(processedRooms); } });
+
+            function setupAutoGenerateListeners() {
+                const allCheckboxes = [...(document.getElementById('rowCheckboxes')?.querySelectorAll('input[type="checkbox"]') || []), ...(document.getElementById('listCheckboxes')?.querySelectorAll('input[type="checkbox"]') || [])];
+                allCheckboxes.forEach(checkbox => checkbox.addEventListener('change', () => { if (processedRooms.length > 0) { renderOutput(processedRooms); updateStatus('Print options updated.', 'success'); } else { updateStatus('Please paste data first.', 'default'); } }));
+            }
+            setupAutoGenerateListeners();
+
+            function clearData() { dataTextInput.value = ''; reportDateInput.value = ''; processedRooms = []; clearOutput(); updateStatus('Data cleared.', 'default'); }
+            function clearOutput() { outputContainer.innerHTML = ''; outputContainer.appendChild(placeholder); printTableContainer.innerHTML = ''; }
+
+            function autoDetectReportDate() {
+                const rawText = dataTextInput.value;
+                // Updated to match 28/Nov/2025 format
+                const dateMatch = rawText.match(/(\d{2})\/([A-Za-z]{3})\/(\d{4})/);
+                if (dateMatch) {
+                    const [_, day, monthStr, year] = dateMatch;
+                    const months = {Jan:'01', Feb:'02', Mar:'03', Apr:'04', May:'05', Jun:'06', Jul:'07', Aug:'08', Sep:'09', Oct:'10', Nov:'11', Dec:'12'};
+                    const month = months[monthStr];
+                    if (month) {
+                        reportDateInput.value = `${year}-${month}-${day}`;
+                        updateStatus(`Date auto-detected: ${day}/${monthStr}/${year}.`, 'success');
+                    }
+                }
+                else if (!reportDateInput.value) { updateStatus('Date not found.', 'error'); }
+            }
+
+            function updateSparkleMode(isSparkle) {
+                sparkleModeTitle.textContent = isSparkle ? '✨Sparkle Mode✨' : 'Work Mode';
+                sparkleOptionsContainer.classList.toggle('hidden', !isSparkle);
+                if (!isSparkle) { currentTickIndex = 0; currentTickEmojiSpan.textContent = tickEmojis[0]; }
+                if (processedRooms.length > 0) { renderOutput(processedRooms); updateStatus(`Mode changed.`, 'success'); }
+            }
+
+            function parseAndGenerate() {
+                const rawText = dataTextInput.value; const reportDateStr = reportDateInput.value;
+                if (!reportDateStr || !rawText.trim()) { updateStatus('Please select a date and paste data.', 'error'); return; }
+                updateStatus('Parsing...', 'loading');
+                const reportDate = new Date(reportDateStr + 'T00:00:00');
+
+                // --- Updated Logic for Grouping Lines into Blocks ---
+                const lines = rawText.split('\n');
+                const blocks = [];
+                let currentBlock = '';
+                // Matches the start of a Reservation Line: Date Date ... Room (e.g. 28/Nov/2025 ... 105)
+                const resLineRegex = /\d{2}\/[A-Za-z]{3}\/\d{4}.*\d{2}\/[A-Za-z]{3}\/\d{4}.*\b\d{3}\b/;
+
+                lines.forEach(line => {
+                    // Check if this line is a new Reservation Header
+                    if (resLineRegex.test(line)) {
+                        if (currentBlock) blocks.push(currentBlock);
+                        currentBlock = line;
+                    } else {
+                        // Otherwise it's a note line, append to current block
+                        if (currentBlock) currentBlock += '\n' + line;
+                    }
+                });
+                if (currentBlock) blocks.push(currentBlock);
+                // --------------------------------------------------
+
+                if (blocks.length === 0) { updateStatus('No valid room data found. Check data is correct.', 'error'); return; }
+                const allRoomsRaw = blocks.map(block => parseBlock(block, reportDate)).filter(Boolean);
+                processedRooms = processTurnarounds(allRoomsRaw);
+
+                if (processedRooms.length > 0) {
+                    renderOutput(processedRooms);
+                    updateStatus(`Generated plan for ${processedRooms.length} rooms.`, 'success');
+                } else {
+                    clearOutput();
+                    updateStatus('No reservations found for date.', 'error');
+                }
+            }
+            function renderOutput(rooms) { generateReportView(rooms); generatePrintView(rooms); }
+
+            function getActiveExtras(rooms) {
+                const activeExtras = {};
+                HK_EXTRA_PRODUCTS.forEach(item => {
+                    const key = item.key;
+                    if (rooms.some(room => {
+                        const status = room.status;
+
+                        // NEW LOGIC: Checks if the extra is relevant for today's tasks
+                        let isRelevant = false;
+                        if (item.condition === 'DepartureDay') {
+                            // Late Check Out is only relevant on the exact day of departure
+                            isRelevant = room.reportDateFormatted === room.endDateFormatted;
+                        } else if (item.condition === 'ArrivalDay') {
+                            // Early Check In is only relevant on the exact day of arrival
+                            isRelevant = room.reportDateFormatted === room.startDateFormatted;
+                        } else if (item.condition === 'Arrival') {
+                            // Other arrival-based products (Bareca, Cot, Picnic, etc.) are relevant on Arrival or Depart/Arrive
+                            isRelevant = status === 'Arrival' || status === 'Depart/Arrive';
+                        }
+
+                        return (room[key] > 0 && isRelevant);
+                    })) {
+                        activeExtras[key] = item;
+                    }
+                });
+                return activeExtras;
+            }
+
+            // --- UPDATED generateReportView: Dynamic Key and Consolidated Extras Row (Screen) ---
+            function generateReportView(rooms) {
+                outputContainer.innerHTML = '';
+                const needsAlertKey = rooms.some(room => room.guests >= 3 && room.daybed === 0 && room.trundle === 0);
+                const hasTwinTurnaround = rooms.some(room => room.isTwinTurnaround);
+                const activeExtras = getActiveExtras(rooms);
+                const keyContainer = document.createElement('div');
+                keyContainer.className = 'bg-sky-50 p-4 sm:p-6 rounded-2xl border-2 border-sky-200 mb-8 shadow-md';
+
+                // --- Basic Status Key ---
+                let keyHtml = `<div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm font-semibold text-slate-700">
+                    <div class="flex items-center"><span class="inline-block w-5 h-5 mr-2 rounded bg-purple-200"></span>Depart/Arrive</div>
+                    <div class="flex items-center"><span class="inline-block w-5 h-5 mr-2 rounded bg-green-200"></span>Arrival</div>
+                    <div class="flex items-center"><span class="inline-block w-5 h-5 mr-2 rounded bg-red-200"></span>Depart</div>
+                    <div class="flex items-center"><span class="inline-block w-5 h-5 mr-2 rounded bg-blue-200"></span>Stay</div>
+                </div>`;
+
+                // --- Alert and Extras Key ---
+                let detailsHtml = '';
+                let extrasHtml = '';
+
+                // 1. Alerts
+                if (needsAlertKey) detailsHtml += `<div class="flex items-center text-slate-700 font-semibold text-sm"><span class="text-xl mr-2">⚠️</span>Missing Daybed/Trundle</div>`;
+                if (hasTwinTurnaround) detailsHtml += `<div class="flex items-center text-slate-700 font-semibold text-sm"><span class="text-xl mr-2">⭐</span>Twin Turnaround</div>`;
+
+                // 2. Extras (Dynamic - uses activeExtras array)
+                const renderedExtras = Object.values(activeExtras);
+                const isExtrasRowVisible = showExtrasRowCheckbox.checked; // Check toggle status here
+
+                if (isExtrasRowVisible && renderedExtras.length > 0) {
+                    extrasHtml = `<h4 class="col-span-2 text-base font-bold text-sky-700 mt-2">Product Key (Extras)</h4>`;
+                    renderedExtras.forEach(item => {
+                        let name = item.name;
+                        // ADDED: Show (Total Value) if the item tracks a value
+                        if (item.hasValue) {
+                           name += ' (Total Value)';
+                        }
+                        extrasHtml += `<div class="flex items-center text-slate-700 font-semibold text-sm"><span class="text-xl mr-2">${item.emoji}</span>${name}</div>`;
+                    });
+                }
+
+                // Combine alerts and extras
+                if (detailsHtml || extrasHtml) {
+                    keyHtml += `<div class="grid grid-cols-2 gap-4 pt-3 mt-3 border-t">`;
+                    if (detailsHtml) {
+                        keyHtml += `<div class="col-span-2 sm:col-span-1 space-y-2"><h4 class="text-base font-bold text-sky-700">Alerts</h4>${detailsHtml}</div>`;
+                        keyHtml += `<div class="col-span-2 sm:col-span-1 space-y-2">${extrasHtml}</div>`;
+                    } else if (extrasHtml) { // Only show extras block if there are extras and no alerts block
+                        // If no alerts, use full width for extras grid
+                        keyHtml += `<div class="col-span-2 space-y-2 grid grid-cols-2 gap-4">${extrasHtml}</div>`;
+                    }
+                    keyHtml += `</div>`;
+                }
+
+                keyContainer.innerHTML = keyHtml;
+                outputContainer.appendChild(keyContainer);
+
+                const floors = [{ title: 'Ground Floor', rooms: rooms.filter(r => parseInt(r.room) <= 6) }, { title: 'First Floor', rooms: rooms.filter(r => parseInt(r.room) >= 101 && parseInt(r.room) <= 130) }, { title: 'Second Floor', rooms: rooms.filter(r => parseInt(r.room) >= 201 && parseInt(r.room) <= 230) }];
+                floors.forEach(floor => { if (floor.rooms.length > 0) { const floorContainer = document.createElement('div'); floorContainer.className = 'mb-10'; floorContainer.innerHTML = `<h2 class="text-2xl font-bold text-sky-800 mb-3">${floor.title}</h2>`; floorContainer.appendChild(createScreenTableForRooms(floor.rooms)); outputContainer.appendChild(floorContainer); } });
+
+                const listContainer = document.createElement('div'); listContainer.className = 'mt-10 pt-6 border-t-2';
+
+                // Staying Rooms List: Comma-separated
+                if (showStayingRoomsListCheckbox.checked) {
+                    const staying = rooms.filter(r => r.status === 'Stay').map(r => r.room);
+                    if (staying.length > 0) listContainer.appendChild(createScreenListSection('Staying Rooms List', staying.join(', ')));
+                }
+
+                if (showPetRoomsListCheckbox.checked) { const pets = rooms.filter(r => r.pet > 0).map(r => r.room); if (pets.length > 0) listContainer.appendChild(createScreenListSection('Pet Rooms List', pets.join(', '))); }
+                if (showTwinRoomsListCheckbox.checked) { const twins = rooms.filter(r => r.twin > 0).map(r => r.room); if (twins.length > 0) listContainer.appendChild(createScreenListSection('Twin Rooms List', twins.join(', '))); }
+
+                // Extras List: Itemized (complex content)
+                if (showExtrasRoomsListCheckbox.checked) {
+                    const extraRooms = rooms.filter(room => {
+                        return HK_EXTRA_PRODUCTS.some(item => {
+                            const key = item.key;
+                            // NEW LOGIC: Checks if the extra is relevant for today's tasks
+                            let isRelevant = false;
+                            if (item.condition === 'DepartureDay') {
+                                isRelevant = room.reportDateFormatted === room.endDateFormatted;
+                            } else if (item.condition === 'ArrivalDay') {
+                                isRelevant = room.reportDateFormatted === room.startDateFormatted;
+                            } else if (item.condition === 'Arrival') {
+                                isRelevant = room.status === 'Arrival' || room.status === 'Depart/Arrive';
+                            }
+                            return (room[key] > 0 && isRelevant);
+                        });
+                    });
+
+                    if (extraRooms.length > 0) {
+                        const listItems = extraRooms.map(room => {
+                            const activeItems = HK_EXTRA_PRODUCTS.filter(item => {
+                                const key = item.key;
+                                // NEW LOGIC: Checks if the extra is relevant for today's tasks
+                                let isRelevant = false;
+                                if (item.condition === 'DepartureDay') {
+                                    isRelevant = room.reportDateFormatted === room.endDateFormatted;
+                                } else if (item.condition === 'ArrivalDay') {
+                                    isRelevant = room.reportDateFormatted === room.startDateFormatted;
+                                } else if (item.condition === 'Arrival') {
+                                    isRelevant = room.status === 'Arrival' || room.status === 'Depart/Arrive';
+                                }
+                                return (room[key] > 0 && isRelevant);
+                            }).map(item => {
+                                let label = item.name;
+                                // ADDED: Value logic for screen list
+                                if (item.hasValue && room[`${item.key}Value`] > 0) {
+                                    label += ` (£${room[`${item.key}Value`]} Total)`;
+                                } else if (item.hasValue && room[item.key] > 0) {
+                                    // Should not happen if parsing is correct, but safer to include
+                                    label += ` (Price N/A)`;
+                                }
+
+                                return `${item.emoji} ${label}`;
+                            });
+                            return `${room.room}: ${activeItems.join(', ')}`;
+                        });
+                        listContainer.appendChild(createScreenListSection('Extra List', listItems));
+                    }
+                }
+
+                if (listContainer.hasChildNodes()) outputContainer.appendChild(listContainer);
+            }
+
+            // --- UPDATED createScreenTableForRooms: Consolidated Extras Row Logic (Value Removed from Cell) ---
+            function createScreenTableForRooms(rooms) {
+                const tableWrapper = document.createElement('div'); tableWrapper.className = 'bg-white rounded-3xl shadow-lg border overflow-x-auto';
+                const table = document.createElement('table'); table.className = 'w-full';
+                let headerHtml = '<thead><tr class="divide-x"><th class="sticky left-0 z-20 p-4 bg-sky-100/70"></th>';
+                rooms.forEach(room => { let screenColor = 'bg-blue-100'; if (room.status === 'Arrival') screenColor = 'bg-green-100'; if (room.status === 'Depart') screenColor = 'bg-red-100'; if (room.status === 'Depart/Arrive') screenColor = 'bg-purple-100'; headerHtml += `<th class="p-3 font-extrabold text-center ${screenColor}">${room.room}</th>`; });
+                headerHtml += '</tr></thead>';
+
+                const tbody = document.createElement('tbody'); tbody.className = 'divide-y';
+                const rows = [];
+                if (showUsedLastNightRowCheckbox.checked) rows.push('Used Last Night');
+                if (showArrivingTodayRowCheckbox.checked) rows.push('Arriving Today');
+                if (showGuestsRowCheckbox.checked) rows.push('Guests');
+                if (showPetRowCheckbox.checked) rows.push('Pet');
+                if (showTwinRowCheckbox.checked) rows.push('Twin');
+                if (showDaybedRowCheckbox.checked) rows.push('Daybed');
+                if (showTrundleRowCheckbox.checked) rows.push('Trundle');
+
+                // Check if the 'Extras' toggle is on
+                const isExtrasRowVisible = showExtrasRowCheckbox.checked;
+
+                // Check if any extra product is present in data for the relevant status
+                const hasExtraProducts = rooms.some(room =>
+                    HK_EXTRA_PRODUCTS.some(item => {
+                        const key = item.key;
+                        // NEW LOGIC: Checks if the extra is relevant for today's tasks
+                        let isRelevant = false;
+                        if (item.condition === 'DepartureDay') {
+                            isRelevant = room.reportDateFormatted === room.endDateFormatted;
+                        } else if (item.condition === 'ArrivalDay') {
+                            isRelevant = room.reportDateFormatted === room.startDateFormatted;
+                        } else if (item.condition === 'Arrival') {
+                            isRelevant = room.status === 'Arrival' || room.status === 'Depart/Arrive';
+                        }
+                        return (room[key] > 0 && isRelevant);
+                    })
+                );
+
+                // Add consolidated 'Extra' row ONLY IF toggle is ON AND products are present
+                if (isExtrasRowVisible && hasExtraProducts) {
+                    rows.push('Extra');
+                }
+
+                rows.forEach(feature => {
+                    let rowHtml = '';
+
+                    if (feature === 'Extra') {
+                        // --- Consolidated Extra Row (Screen) - Fixed logic and sizing ---
+                        // Feature header: Same as other rows (using 'font-semibold')
+                        let rowContentHtml = `<tr class="group divide-x"><td class="sticky left-0 z-10 bg-white group-hover:bg-sky-50/70 p-3 pl-6 font-semibold text-gray-800">${feature}</td>`;
+
+                        rooms.forEach(room => {
+                            let extraItems = [];
+                            HK_EXTRA_PRODUCTS.forEach(item => {
+                                const key = item.key;
+                                // NEW LOGIC: Checks if the extra is relevant for today's tasks
+                                let isRelevant = false;
+                                if (item.condition === 'DepartureDay') {
+                                    isRelevant = room.reportDateFormatted === room.endDateFormatted;
+                                } else if (item.condition === 'ArrivalDay') {
+                                    isRelevant = room.reportDateFormatted === room.startDateFormatted;
+                                } else if (item.condition === 'Arrival') {
+                                    isRelevant = room.status === 'Arrival' || room.status === 'Depart/Arrive';
+                                }
+
+                                // Now checking for count for all products, and no value added
+                                if (room[item.key] > 0 && isRelevant) {
+                                    let content = item.emoji;
+                                    // REMOVED: Value display for Bareca here (per user request)
+                                    extraItems.push(`<span>${content}</span>`);
+                                }
+                            });
+
+                            const cellContent = extraItems.join(' '); // Use space separator
+                            // ADDED: compact-display class to the TD for generic styling control
+                            rowContentHtml += `<td class="p-3 text-center font-bold group-hover:bg-sky-50/70 compact-display">${cellContent}</td>`;
+                        });
+
+                        rowHtml = rowContentHtml + '</tr>';
+
+                    } else {
+                        // --- Regular Rows (Pet, Twin, Daybed, etc.) ---
+                        rowHtml = `<tr class="group divide-x"><td class="sticky left-0 z-10 bg-white group-hover:bg-sky-50/70 p-3 pl-6 font-semibold">${feature}</td>`;
+
+                        rooms.forEach(room => {
+                            let value = '';
+                            const needsAlert = room.guests >= 3 && room.daybed === 0 && room.trundle === 0;
+                            const alertClass = needsAlert ? 'bg-yellow-100/50' : '';
+
+                            // Existing logic for core rows
+                            if (!((room.status === 'Stay' && !showStayingRoomInfoCheckbox.checked) || (room.status === 'Depart' && !showDepartingRoomInfoCheckbox.checked))) {
+                                const isUsed = room.status === 'Stay' || room.status === 'Depart' || room.status === 'Depart/Arrive';
+                                const isArriving = room.status === 'Arrival' || room.status === 'Depart' || room.status === 'Depart/Arrive';
+                                let tickValue = isSparkleMode ? tickEmojis[currentTickIndex] : '✓';
+                                let petValue = room.pet > 0 ? (isSparkleMode ? '🐶'.repeat(room.pet) : room.pet) : '';
+
+                                switch (feature) {
+                                    case 'Used Last Night': value = isUsed ? tickValue : ''; break;
+                                    case 'Arriving Today': value = isArriving ? tickValue : ''; break;
+                                    case 'Guests': value = room.guests > 0 ? room.guests : ''; break;
+                                    case 'Pet': value = petValue; break;
+                                    case 'Twin': value = room.twin > 0 ? (tickValue + (room.isTwinTurnaround ? '⭐' : '')) : ''; break;
+                                    case 'Daybed': value = (room.daybed > 0 ? tickValue : '') + (needsAlert ? ' ⚠️' : ''); break;
+                                    case 'Trundle': value = (room.trundle > 0 ? tickValue : '') + (needsAlert ? ' ⚠️' : ''); break;
+                                }
+                            }
+
+                            rowHtml += `<td class="p-3 text-center font-bold group-hover:bg-sky-50/70 ${alertClass}">${value}</td>`;
+                        });
+
+                        rowHtml += '</tr>';
+                    }
+
+                    tbody.innerHTML += rowHtml;
+                });
+
+                table.innerHTML = headerHtml; table.appendChild(tbody); tableWrapper.appendChild(table); return tableWrapper;
+            }
+            // Update createScreenListSection to handle simple string/comma separation or itemized list
+            function createScreenListSection(title, content) {
+                const container = document.createElement('div');
+                container.className = 'mb-4 bg-white p-4 rounded-2xl shadow-sm border';
+
+                let listContent;
+                if (Array.isArray(content)) {
+                    // Itemized list for complex content (e.g., Extras List)
+                    listContent = content.map(item => `<li>${item}</li>`).join('');
+                    container.innerHTML = `<h3 class="text-lg font-bold text-sky-800 mb-2">${title}</h3><ul class="list-none space-y-1 text-base">${listContent}</ul>`;
+                } else {
+                    // Simple string/comma-separated list (e.g., Staying Rooms)
+                    container.innerHTML = `<h3 class="text-lg font-bold text-sky-800 mb-2">${title}</h3><p class="text-base">${content}</p>`;
+                }
+
+                return container;
+            }
+
+            // --- UPDATED generatePrintView: Consolidated Key Structure for Print (FINAL FIX) ---
+            function generatePrintView(rooms) {
+                printTableContainer.innerHTML = '';
+                const needsAlertKey = rooms.some(room => room.guests >= 3 && room.daybed === 0 && room.trundle === 0);
+                const hasTwinTurnaround = rooms.some(room => room.isTwinTurnaround);
+
+                // --- Extras Key (Dynamic & Conditional) ---
+                const renderedExtras = HK_EXTRA_PRODUCTS.filter(item => {
+                    return rooms.some(room => {
+                        const key = item.key;
+                        // NEW LOGIC: Checks if the extra is relevant for today's tasks
+                        let isRelevant = false;
+                        if (item.condition === 'DepartureDay') {
+                            isRelevant = room.reportDateFormatted === room.endDateFormatted;
+                        } else if (item.condition === 'ArrivalDay') {
+                            isRelevant = room.reportDateFormatted === room.startDateFormatted;
+                        } else if (item.condition === 'Arrival') {
+                            isRelevant = room.status === 'Arrival' || room.status === 'Depart/Arrive';
+                        }
+                        return (room[key] > 0 && isRelevant);
+                    });
+                });
+
+                // --- Build consolidated Extras List items (no wrapping div) ---
+                let extrasListHtml = '';
+                if (showExtrasRowCheckbox.checked && renderedExtras.length > 0) {
+                     extrasListHtml = renderedExtras.map(item => {
+                         const name = item.name;
+                         const valueText = item.hasValue ? '(Total Value)' : '';
+                         // Use a simpler div wrapper for the consolidated item
+                         return `<div style="display: flex; align-items: center; white-space: nowrap; margin-right: 1rem;"><span style="font-size: 1.25rem; margin-right: 0.3rem;">${item.emoji}</span><strong>${name}</strong> ${valueText}</div>`;
+                     }).join('');
+                }
+
+
+                // --- Build the complete key structure ---
+                let keyHtml = `<div style="border: 1px solid #334155; margin-bottom: 0.5rem; background: #f1f5f9; padding: 0.5rem 1rem;">
+                         <h4 style="font-size: 1.25rem; font-weight: bold; text-align: center; margin-bottom: 0.5rem;">Housekeeping Key</h4>
+
+                         <!-- Statuses, Alerts, and Extras - ALL IN ONE FLEX ROW -->
+                         <div style="display: flex; flex-wrap: wrap; justify-content: flex-start; align-items: center; gap: 0.75rem 1rem;">
+
+                            <!-- 1. Statuses -->
+                            <div style="display: flex; flex-wrap: wrap; gap: 0.75rem 1rem; padding-right: 1rem; border-right: 1px solid #ccc;">
+                                <div style="display: flex; align-items: center; white-space: nowrap;"><span style="display: inline-block; width: 1rem; height: 1rem; background-color: #d8c9e5; margin-right: 0.5rem; border: 1px solid black;"></span><strong>Depart/Arrive</strong></div>
+                                <div style="display: flex; align-items: center; white-space: nowrap;"><span style="display: inline-block; width: 1rem; height: 1rem; background-color: #b3e6c9; margin-right: 0.5rem; border: 1px solid black;"></span><strong>Arrival</strong></div>
+                                <div style="display: flex; align-items: center; white-space: nowrap;"><span style="display: inline-block; width: 1rem; height: 1rem; background-color: #e0a6b5; margin-right: 0.5rem; border: 1px solid black;"></span><strong>Depart</strong></div>
+                                <div style="display: flex; align-items: center; white-space: nowrap;"><span style="display: inline-block; width: 1rem; height: 1rem; background-color: #c9d8e6; margin-right: 0.5rem; border: 1px solid black;"></span><strong>Stay</strong></div>
+                            </div>
+
+                            <!-- 2. Alerts (Twin Turnaround/Capacity) -->
+                            <div style="display: flex; flex-wrap: wrap; gap: 0.75rem 1rem; padding-right: 1rem; border-right: 1px solid #ccc;">
+                                 ${hasTwinTurnaround ? `<div style="display: flex; align-items: center; white-space: nowrap;"><span style="margin-right: 0.5rem; font-size: 1.25rem;">⭐</span><strong>Twin Turnaround</strong></div>` : ''}
+                                 ${needsAlertKey ? `<div style="display: flex; align-items: center; white-space: nowrap;"><span style="margin-right: 0.5rem; font-size: 1.25rem;">⚠️</span><strong>Capacity Alert</strong></div>` : ''}
+                            </div>
+
+                            <!-- 3. Extras List -->
+                            <div style="display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 0.75rem 1rem; padding-left: 0.5rem;">
+                                ${extrasListHtml}
+                            </div>
+                         </div>
+
+                        </div>`; // Closing the main key box
+
+                printTableContainer.innerHTML += keyHtml;
+
+                const floors = [{ title: 'Ground Floor', rooms: rooms.filter(r => parseInt(r.room) <= 6) }, { title: 'First Floor', rooms: rooms.filter(r => parseInt(r.room) >= 101 && parseInt(r.room) <= 130) }, { title: 'Second Floor', rooms: rooms.filter(r => parseInt(r.room) >= 201 && parseInt(r.room) <= 230) }];
+                floors.forEach(floor => { if (floor.rooms.length > 0) { const floorContainer = document.createElement('div'); floorContainer.className = 'floor-section-print'; floorContainer.innerHTML = `<h2 style="font-size: 1.5rem; font-weight: bold; margin-bottom: 0.5rem;">${floor.title}</h2>`; floorContainer.appendChild(createClassicPrintTable(floor.rooms)); printTableContainer.appendChild(floorContainer); } });
+
+                const listContainer = document.createElement('div'); listContainer.className = "floor-section-print";
+
+                // Staying Rooms List Print: Comma-separated
+                if (showStayingRoomsListCheckbox.checked) {
+                    const staying = rooms.filter(r => r.status === 'Stay').map(r => r.room);
+                    if (staying.length > 0) listContainer.appendChild(createPrintListSection('Staying Rooms List', staying.join(', ')));
+                }
+
+                if (showPetRoomsListCheckbox.checked) { const pets = rooms.filter(r => r.pet > 0).map(r => r.room); if (pets.length > 0) listContainer.appendChild(createPrintListSection('Pet Rooms List', pets.join(', '))); }
+                if (showTwinRoomsListCheckbox.checked) { const twins = rooms.filter(r => r.twin > 0).map(r => r.room); if (twins.length > 0) listContainer.appendChild(createPrintListSection('Twin Rooms List', twins.join(', '))); }
+
+                // Extras List Print: Itemized (complex content)
+                if (showExtrasRoomsListCheckbox.checked) {
+                    const extraRooms = rooms.filter(room => {
+                        return HK_EXTRA_PRODUCTS.some(item => {
+                            const key = item.key;
+                            // NEW LOGIC: Checks if the extra is relevant for today's tasks
+                            let isRelevant = false;
+                            if (item.condition === 'DepartureDay') {
+                                isRelevant = room.reportDateFormatted === room.endDateFormatted;
+                            } else if (item.condition === 'ArrivalDay') {
+                                isRelevant = room.reportDateFormatted === room.startDateFormatted;
+                            } else if (item.condition === 'Arrival') {
+                                isRelevant = room.status === 'Arrival' || room.status === 'Depart/Arrive';
+                            }
+                            return (room[key] > 0 && isRelevant);
+                        });
+                    });
+
+                    if (extraRooms.length > 0) {
+                        const listItems = extraRooms.map(room => {
+                            const activeItems = HK_EXTRA_PRODUCTS.filter(item => {
+                                const key = item.key;
+                                // NEW LOGIC: Checks if the extra is relevant for today's tasks
+                                let isRelevant = false;
+                                if (item.condition === 'DepartureDay') {
+                                    isRelevant = room.reportDateFormatted === room.endDateFormatted;
+                                } else if (item.condition === 'ArrivalDay') {
+                                    isRelevant = room.reportDateFormatted === room.startDateFormatted;
+                                } else if (item.condition === 'Arrival') {
+                                    isRelevant = room.status === 'Arrival' || room.status === 'Depart/Arrive';
+                                }
+                                return (room[key] > 0 && isRelevant);
+                            }).map(item => {
+                                let label = item.name;
+                                // ADDED: Value logic for print list
+                                if (item.hasValue && room[`${item.key}Value`] > 0) {
+                                    label += ` (£${room[`${item.key}Value`]} Total)`;
+                                } else if (item.hasValue && room[item.key] > 0) {
+                                     label += ` (Price N/A)`;
+                                }
+
+                                return `<span style="font-size: 1rem;">${item.emoji}</span> ${label}`; // Reduced emoji size in list item
+                            });
+                            return `${room.room}: ${activeItems.join(', ')}`;
+                        });
+                        listContainer.appendChild(createPrintListSection('Extra List', listItems));
+                    }
+                }
+
+                if (listContainer.hasChildNodes()) printTableContainer.appendChild(listContainer);
+            }
+
+            // --- UPDATED createClassicPrintTable: Header Aligned & Value Removed from Cell (Print) ---
+            function createClassicPrintTable(rooms) {
+                const table = document.createElement('table'); table.className = 'print-table-classic';
+                let headerHtml = '<thead><tr><th></th>';
+                rooms.forEach(room => { let printBgColor = '#f1f5f9'; if (room.status === 'Arrival') printBgColor = '#b3e6c9'; if (room.status === 'Depart') printBgColor = '#e0a6b5'; if (room.status === 'Depart/Arrive') printBgColor = '#d8c9e5'; if (room.status === 'Stay') printBgColor = '#c9d8e6'; headerHtml += `<th style="background-color: ${printBgColor};">${room.room}</th>`; });
+                headerHtml += '</tr></thead>';
+
+                const tbody = document.createElement('tbody');
+                const rows = [];
+                if (showUsedLastNightRowCheckbox.checked) rows.push('Used Last Night');
+                if (showArrivingTodayRowCheckbox.checked) rows.push('Arriving Today');
+                if (showGuestsRowCheckbox.checked) rows.push('Guests');
+                if (showPetRowCheckbox.checked) rows.push('Pet');
+                if (showTwinRowCheckbox.checked) rows.push('Twin');
+                if (showDaybedRowCheckbox.checked) rows.push('Daybed');
+                if (showTrundleRowCheckbox.checked) rows.push('Trundle');
+
+                // Check if the 'Extras' toggle is on
+                const isExtrasRowVisible = showExtrasRowCheckbox.checked;
+
+                // Check if any extra product is present in data for the relevant status
+                const hasExtraProducts = rooms.some(room =>
+                    HK_EXTRA_PRODUCTS.some(item => {
+                        const key = item.key;
+                        // NEW LOGIC: Checks if the extra is relevant for today's tasks
+                        let isRelevant = false;
+                        if (item.condition === 'DepartureDay') {
+                            isRelevant = room.reportDateFormatted === room.endDateFormatted;
+                        } else if (item.condition === 'ArrivalDay') {
+                            isRelevant = room.reportDateFormatted === room.startDateFormatted;
+                        } else if (item.condition === 'Arrival') {
+                            isRelevant = room.status === 'Arrival' || room.status === 'Depart/Arrive';
+                        }
+                        return (room[key] > 0 && isRelevant);
+                    })
+                );
+
+                // Add consolidated 'Extra' row ONLY IF toggle is ON AND products are present
+                if (isExtrasRowVisible && hasExtraProducts) {
+                    rows.push('Extra');
+                }
+
+                rows.forEach(feature => {
+                    let rowHtml = '';
+
+                    if (feature === 'Extra') {
+                        // --- Consolidated Extra Row (Print) - Fixed logic & sizing ---
+                        // Ensured font-weight: bold is explicitly set for the 'Extra' header cell.
+                        let rowContentHtml = `<tr><td style="font-align: left; padding: 0.5rem; background-color: #f1f5f9; border: 1px solid #334155; font-weight: bold; text-align: left;">Extra</td>`;
+
+                        rooms.forEach(room => {
+                            let extraItems = [];
+                            HK_EXTRA_PRODUCTS.forEach(item => {
+                                const key = item.key;
+                                // NEW LOGIC: Checks if the extra is relevant for today's tasks
+                                let isRelevant = false;
+                                if (item.condition === 'DepartureDay') {
+                                    isRelevant = room.reportDateFormatted === room.endDateFormatted;
+                                } else if (item.condition === 'ArrivalDay') {
+                                    isRelevant = room.reportDateFormatted === room.startDateFormatted;
+                                } else if (item.condition === 'Arrival') {
+                                    isRelevant = room.status === 'Arrival' || room.status === 'Depart/Arrive';
+                                }
+
+                                if (room[item.key] > 0 && isRelevant) {
+                                    let content = item.emoji;
+                                    // Removed value display from table cells per user request
+                                    extraItems.push(`<span>${content}</span>`);
+                                }
+                            });
+
+                            // Join all parts with a simple space.
+                            const cellContent = extraItems.join(' ');
+
+                            rowContentHtml += `<td style="text-align: center; border: 1px solid #334155; padding: 0.5rem; background-color: #ffffff;">${cellContent}</td>`;
+                        });
+
+                        rowHtml = rowContentHtml + '</tr>';
+                    } else {
+                        // --- Regular Rows (Pet, Twin, Daybed, etc.) ---
+                        // Ensure this remains consistent with the standard row style
+                        rowHtml = `<tr><td style="text-align: left; font-weight: bold; padding: 0.5rem; background-color: #f1f5f9;">${feature}</td>`;
+
+                        rooms.forEach(room => {
+                            let value = '';
+                            const needsAlert = room.guests >= 3 && room.daybed === 0 && room.trundle === 0;
+                            const printAlertStyle = needsAlert ? 'style="background-color: #fffbe6;"' : '';
+
+                            // Existing logic for core rows
+                            if (!((room.status === 'Stay' && !showStayingRoomInfoCheckbox.checked) || (room.status === 'Depart' && !showDepartingRoomInfoCheckbox.checked))) {
+                                const isUsed = room.status === 'Stay' || room.status === 'Depart' || room.status === 'Depart/Arrive';
+                                const isArriving = room.status === 'Arrival' || room.status === 'Depart' || room.status === 'Depart/Arrive';
+                                const tickValue = '✓';
+                                switch (feature) {
+                                    case 'Used Last Night': value = isUsed ? tickValue : ''; break;
+                                    case 'Arriving Today': value = isArriving ? tickValue : ''; break;
+                                    case 'Guests': value = room.guests > 0 ? room.guests : ''; break;
+                                    // MODIFIED PET LOGIC for Print View to show the numerical count (room.pet)
+                                    case 'Pet': value = room.pet > 0 ? room.pet : ''; break;
+                                    case 'Twin': value = room.twin > 0 ? (tickValue + (room.isTwinTurnaround ? '⭐' : '')) : ''; break;
+                                    case 'Daybed': value = (room.daybed > 0 ? tickValue : '') + (needsAlert ? ' ⚠️' : ''); break;
+                                    case 'Trundle': value = (room.trundle > 0 ? tickValue : '') + (needsAlert ? ' ⚠️' : ''); break;
+                                }
+                            }
+
+                            rowHtml += `<td style="text-align: center; border: 1px solid #334155; padding: 0.5rem;" ${printAlertStyle}>${value}</td>`;
+                        });
+
+                        rowHtml += '</tr>';
+                    }
+
+                    tbody.innerHTML += rowHtml;
+                });
+                table.innerHTML = headerHtml; table.appendChild(tbody); return table;
+            }
+            // Update createPrintListSection to handle simple string/comma separation or itemized list
+            function createPrintListSection(title, content) {
+                const container = document.createElement('div');
+                container.style.marginBottom = '1rem';
+
+                if (Array.isArray(content)) {
+                    // Itemized list for complex content (e.g., Extras List)
+                    const listContent = content.map(item => `<li>${item}</li>`).join('');
+                    container.innerHTML = `<h3 style="font-size: 1.25rem; font-weight: bold; margin-bottom: 0.5rem; color: #075985;">${title}</h3><ul style="list-style: none; font-size: 1.1rem; padding-left: 0;">${listContent}</ul>`;
+                } else {
+                    // Simple string/comma-separated list (e.g., Staying Rooms)
+                     container.innerHTML = `<h3 style="font-size: 1.25rem; font-weight: bold; margin-bottom: 0.5rem; color: #075985;">${title}</h3><p style="font-size: 1.1rem;">${content}</p>`;
+                }
+
+                return container;
+            }
+
+            function updateStatus(message, type) { statusDiv.textContent = message; statusDiv.className = 'text-center mt-4 font-semibold '; switch (type) { case 'error': statusDiv.classList.add('text-red-600'); break; case 'success': statusDiv.classList.add('text-green-600'); break; default: statusDiv.classList.add('text-gray-600'); break; } }
+            updateSparkleMode(isSparkleMode);
+        }
+    </script>
+</body>
+</html>
+```
