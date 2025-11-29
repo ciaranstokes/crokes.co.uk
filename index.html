@@ -1,19 +1,19 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rezlynx Repository</title>
-    <!-- Favicon -->
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50%25' y='85%25' style='font-size:90px;text-anchor:middle;'%3E%E2%9A%A1%3C/text%3E%3C/svg%3E" type="image/svg+xml">    <!-- Load Tailwind CSS -->
+    <!-- Favicon: Lightning Bolt -->
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50%25' y='85%25' style='font-size:90px;text-anchor:middle;'%3E%E2%9A%A1%3C/text%3E%3C/svg%3E" type="image/svg+xml">
+    <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         /* --- General Super App Styles --- */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #faf5ff;
+            background-color: #faf5ff; 
         }
         .card {
             box-shadow: 0 10px 30px -5px rgba(109, 40, 217, 0.1), 0 4px 10px -2px rgba(109, 40, 217, 0.05);
@@ -54,12 +54,14 @@
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
             border: 1px solid #e0f2fe;
         }
+        
+        /* New class for compact display items in the screen view table */
         .compact-display span {
-            font-size: 1rem;
-            font-weight: 600;
+            font-size: 1rem; 
+            font-weight: 600; 
         }
 
-        /* --- Front Hall Specific Styles --- */
+        /* --- Front Hall Styles (Imported from ResHub_old) --- */
         .source-badge {
             font-size: 0.7rem;
             padding: 2px 8px;
@@ -67,11 +69,16 @@
             font-weight: 700;
             text-transform: uppercase;
             display: inline-block;
+            color: white;
         }
-        .source-booking { background-color: #003580; color: white; }
+        .source-booking { background-color: #003580; }
         .source-expedia { background-color: #FFC20E; color: black; }
-        .source-direct { background-color: #059669; color: white; }
-        .source-other { background-color: #6b7280; color: white; }
+        .source-direct { background-color: #059669; }
+        .source-other { background-color: #6b7280; }
+        /* Added extra sources to match current system */
+        .source-internal { background-color: #4ade80; color: black; }
+        .source-transfer { background-color: #f97316; }
+        .source-guestline { background-color: #64748b; }
         
         .note-line {
             display: block;
@@ -84,34 +91,86 @@
             color: #4b5563;
             font-size: 0.75rem;
             text-transform: uppercase;
+            margin-right: 4px;
+        }
+        .vcc-alert {
+            color: #be123c;
+            font-weight: 800;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            background-color: #ffe4e6;
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 2px;
         }
 
         /* --- Print Specific Styles --- */
         @media print {
-            body {
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
+            body { 
+                -webkit-print-color-adjust: exact !important; 
+                print-color-adjust: exact !important; 
                 background-color: #ffffff !important;
-                font-size: 10pt;
+                font-size: 10pt; /* Adjusted base print font size */
             }
             .no-print { display: none !important; }
+
+            /* General Print Table for Front Hall & Breakfast */
+            .print-section-table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
+            .print-section-table th, .print-section-table td {
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: left;
+                vertical-align: top; /* Ensure notes start at top */
+            }
+            .print-section-table th {
+                background-color: #f3f4f6 !important;
+                font-weight: bold;
+            }
+            .page-break { page-break-before: always; }
 
             /* HK Plan Print */
             #print-table-container { display: block !important; }
             .print-table-classic { width: 100%; border-collapse: collapse; margin-bottom: 2rem; }
             .floor-section-print { page-break-inside: avoid; margin-bottom: 2rem; }
-            .print-table-classic th, .print-table-classic td {
-                border: 1px solid #334155;
-                padding: 0.3rem;
-                text-align: center;
-                font-size: 11px;
-                color: black !important;
+            .print-table-classic th, .print-table-classic td { 
+                border: 1px solid #334155; 
+                padding: 0.3rem; /* Slightly reduced padding */
+                text-align: center; 
+                font-size: 11px; /* Smaller font size for table data */
+                color: black !important; 
             }
-            .print-table-classic th { font-weight: bold; font-size: 12px; }
-            .print-table-classic th:first-child, .print-table-classic td:first-child {
-                background-color: #f1f5f9 !important;
-                text-align: left;
-                font-weight: bold;
+            .print-table-classic th { 
+                font-weight: bold; 
+                font-size: 12px; /* Keep headers slightly larger */
+            }
+            .print-table-classic th:first-child, .print-table-classic td:first-child { 
+                background-color: #f1f5f9 !important; 
+                text-align: left; 
+                font-weight: bold; 
+            }
+            
+            .print-table-classic td {
+                line-height: 1.1; 
+            }
+            .print-table-classic td > span {
+                font-size: 0.65rem !important; 
+                line-height: 1 !important; 
+                display: inline-block;
+            }
+            .print-table-classic td > span > span {
+                font-size: 8px !important; 
+            }
+
+            /* Print list styles for Extras/Pets */
+            #print-table-container h3 {
+                font-size: 1rem !important; 
+            }
+            #print-table-container ul, #print-table-container p {
+                font-size: 0.9rem !important; 
+            }
+            #print-table-container ul li span {
+                 font-size: 1rem !important; 
             }
 
             /* Kitchen Products Print */
@@ -126,6 +185,9 @@
             #kitchen-app-container th:last-child { border-top-right-radius: 1rem; }
             #kitchen-app-container td { padding: 16px 24px; text-align: center; font-size: 1rem; border-bottom: 1px solid #fae8ff; color: #1f2937; }
             #kitchen-app-container tr:last-child td { border-bottom: none; }
+            #kitchen-app-container td:nth-child(2), #kitchen-app-container td:nth-child(3) { font-weight: 600; }
+            #kitchen-app-container td div span:first-child { font-weight: bold; color: #000 !important; }
+            #kitchen-app-container td div { display: flex !important; align-items: center; justify-content: center; gap: 0.5rem; }
         }
     </style>
 </head>
@@ -148,7 +210,6 @@
                 <a href="#" data-target="hk-app" class="nav-button bg-sky-500 text-white font-bold h-20 rounded-2xl hover:bg-sky-600 transition duration-150 shadow-md transform hover:scale-[1.03] active:scale-[0.98] flex items-center justify-center p-2">
                     <span class="text-center">Housekeeping Plan</span>
                 </a>
-                <!-- NEW FRONT HALL BUTTON -->
                 <a href="#" data-target="fronthall-app" class="nav-button bg-orange-500 text-white font-bold h-20 rounded-2xl hover:bg-orange-600 transition duration-150 shadow-md transform hover:scale-[1.03] active:scale-[0.98] flex items-center justify-center p-2">
                     <span class="text-center">Front Hall</span>
                 </a>
@@ -337,7 +398,7 @@
                         <div class="lg:col-span-1 flex flex-col gap-4">
                             <div class="bg-white p-6 rounded-3xl border border-orange-200 shadow-lg">
                                 <label for="fh-data-input" class="block text-lg font-bold text-gray-800 mb-2">Paste Report Data</label>
-                                <textarea id="fh-data-input" oninput="fh_processData()" rows="8" class="w-full p-4 bg-orange-50/50 border border-orange-200 rounded-2xl focus:ring-2 focus:ring-orange-400 focus:border-orange-500 transition resize-none" placeholder="Paste Rezlynx House Status data here..."></textarea>
+                                <textarea id="fh-data-input" oninput="fh_processData()" rows="12" class="w-full p-4 bg-orange-50/50 border border-orange-200 rounded-2xl focus:ring-2 focus:ring-orange-400 focus:border-orange-500 transition resize-none" placeholder="Paste Rezlynx House Status data here..."></textarea>
                                 <div class="mt-4 flex gap-3">
                                      <button onclick="fh_printCurrentView()" class="flex-1 bg-gray-800 text-white font-bold py-3 rounded-xl hover:bg-gray-900 transition shadow-md flex items-center justify-center gap-2">
                                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
@@ -408,7 +469,7 @@
             breakfast_init();
             kitchen_init();
             hk_init();
-            // Front Hall init handled by inline global scope below
+            fh_init();
         });
 
         // --- MASTER HUB SCRIPT ---
@@ -1174,7 +1235,8 @@
                             const cellContent = extraItems.join(' ');
                             rowContentHtml += `<td class="p-3 text-center font-bold group-hover:bg-sky-50/70 compact-display">${cellContent}</td>`;
                         });
-                        rowHtml = rowContentHtml + '</tr>';
+                        rowContentHtml += '</tr>';
+                        rowHtml = rowContentHtml;
                     } else {
                         rowHtml = `<tr class="group divide-x"><td class="sticky left-0 z-10 bg-white group-hover:bg-sky-50/70 p-3 pl-6 font-semibold">${feature}</td>`;
                         rooms.forEach(room => {
@@ -1191,7 +1253,7 @@
                                     case 'Used Last Night': value = isUsed ? tickValue : ''; break;
                                     case 'Arriving Today': value = isArriving ? tickValue : ''; break;
                                     case 'Guests': value = room.guests > 0 ? room.guests : ''; break;
-                                    case 'Pet': value = petValue; break;
+                                    case 'Pet': value = room.pet > 0 ? room.pet : ''; break;
                                     case 'Twin': value = room.twin > 0 ? (tickValue + (room.isTwinTurnaround ? '⭐' : '')) : ''; break;
                                     case 'Daybed': value = (room.daybed > 0 ? tickValue : '') + (needsAlert ? ' ⚠️' : ''); break;
                                     case 'Trundle': value = (room.trundle > 0 ? tickValue : '') + (needsAlert ? ' ⚠️' : ''); break;
@@ -1301,7 +1363,7 @@
                                 let label = item.name;
                                 if (item.hasValue && room[`${item.key}Value`] > 0) label += ` (£${room[`${item.key}Value`]} Total)`;
                                 else if (item.hasValue && room[item.key] > 0) label += ` (Price N/A)`;
-                                return `<span style="font-size: 1rem;">${item.emoji}</span> ${label}`;
+                                return `${item.emoji} ${label}`;
                             });
                             return `${room.room}: ${activeItems.join(', ')}`;
                         });
@@ -1329,6 +1391,7 @@
                 if (showTrundleRowCheckbox.checked) rows.push('Trundle');
 
                 const isExtrasRowVisible = showExtrasRowCheckbox.checked;
+
                 const hasExtraProducts = rooms.some(room =>
                     HK_EXTRA_PRODUCTS.some(item => {
                         const key = item.key;
@@ -1406,6 +1469,215 @@
 
             function updateStatus(message, type) { statusDiv.textContent = message; statusDiv.className = 'text-center mt-4 font-semibold '; switch (type) { case 'error': statusDiv.classList.add('text-red-600'); break; case 'success': statusDiv.classList.add('text-green-600'); break; default: statusDiv.classList.add('text-gray-600'); break; } }
             updateSparkleMode(isSparkleMode);
+        }
+
+        // --- FRONT HALL SCRIPT (NEW) ---
+        let fh_parsedData = [];
+        let fh_currentView = 'arrivals';
+
+        function fh_init() {
+             // Any initialization logic for Front Hall can go here
+        }
+
+        function fh_processData() {
+            const rawText = document.getElementById('fh-data-input').value;
+            const dateInput = document.getElementById('fh-date-picker');
+            
+            if (!dateInput.value) {
+                const dateMatch = rawText.match(/(\d{2})\/([A-Za-z]{3})\/(\d{4})/);
+                if (dateMatch) {
+                     const months = {Jan:'01', Feb:'02', Mar:'03', Apr:'04', May:'05', Jun:'06', Jul:'07', Aug:'08', Sep:'09', Oct:'10', Nov:'11', Dec:'12'};
+                     dateInput.value = `${dateMatch[3]}-${months[dateMatch[2]]}-${dateMatch[1]}`;
+                }
+            }
+
+            const lines = rawText.split('\n');
+            let currentSection = '';
+            let rooms = [];
+            let currentRoomObj = null;
+
+            const bookingLineRegex = /(\d{2}\/[A-Za-z]{3}\/\d{4})\s+(\d{2}\/[A-Za-z]{3}\/\d{4}).*?(BK\S+)\s+.*?\s+(\d{3})\s/;
+            const noteHeadersRegex = /^(Public Notes|Private Notes|Distribution Notes|Food & Beverage Notes|Housekeeping Notes|Confirmation Notes|Assistance Required|Car Reg|Imported PMS Ref|Extras)(:| \:)/i;
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+
+                if (line.includes('Bedroom Arrivals')) { currentSection = 'Arrivals'; continue; }
+                if (line.includes('Bedroom Departures')) { currentSection = 'Departures'; continue; }
+                if (line.includes('Bedroom Residents')) { currentSection = 'Stay'; continue; } 
+                
+                let source = 'Internal';
+                if (line.toLowerCase().includes('booking.com')) source = 'Booking.com';
+                else if (line.toLowerCase().includes('expedia')) source = 'Expedia';
+                else if (line.toLowerCase().includes('guestline')) source = 'Guestline';
+                else if (line.toLowerCase().includes('transfer')) source = 'Transfer';
+                
+                const match = line.match(bookingLineRegex);
+                if (match) {
+                     const roomId = match[4];
+                     const dateIndex = line.indexOf(match[1]);
+                     let rawName = line.substring(0, dateIndex).trim();
+                     let guests = 2;
+                     const paxMatch = line.match(new RegExp(`${roomId}\\s+\\S+\\s+(\\d+)`));
+                     if(paxMatch) guests = parseInt(paxMatch[1], 10);
+
+                     currentRoomObj = {
+                         room: roomId,
+                         name: rawName,
+                         guests: guests,
+                         section: currentSection,
+                         source: source,
+                         bookRef: match[3],
+                         hasVCC: false, 
+                         notes: [] 
+                     };
+                     rooms.push(currentRoomObj);
+                } else if (currentRoomObj) {
+                    if (line.toLowerCase().includes('virtual credit card') || line.includes('VCC')) {
+                        currentRoomObj.hasVCC = true;
+                    }
+                    if (currentRoomObj.source === 'Internal') {
+                         if (line.toLowerCase().includes('booking.com')) currentRoomObj.source = 'Booking.com';
+                         else if (line.toLowerCase().includes('expedia')) currentRoomObj.source = 'Expedia';
+                    }
+                    if (noteHeadersRegex.test(line)) {
+                        let cleanLine = line.replace(/Distribution Notes:\s*smoking preference: Non-Smoking/i, '').trim();
+                        if(cleanLine) currentRoomObj.notes.push(cleanLine);
+                    }
+                    else if (line.includes('Prepayment:') || line.includes('VCC details:')) {
+                         currentRoomObj.notes.push(line);
+                    }
+                    else if (line.includes('BED PREFERENCE:')) {
+                         currentRoomObj.notes.push(line);
+                    }
+                }
+            }
+            
+            fh_parsedData = rooms;
+            fh_renderList();
+        }
+
+        function fh_renderList() {
+            const container = document.getElementById('fh-list-content');
+            const placeholder = document.getElementById('fh-placeholder');
+            
+            if (!fh_parsedData || fh_parsedData.length === 0) {
+                container.classList.add('hidden');
+                placeholder.classList.remove('hidden');
+                return;
+            }
+
+            container.classList.remove('hidden');
+            placeholder.classList.add('hidden');
+
+            const viewData = fh_parsedData.filter(r => r.section.toLowerCase().includes(fh_currentView === 'arrivals' ? 'arrival' : 'departure'));
+            viewData.sort((a, b) => parseInt(a.room) - parseInt(b.room));
+
+            let html = `<h3 class="text-xl font-bold text-gray-800 mb-4 capitalize">${fh_currentView} (${viewData.length})</h3>`;
+            
+            if (viewData.length === 0) {
+                html += `<p class="text-gray-500 italic">No ${fh_currentView} found.</p>`;
+            } else {
+                html += `<div class="space-y-2">`;
+                viewData.forEach(room => {
+                    const sourceColor = fh_getColorForSource(room.source);
+                    html += `
+                    <div class="flex flex-col sm:flex-row sm:items-start justify-between p-3 border-b border-gray-100 hover:bg-gray-50 transition">
+                        <div class="flex items-center gap-3 w-full sm:w-1/4">
+                            <span class="text-lg font-bold text-gray-800 w-10">${room.room}</span>
+                            <div class="flex flex-col">
+                                <span class="font-medium text-gray-900">${room.name}</span>
+                                <span class="text-xs text-gray-500">Pax: ${room.guests}</span>
+                            </div>
+                        </div>
+                        <div class="mt-2 sm:mt-0 w-full sm:w-1/4">
+                             <span class="source-badge ${sourceColor}">${room.source}</span>
+                        </div>
+                        <div class="mt-2 sm:mt-0 w-full sm:w-1/2 text-sm text-gray-600">
+                            ${room.hasVCC ? '<div class="vcc-alert">VCC Alert</div>' : ''}
+                            ${room.notes.map(n => `<div class="note-line">${n.replace(/^([^:]+):/, '<span class="note-label">$1</span>')}</div>`).join('')}
+                        </div>
+                    </div>`;
+                });
+                html += `</div>`;
+            }
+            container.innerHTML = html;
+        }
+
+        function fh_switchView(view) {
+            fh_currentView = view;
+            const btnArr = document.getElementById('btn-view-arr');
+            const btnDep = document.getElementById('btn-view-dep');
+            if (view === 'arrivals') {
+                btnArr.classList.remove('bg-white', 'text-gray-600', 'border', 'border-gray-200');
+                btnArr.classList.add('bg-orange-500', 'text-white');
+                btnDep.classList.remove('bg-orange-500', 'text-white');
+                btnDep.classList.add('bg-white', 'text-gray-600', 'border', 'border-gray-200');
+            } else {
+                btnDep.classList.remove('bg-white', 'text-gray-600', 'border', 'border-gray-200');
+                btnDep.classList.add('bg-orange-500', 'text-white');
+                btnArr.classList.remove('bg-orange-500', 'text-white');
+                btnArr.classList.add('bg-white', 'text-gray-600', 'border', 'border-gray-200');
+            }
+            fh_renderList();
+        }
+        
+        function fh_getColorForSource(source) {
+            const s = source.toLowerCase();
+            if (s.includes('booking')) return 'source-booking';
+            if (s.includes('expedia')) return 'source-expedia';
+            if (s.includes('direct') || s.includes('internal')) return 'source-direct';
+            if (s.includes('transfer')) return 'source-transfer';
+            if (s.includes('guestline')) return 'source-guestline';
+            return 'source-other';
+        }
+
+        function fh_clearData() {
+             document.getElementById('fh-data-input').value = '';
+             fh_parsedData = [];
+             fh_renderList();
+        }
+
+        function fh_printCurrentView() {
+            if (!fh_parsedData || fh_parsedData.length === 0) { alert("No data to print"); return; }
+            const viewName = fh_currentView === 'arrivals' ? 'Arrival' : 'Departure';
+            const filterKey = fh_currentView === 'arrivals' ? 'arrival' : 'departure';
+            const dataToPrint = fh_parsedData.filter(r => r.section.toLowerCase().includes(filterKey));
+            dataToPrint.sort((a, b) => parseInt(a.room) - parseInt(b.room));
+            
+            const dateVal = document.getElementById('fh-date-picker').value;
+            const dateObj = dateVal ? new Date(dateVal) : new Date();
+            const dateStr = dateObj.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+            const ground = dataToPrint.filter(r => parseInt(r.room) < 100);
+            const first = dataToPrint.filter(r => parseInt(r.room) >= 100 && parseInt(r.room) < 200);
+            const second = dataToPrint.filter(r => parseInt(r.room) >= 200);
+
+            const createPrintSection = (title, rooms) => {
+                if (rooms.length === 0) return '';
+                let rows = rooms.map(r => `
+                    <tr>
+                        <td style="font-weight:bold; text-align:center; width:10%;">${r.room}</td>
+                        <td style="width:25%;">
+                            <div style="font-weight:bold;">${r.name}</div>
+                            <div style="font-size:0.85em; color:#555;">(${r.guests} Guests)</div>
+                        </td>
+                        <td style="text-align:center; width:15%;">
+                             <span class="source-badge ${fh_getColorForSource(r.source)}">${r.source}</span>
+                        </td>
+                        <td style="width:50%; font-size:0.9em;">
+                            ${r.hasVCC ? '<div style="color:#be123c; font-weight:bold; margin-bottom:4px;">!! VCC ALERT !!</div>' : ''}
+                            ${r.notes.map(n => `<div>${n}</div>`).join('')}
+                        </td>
+                    </tr>
+                `).join('');
+                return `<div style="margin-bottom: 20px;"><h3 style="border-bottom: 2px solid #eee; padding-bottom: 5px; margin-bottom: 10px;">${title}</h3><table class="print-section-table"><thead><tr><th>Room</th><th>Guest</th><th>Source</th><th>Notes</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+            };
+
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`<html><head><title>Front Hall - ${viewName}</title><style>body { font-family: sans-serif; font-size: 10pt; padding: 20px; } h1 { text-align: center; margin-bottom: 5px; } .meta { text-align: center; margin-bottom: 20px; font-size: 1.1em; color: #555; } .print-section-table { width: 100%; border-collapse: collapse; } .print-section-table th, .print-section-table td { border: 1px solid #ccc; padding: 6px; text-align: left; vertical-align: top; } .print-section-table th { background-color: #f3f4f6; } .source-badge { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; text-transform: uppercase; color: white; display: inline-block; -webkit-print-color-adjust: exact; print-color-adjust: exact; } .source-booking { background-color: #003580; } .source-expedia { background-color: #FFC20E; color: black; } .source-direct { background-color: #059669; } .source-other { background-color: #6b7280; } .source-transfer { background-color: #f97316; } .source-guestline { background-color: #64748b; } .source-internal { background-color: #4ade80; color: black; }</style></head><body><h1>Front Hall - ${viewName} List</h1><div class="meta">${dateStr} &bull; Total: ${dataToPrint.length}</div>${createPrintSection('Ground Floor', ground)}${createPrintSection('First Floor', first)}${createPrintSection('Second Floor', second)}<script>setTimeout(() => { window.print(); window.close(); }, 500);<\/script></body></html>`);
+            printWindow.document.close();
         }
     </script>
 </body>
