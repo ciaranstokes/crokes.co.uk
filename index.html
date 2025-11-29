@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -305,6 +306,10 @@
                                         <span class="text-gray-700 font-medium">Change Checkmark:</span>
                                         <button id="changeTickBtn" class="font-bold text-sky-600 text-2xl">✔️</button>
                                     </div>
+                                    <div class="flex items-center justify-between p-3 bg-white rounded-xl border border-cyan-200 shadow-sm">
+                                        <label class="block text-gray-700 font-medium">Pet Icon:</label>
+                                        <span id="petEmojiDisplay" class="text-2xl">🐶</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -314,7 +319,7 @@
                 <div id="print-table-container" style="display: none;"></div>
             </div>
 
-            <!-- FRONT HALL APP (NEW) -->
+            <!-- FRONT HALL APP (RESTORED & FIXED) -->
             <div id="fronthall-app" class="app-content">
                 <div class="container mx-auto px-4 py-8 lg:py-10 no-print">
                     <header class="flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
@@ -406,9 +411,15 @@
             // Front Hall init handled by inline global scope below
         });
 
-        // --- BREAKFAST TRACKER SCRIPT ---
+        // --- MASTER HUB SCRIPT ---
+        function master_init() { }
+
+        // --- BREAKFAST TRACKER SCRIPT (UPDATED) ---
         let breakfast_detectedDate = null; 
+
         function breakfast_init() { }
+        function breakfast_formatDateForButton(date) { const day = date.getDate(); let suffix = 'th'; if (day % 10 === 1 && day !== 11) suffix = 'st'; else if (day % 10 === 2 && day !== 12) suffix = 'nd'; else if (day % 10 === 3 && day !== 13) suffix = 'rd'; const month = date.toLocaleDateString('en-GB', { month: 'short' }); return `${day}${suffix} ${month}`; }
+
         function breakfast_calculateTotal() {
             let data = document.getElementById('orderData').value;
             const dateMatch = data.match(/(\d{2})\/([A-Za-z]{3})\/(\d{4})/);
@@ -417,48 +428,74 @@
                 const months = {Jan:0, Feb:1, Mar:2, Apr:3, May:4, Jun:5, Jul:6, Aug:7, Sep:8, Oct:9, Nov:10, Dec:11};
                 breakfast_detectedDate = new Date(year, months[monthStr], day);
             }
+
             const tableBody = document.getElementById('ordersTableBody');
             tableBody.innerHTML = '';
+            
             const lines = data.split('\n');
             const orders = {}; 
             let totalBreakfasts = 0;
-            let currentRoom = null;
-            let currentGuest = null;
-            const rowRegex = /^(\d{3})\s+(BK\S+)\s+(.+?)\s+BREAKFAST/;
-            const quantityRegex = /\b(\d+)\s+(\d{2}\/[A-Za-z]{3}\/\d{4})/;
+
+            // Updated Parser logic for wrapped lines
+            let currentRecord = null;
+            
+            // Regex to find start of row. Captures: Room, Ref, Name, Code
+            const startRowRegex = /^(\d{3})\s+(BK\S+)\s+(.+?)\s+(SALE_BFAST|BREAKFAST)\b/i;
+            // Regex to find Quantity and Date line
+            const qtyDateRegex = /\b(\d+)\s+(\d{2}\/[A-Za-z]{3}\/\d{4})/;
+
             lines.forEach(line => {
                 line = line.trim();
-                const match = line.match(rowRegex);
-                if (match) {
-                    currentRoom = match[1];
-                    currentGuest = match[3].trim();
+                if(!line) return;
+
+                // Check if this line starts a new record
+                const startMatch = line.match(startRowRegex);
+                if (startMatch) {
+                    currentRecord = {
+                        room: startMatch[1],
+                        guest: startMatch[3].trim(),
+                        foundQty: false
+                    };
                 }
-                const qMatch = line.match(quantityRegex);
-                if (qMatch && currentRoom && currentGuest) {
-                    const qty = parseInt(qMatch[1], 10);
-                    const key = `${currentRoom}|${currentGuest}`;
-                    if (!orders[key]) orders[key] = 0;
-                    orders[key] += qty;
+
+                // Check if we found the quantity for the current record
+                if (currentRecord && !currentRecord.foundQty) {
+                    const qtyMatch = line.match(qtyDateRegex);
+                    if (qtyMatch) {
+                        const qty = parseInt(qtyMatch[1], 10);
+                        const key = `${currentRecord.room}|${currentRecord.guest}`;
+                        if (!orders[key]) orders[key] = 0;
+                        orders[key] += qty;
+                        
+                        currentRecord.foundQty = true; // Mark as done
+                        currentRecord = null; // Reset for next
+                    }
                 }
             });
+
             const orderList = Object.keys(orders).map(key => {
                 const [room, guest] = key.split('|');
                 return { room, guest, amount: orders[key] };
             });
+
             orderList.sort((a, b) => parseInt(a.room) - parseInt(b.room));
+
             if (orderList.length === 0) {
                 tableBody.innerHTML = `<tr><td colspan="3" class="px-6 py-12 text-center text-gray-500"><span>No breakfast orders found.</span></td></tr>`;
                 document.getElementById('totalAmount').textContent = '0';
                 return;
             }
+
             orderList.forEach(order => {
                 totalBreakfasts += order.amount;
                 const row = document.createElement('tr');
                 row.innerHTML = `<td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${order.room}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.guest}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.amount}</td>`;
                 tableBody.appendChild(row);
             });
+
             document.getElementById('totalAmount').textContent = totalBreakfasts;
         }
+
         function breakfast_clearData() { document.getElementById('orderData').value = ''; document.getElementById('totalAmount').textContent = '0'; document.getElementById('ordersTableBody').innerHTML = `<tr><td colspan="3" class="px-6 py-12 text-center text-gray-500"><span>No data processed yet.</span></td></tr>`; }
         function breakfast_print() {
             const printDate = breakfast_detectedDate || new Date();
@@ -470,7 +507,6 @@
              const total = document.getElementById('totalAmount').textContent;
              const dateStr = date.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
              
-             // Extract data
              const rows = Array.from(tableBody.querySelectorAll('tr')).map(r => {
                  const cells = r.querySelectorAll('td');
                  return cells.length >= 3 ? { r: cells[0].textContent, g: cells[1].textContent, a: cells[2].textContent } : null;
@@ -533,334 +569,844 @@
             });
         }
 
-        // --- HOUSEKEEPING SCRIPT ---
+        // --- HOUSEKEEPING SCRIPT (UPDATED FOR ROBUST PET DETECTION & LOGIC FIX) ---
         function hk_init() {
             const dataTextInput = document.getElementById('dataText');
-            document.getElementById('printBtn').addEventListener('click', () => window.print());
-            document.getElementById('clearDataBtn').addEventListener('click', () => { dataTextInput.value = ''; document.getElementById('output-container').innerHTML = ''; });
-            dataTextInput.addEventListener('input', () => {
-                const raw = dataTextInput.value;
-                if(raw.length < 10) return;
-                const dateMatch = raw.match(/(\d{2})\/([A-Za-z]{3})\/(\d{4})/);
-                if(dateMatch) {
-                    const months = {Jan:'01', Feb:'02', Mar:'03', Apr:'04', May:'05', Jun:'06', Jul:'07', Aug:'08', Sep:'09', Oct:'10', Nov:'11', Dec:'12'};
-                    document.getElementById('reportDate').value = `${dateMatch[3]}-${months[dateMatch[2]]}-${dateMatch[1]}`;
-                    document.getElementById('hk-date-picker').value = document.getElementById('reportDate').value;
-                    document.getElementById('output-container').innerHTML = '<div class="p-4 bg-green-100 text-green-700 rounded-xl text-center font-bold">Data detected! Click Print Checklist to generate formatted report.</div>';
+            const printBtn = document.getElementById('printBtn');
+            const clearDataBtn = document.getElementById('clearDataBtn');
+            const outputContainer = document.getElementById('output-container');
+            const printTableContainer = document.getElementById('print-table-container');
+            const statusDiv = document.getElementById('status');
+            const placeholder = document.getElementById('placeholder');
+            const reportDateInput = document.getElementById('reportDate');
+
+            const showUsedLastNightRowCheckbox = document.getElementById('showUsedLastNightRow');
+            const showArrivingTodayRowCheckbox = document.getElementById('showArrivingTodayRow');
+            const showGuestsRowCheckbox = document.getElementById('showGuestsRow');
+            const showPetRowCheckbox = document.getElementById('showPetRow');
+            const showTwinRowCheckbox = document.getElementById('showTwinRow');
+            const showDaybedRowCheckbox = document.getElementById('showDaybedRow');
+            const showTrundleRowCheckbox = document.getElementById('showTrundleRow');
+            const showExtrasRowCheckbox = document.getElementById('showExtrasRow'); 
+            const showStayingRoomsListCheckbox = document.getElementById('showStayingRoomsList');
+            const showPetRoomsListCheckbox = document.getElementById('showPetRoomsList');
+            const showTwinRoomsListCheckbox = document.getElementById('showTwinRoomsList');
+            const showExtrasRoomsListCheckbox = document.getElementById('showExtrasRoomsList');
+            const showDepartingRoomInfoCheckbox = document.getElementById('showDepartingRoomInfo');
+            const showStayingRoomInfoCheckbox = document.getElementById('showStayingRoomInfo');
+
+            const changeTickBtn = document.getElementById('changeTickBtn');
+            const currentTickEmojiSpan = document.getElementById('currentTickEmoji');
+            const petEmojiDisplay = document.getElementById('petEmojiDisplay');
+            const sparkleModeTitle = document.getElementById('sparkleModeTitle');
+            const sparkleOptionsContainer = document.getElementById('sparkleOptionsContainer');
+
+            let processedRooms = [];
+            const tickEmojis = ['✔️', '✅', '🟢', '⭐', '✨', '💜', '💙'];
+            let currentTickIndex = 0;
+            let isSparkleMode = false;
+
+            const HK_EXTRA_PRODUCTS = [
+                { name: 'Late Check Out', key: 'LateCheckOut', emoji: '✈️', condition: 'DepartureDay', hasValue: false },
+                { name: 'Early Check In', key: 'EarlyCheckIn', emoji: '🛬', condition: 'ArrivalDay', hasValue: false },
+                { name: 'Cot', key: 'Cot', emoji: '🛏️', condition: 'Arrival', hasValue: false },
+                { name: 'Bareca Voucher', key: 'BarecaVoucher', emoji: '💵', condition: 'Arrival', hasValue: true },
+                { name: 'Boot Crew Voucher', key: 'BootCrewVoucher', emoji: '🥾💵', condition: 'Arrival', hasValue: true },
+                { name: 'Complimentary Cocktail', key: 'CocktailVoucher', emoji: '🍹💵', condition: 'Arrival', hasValue: true },
+                { name: 'Picnic', key: 'Picnic', emoji: '🧺', condition: 'Arrival', hasValue: false },
+                { name: 'Prosecco', key: 'Prosecco', emoji: '🍾', condition: 'Arrival', hasValue: false },
+                { name: 'Selection of 6 IPA\'s', key: 'Selectionof6IPAs', emoji: '🍺', condition: 'Arrival', hasValue: false },
+                { name: 'Birthday', key: 'Birthday', emoji: '🎉', condition: 'Arrival', hasValue: false },
+                { name: 'Anniversary', key: 'Anniversary', emoji: '💝', condition: 'Arrival', hasValue: false }
+            ];
+
+           function getExtraValue(keyword, cleanedText) {
+                const keywordBase = keyword.replace(/ \(\£.*?\)/, '').toLowerCase();
+                const perHeadRegex = new RegExp(`${keywordBase.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\s*\\(\\s*£(\\d+)\\s*Per Head\\)`, 'i');
+                const perHeadMatch = cleanedText.match(perHeadRegex);
+                if (perHeadMatch && perHeadMatch[1]) return parseInt(perHeadMatch[1], 10);
+                if (keywordBase.includes('voucher')) {
+                    const genericVoucherRegex = /(?:\d+\s*x\s*)?£(\d+)\\s*Voucher/i;
+                    const genericMatch = cleanedText.match(genericVoucherRegex);
+                    if (genericMatch && genericMatch[1]) return parseInt(genericMatch[1], 10);
                 }
-            });
-        }
-
-        // --- FRONT HALL APP SCRIPT (NEW) ---
-        let fh_parsedData = { arrivals: [], departures: [] };
-        let fh_currentView = 'arrivals'; 
-
-        function fh_clearData() {
-            document.getElementById('fh-data-input').value = '';
-            document.getElementById('fh-list-content').classList.add('hidden');
-            document.getElementById('fh-placeholder').classList.remove('hidden');
-            fh_parsedData = { arrivals: [], departures: [] };
-        }
-
-        function fh_processData() {
-            const raw = document.getElementById('fh-data-input').value;
-            const selectedDateVal = document.getElementById('fh-date-picker').value;
-            
-            let reportDate = selectedDateVal ? new Date(selectedDateVal) : new Date();
-            if (!selectedDateVal) {
-                const dateMatch = raw.match(/(\d{2})\/([A-Za-z]{3})\/(\d{4})/);
-                if(dateMatch) {
-                    const months = {Jan:0, Feb:1, Mar:2, Apr:3, May:4, Jun:5, Jul:6, Aug:7, Sep:8, Oct:9, Nov:10, Dec:11};
-                    reportDate = new Date(dateMatch[3], months[dateMatch[2]], dateMatch[1]);
-                    const mStr = (reportDate.getMonth()+1).toString().padStart(2,'0');
-                    const dStr = reportDate.getDate().toString().padStart(2,'0');
-                    document.getElementById('fh-date-picker').value = `${reportDate.getFullYear()}-${mStr}-${dStr}`;
-                }
+                const directValueRegex = new RegExp(`(?:\\d+\\s*x\\s*)?£(\\d+)\\s*${keywordBase.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}`, 'i');
+                const directMatch = cleanedText.match(directValueRegex);
+                if (directMatch && directMatch[1]) return parseInt(directMatch[1], 10);
+                return 0;
             }
 
-            const lines = raw.split('\n');
-            const processedRooms = [];
+            function getFormattedDate(date) {
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                return `${day}/${month}`;
+            }
 
-            const processBlock = (blockStr) => {
-                 const mainLineMatch = blockStr.match(/(\d{2}\/[A-Za-z]{3}\/\d{4}).*?(\d{2}\/[A-Za-z]{3}\/\d{4}).*?\b(\d{3})\b/);
-                 if(!mainLineMatch) return null;
+            function extractBedPreference(cleanedBlock) {
+                const bedPrefMatch = cleanedBlock.match(/BED PREFERENCE:(.*?)(\n|$)/i);
+                if (bedPrefMatch && bedPrefMatch[1]) {
+                    let rawPreference = bedPrefMatch[1].trim();
+                    const lastColonIndex = rawPreference.lastIndexOf(':');
+                    if (lastColonIndex !== -1) return rawPreference.substring(lastColonIndex + 1).trim();
+                    return rawPreference;
+                }
+                return null;
+            }
 
-                 const roomCode = mainLineMatch[3];
-                 let name = blockStr.substring(0, blockStr.indexOf(mainLineMatch[1])).trim().replace(/\t/g, ' ');
-                 
-                 let source = 'Direct';
-                 if(blockStr.includes('Booking.com') || blockStr.includes('BOOK_')) source = 'Booking.com';
-                 else if(blockStr.includes('Expedia') || blockStr.includes('EXP_')) source = 'Expedia';
-                 else if(blockStr.includes('Hotel Website')) source = 'Direct';
-                 
-                 const sourceMatch = blockStr.match(/S:\s*([A-Za-z\.]+)/);
-                 if(sourceMatch) {
-                     const s = sourceMatch[1].toLowerCase();
-                     if(s.includes('booking')) source = 'Booking.com';
-                     else if(s.includes('expedia')) source = 'Expedia';
-                 }
+            // Updated Robust Item Counter
+            function getItemCount(keyword, cleanedBlock, duration = 0) {
+                let total = 0;
+                const keywordBase = keyword.replace(/ \(\£.*?\)/, '').toLowerCase();
 
-                 // VCC Logic
-                 const hasVCC = /virtual\s*card|virtual\s*credit\s*card|vcc|prepayment/i.test(blockStr);
-                 
-                 const arrDateStr = mainLineMatch[1];
-                 const depDateStr = mainLineMatch[2];
-                 
-                 // EXTRACTING NOTES & EXTRAS
-                 const importantHeaders = [
-                    "Public Notes", "Private Notes", "Food & Beverage Notes",
-                    "Housekeeping Notes", "Confirmation Notes", "Assistance Required",
-                    "Car Reg", "Imported PMS Ref"
-                 ];
+                if (keywordBase === 'birthday' || keywordBase === 'anniversary' || keywordBase === 'honeymoon') {
+                    let regex;
+                    if (keywordBase === 'birthday') regex = /\b(b-day|bday|birth\s?day)\b/i;
+                    else if (keywordBase === 'anniversary') regex = /\b(an?n?iversary)\b/i;
+                    else regex = /\b(ho?n?ey\s?moon)\b/i;
+                    if (regex.test(cleanedBlock)) return 1;
+                }
 
-                 let foundNotes = [];
+                // Enhanced Pet Detection Logic
+                if (keywordBase.includes('pet')) {
+                     let petCount = 0;
+                     // 1. Explicit Quantity: "1 x Pet", "1x Pet", "2 x Pet"
+                     const xMatch = cleanedBlock.match(/(\d+)\s*x\s*pet/i);
+                     if (xMatch) petCount = Math.max(petCount, parseInt(xMatch[1], 10));
 
-                 // 1. Get Extras
-                 const extrasMatch = blockStr.match(/Extras:\s*([\s\S]*?)(?=---ImportEnd)/);
-                 if(extrasMatch && extrasMatch[1].trim()) {
-                     const lines = extrasMatch[1].split('\n').filter(l=>l.trim());
-                     lines.forEach(l => foundNotes.push({type:'Extra', text:l.trim().replace(/,,/g, ' ' )}));
-                 }
+                     // 2. Rezlynx Extras Format: "Pet,,15", "Pet 2,,15" (count lines)
+                     const extraMatches = cleanedBlock.match(/Pet(?: \d+)?,,/gi);
+                     if (extraMatches) petCount = Math.max(petCount, extraMatches.length);
 
-                 // 2. Get specific line notes with cleaning
-                 importantHeaders.forEach(h => {
-                    const re = new RegExp(`${h}:\\s*(.+)`, 'i');
-                    const m = blockStr.match(re);
-                    if(m && m[1].trim()) {
-                        let cleanedText = m[1].trim();
-                        // Remove block if fully captured
-                        cleanedText = cleanedText.replace(/---ImportStart---[\s\S]*?---ImportEnd---/g, '');
-                        // Remove header line if partially captured or isolated
-                        cleanedText = cleanedText.replace(/---ImportStart---.*/g, '');
-                        // Remove specific tag if leftover
-                        cleanedText = cleanedText.replace(/PMSImportResRef.*/g, '');
-                        
-                        cleanedText = cleanedText.trim();
-                        if(cleanedText) {
-                            foundNotes.push({type:'Note', label: h, text: cleanedText});
+                     // 3. "Second Pet Guest" text check
+                     if (/second\s*pet/i.test(cleanedBlock) || /2nd\s*pet/i.test(cleanedBlock)) petCount = Math.max(petCount, 2);
+
+                     // 4. Keyword "Dog"
+                     if (petCount === 0 && /\bdog\b/i.test(cleanedBlock)) petCount = 1;
+
+                     // Duration logic for pet charging (if needed, currently simplified to max count found)
+                     return petCount;
+                }
+
+                // Standard logic for other items
+                const productRegex = new RegExp(`(\\d+)\\s*x\\s+${keywordBase.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}`, 'ig');
+                let match;
+                let productCount = 0;
+                while ((match = productRegex.exec(cleanedBlock.toLowerCase())) !== null) {
+                    productCount += parseInt(match[1], 10);
+                }
+                total = productCount;
+
+                if (total === 0) {
+                    const implicitRegex = new RegExp(`(?!\\d\\s*x\\s*)\\b${keywordBase.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, 'ig');
+                    if (keywordBase.includes('twin')) {
+                        let textToSearch = cleanedBlock.replace(/MEDIUM DOUBLE\/TWIN ROOM/gi, "MEDIUM DOUBLE ROOM");
+                        textToSearch = textToSearch.replace(/MEDIUM DOUBLE\/TWIN ACCESS/gi, "MEDIUM DOUBLE ACCESS");
+                        textToSearch = textToSearch.replace(/Standard Double or Twin Room/gi, "Standard Double Room");
+                        if (implicitRegex.test(textToSearch.toLowerCase())) total = 1;
+                    }
+                    else if (implicitRegex.test(cleanedBlock.toLowerCase())) {
+                        if (keywordBase.includes('zedbed') || keywordBase.includes('daybed') || keywordBase.includes('trundle')) total = 1;
+                    }
+                }
+                if (keywordBase.includes('twin') && total === 0) {
+                     if (cleanedBlock.toUpperCase().includes('TWIN BEDS') || cleanedBlock.toUpperCase().includes('MAKE THE BEDS AS: TWIN')) total = 1;
+                }
+                if (keywordBase.includes('zedbed') && (cleanedBlock.toUpperCase().includes('ZEDBED') || cleanedBlock.toLowerCase().includes('daybed'))) {
+                    if (total === 0) total = 1;
+                }
+                return total;
+            }
+
+            function extractExtraProducts(cleanedBlock, duration) {
+                const extras = {};
+                HK_EXTRA_PRODUCTS.forEach(item => {
+                    const count = getItemCount(item.name, cleanedBlock, duration);
+                    extras[item.key] = count;
+                    if (item.hasValue) {
+                        if (count > 0) {
+                            const pricePerUnit = getExtraValue(item.name, cleanedBlock);
+                            extras[`${item.key}Value`] = count * pricePerUnit;
+                        } else {
+                            extras[`${item.key}Value`] = 0;
                         }
                     }
-                 });
-
-                 return {
-                     room: roomCode,
-                     name: name,
-                     source: source,
-                     hasVCC: hasVCC,
-                     arrDate: arrDateStr,
-                     depDate: depDateStr,
-                     notes: foundNotes
-                 };
-            };
-
-            let currentBlock = "";
-            const resLineRegex = /\d{2}\/[A-Za-z]{3}\/\d{4}.*\d{2}\/[A-Za-z]{3}\/\d{4}.*\b\d{3}\b/;
-
-            lines.forEach(line => {
-                if(resLineRegex.test(line)) {
-                    if(currentBlock) {
-                        const r = processBlock(currentBlock);
-                        if(r) processedRooms.push(r);
-                    }
-                    currentBlock = line;
-                } else {
-                    currentBlock += "\n" + line;
-                }
-            });
-            if(currentBlock) {
-                const r = processBlock(currentBlock);
-                if(r) processedRooms.push(r);
-            }
-
-            const monthsShort = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-            const targetDay = String(reportDate.getDate()).padStart(2,'0');
-            const targetMonth = monthsShort[reportDate.getMonth()];
-            const targetYear = reportDate.getFullYear();
-            const targetDateStr = `${targetDay}/${targetMonth}/${targetYear}`;
-
-            fh_parsedData.arrivals = processedRooms.filter(r => r.arrDate === targetDateStr).sort((a,b)=>parseInt(a.room)-parseInt(b.room));
-            fh_parsedData.departures = processedRooms.filter(r => r.depDate === targetDateStr).sort((a,b)=>parseInt(a.room)-parseInt(b.room));
-
-            fh_renderList();
-        }
-
-        function fh_switchView(view) {
-            fh_currentView = view;
-            const btnArr = document.getElementById('btn-view-arr');
-            const btnDep = document.getElementById('btn-view-dep');
-            
-            if(view === 'arrivals') {
-                btnArr.className = "flex-1 py-3 font-bold rounded-xl transition bg-orange-500 text-white shadow-md";
-                btnDep.className = "flex-1 py-3 font-bold rounded-xl transition bg-white text-gray-600 border border-gray-200 hover:bg-gray-50";
-            } else {
-                btnDep.className = "flex-1 py-3 font-bold rounded-xl transition bg-orange-500 text-white shadow-md";
-                btnArr.className = "flex-1 py-3 font-bold rounded-xl transition bg-white text-gray-600 border border-gray-200 hover:bg-gray-50";
-            }
-            fh_renderList();
-        }
-
-        function fh_renderList() {
-            const container = document.getElementById('fh-list-content');
-            const placeholder = document.getElementById('fh-placeholder');
-            const data = fh_currentView === 'arrivals' ? fh_parsedData.arrivals : fh_parsedData.departures;
-
-            if(data.length === 0 && fh_parsedData.arrivals.length === 0 && fh_parsedData.departures.length === 0) {
-                 placeholder.classList.remove('hidden');
-                 container.classList.add('hidden');
-                 return;
-            }
-
-            placeholder.classList.add('hidden');
-            container.classList.remove('hidden');
-            container.innerHTML = '';
-
-            const createTable = (rooms, title) => {
-                if(!rooms.length) return '';
-                return `
-                <div class="mb-6">
-                    <h3 class="text-xl font-bold text-gray-700 border-b-2 border-orange-100 pb-2 mb-3">${title}</h3>
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-gray-50 text-gray-500 text-sm uppercase">
-                                <th class="p-3 font-bold rounded-l-lg w-20">Room</th>
-                                <th class="p-3 font-bold w-48">Guest Name</th>
-                                <th class="p-3 font-bold w-24">Dep.</th>
-                                <th class="p-3 font-bold w-24">Source</th>
-                                <th class="p-3 font-bold rounded-r-lg">Notes & Extras</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100">
-                            ${rooms.map(r => {
-                                let badgeClass = 'source-other';
-                                if(r.source === 'Booking.com') badgeClass = 'source-booking';
-                                else if(r.source === 'Expedia') badgeClass = 'source-expedia';
-                                else if(r.source === 'Direct') badgeClass = 'source-direct';
-                                
-                                let notesHtml = '';
-                                if(r.hasVCC) notesHtml += '<span class="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 rounded-md font-bold border border-red-200 text-xs mb-1">💳 VCC Alert</span><br>';
-                                
-                                r.notes.forEach(n => {
-                                    if(n.type === 'Extra') {
-                                        notesHtml += `<span class="note-line"><strong>Extra:</strong> ${n.text}</span>`;
-                                    } else {
-                                        notesHtml += `<span class="note-line"><strong>${n.label}:</strong> ${n.text}</span>`;
-                                    }
-                                });
-
-                                return `
-                                <tr class="hover:bg-orange-50 transition">
-                                    <td class="p-3 font-bold text-lg text-gray-800 align-top">${r.room}</td>
-                                    <td class="p-3 font-medium text-gray-700 align-top">${r.name}</td>
-                                    <td class="p-3 font-medium text-gray-600 text-sm align-top">${r.depDate}</td>
-                                    <td class="p-3 align-top"><span class="source-badge ${badgeClass}">${r.source}</span></td>
-                                    <td class="p-3 align-top">${notesHtml}</td>
-                                </tr>
-                                `;
-                            }).join('')}
-                        </tbody>
-                    </table>
-                </div>`;
-            };
-
-            const floors = [
-                 {t:'Ground Floor', d: data.filter(o=>parseInt(o.room)<=6)},
-                 {t:'First Floor', d: data.filter(o=>parseInt(o.room)>=101 && parseInt(o.room)<=130)},
-                 {t:'Second Floor', d: data.filter(o=>parseInt(o.room)>=201 && parseInt(o.room)<=230)}
-            ];
-
-            let html = '';
-            if(!data.length) {
-                html = `<div class="text-center py-10 text-gray-500">No ${fh_currentView} found for this date.</div>`;
-            } else {
-                floors.forEach(f => {
-                    html += createTable(f.d, f.t);
                 });
+                return extras;
             }
-            container.innerHTML = html;
-        }
 
-        function fh_printCurrentView() {
-            const data = fh_currentView === 'arrivals' ? fh_parsedData.arrivals : fh_parsedData.departures;
-            const dateVal = document.getElementById('fh-date-picker').value;
-            const dateObj = new Date(dateVal);
-            const dateStr = dateObj.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-            // Dynamic Title based on view
-            const titleText = fh_currentView === 'arrivals' ? 'Arrival List' : 'Departure List';
-            
-            const floors = [
-                 {t:'Ground Floor', d: data.filter(o=>parseInt(o.room)<=6)},
-                 {t:'First Floor', d: data.filter(o=>parseInt(o.room)>=101 && parseInt(o.room)<=130)},
-                 {t:'Second Floor', d: data.filter(o=>parseInt(o.room)>=201 && parseInt(o.room)<=230)}
-            ];
-            
-            // Generate HTML for a single floor's table
-            const createPrintTable = (title, rooms) => {
-                if(!rooms.length) return '';
-                return `
-                <div class="floor-header">${title}</div>
-                <table>
-                    <thead><tr><th style="width:10%">Room</th><th style="width:25%">Guest</th><th style="width:15%">Source</th><th>Notes</th></tr></thead>
-                    <tbody>
-                        ${rooms.map(r => {
-                            let badgeStyle = "font-size:8pt; padding:1px 4px; border-radius:4px; font-weight:bold; color:white;";
-                            if(r.source==='Booking.com') badgeStyle += "background:#003580;";
-                            else if(r.source==='Expedia') badgeStyle += "background:#FFC20E; color:black;";
-                            else if(r.source==='Direct') badgeStyle += "background:#059669;";
-                            else badgeStyle += "background:#6b7280;";
+            function parseBlock(block, reportDate) {
+                const lines = block.split('\n');
+                const mainLine = lines[0];
 
-                            let notesHtml = '';
-                            if(r.hasVCC) notesHtml += '<span class="vcc-alert">💳 VCC Alert</span> ';
-                            r.notes.forEach(n => {
-                                // Unified notes style for print
-                                if(n.type==='Extra') notesHtml += `<div><strong>Extra:</strong> ${n.text}</div>`;
-                                else notesHtml += `<div><strong>${n.label}:</strong> ${n.text}</div>`;
+                const dateRegex = /(\d{2}\/[A-Za-z]{3}\/\d{4})\s+(\d{2}\/[A-Za-z]{3}\/\d{4})/;
+                const dateMatch = mainLine.match(dateRegex);
+
+                if (!dateMatch) return null;
+
+                const [_, startStr, endStr] = dateMatch;
+                const roomMatch = mainLine.substring(dateMatch.index).match(/\b(\d{3})\b/);
+                if (!roomMatch) return null;
+                const room = roomMatch[1];
+
+                let customerName = mainLine.substring(0, dateMatch.index).trim().replace(/\t/g, ' ');
+                const postRoom = mainLine.substring(mainLine.indexOf(room) + 3);
+                const guestMatch = postRoom.match(/\s+(\d+)\s+/);
+                let guestCount = guestMatch ? parseInt(guestMatch[1], 10) : 2;
+
+                const months = {Jan:0, Feb:1, Mar:2, Apr:3, May:4, Jun:5, Jul:6, Aug:7, Sep:8, Oct:9, Nov:10, Dec:11};
+                const [sd, sm, sy] = startStr.split('/');
+                const [ed, em, ey] = endStr.split('/');
+                
+                const startDate = new Date(parseInt(sy), months[sm], parseInt(sd));
+                const endDate = new Date(parseInt(ey), months[em], parseInt(ed));
+
+                const reportDateMidnight = new Date(reportDate.getFullYear(), reportDate.getMonth(), reportDate.getDate()).getTime();
+                const startDayMidnight = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate()).getTime();
+                const endDayMidnight = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate()).getTime();
+
+                let status = 'Stay';
+                if (startDayMidnight === reportDateMidnight) status = 'Arrival';
+                else if (endDayMidnight === reportDateMidnight) status = 'Depart';
+                else if (reportDateMidnight > startDayMidnight && reportDateMidnight < endDayMidnight) status = 'Stay';
+                else return null;
+
+                const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+                const duration = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                const roomData = {
+                    room: room,
+                    status: status,
+                    pet: 0, twin: 0, double: 0, daybed: 0, trundle: 0,
+                    customerName: customerName,
+                    guests: guestCount,
+                    BarecaVoucherValue: 0,
+                    startDateFormatted: getFormattedDate(startDate),
+                    endDateFormatted: getFormattedDate(endDate),
+                    reportDateFormatted: getFormattedDate(reportDate),
+                    bedPreference: extractBedPreference(block),
+                    isVacantRecord: false
+                };
+
+                const cleanedBlock = block;
+                // Use generic 'Pet' keyword to trigger the robust logic in getItemCount
+                roomData.pet = getItemCount('Pet', cleanedBlock, duration);
+                roomData.twin = getItemCount('Twin Beds', cleanedBlock, duration) + getItemCount('Twin', cleanedBlock, duration);
+
+                if (roomData.bedPreference) {
+                    const preference = roomData.bedPreference.toLowerCase();
+                    if (preference.includes('double') || preference.includes('extra-large double') || preference.includes('queen') || preference.includes('king')) {
+                        roomData.twin = 0; roomData.double = 1;
+                    } else if (preference.includes('twin') || preference.includes('single')) {
+                        roomData.twin = 1; roomData.double = 0;
+                    }
+                }
+                roomData.daybed = getItemCount('ZedBed', cleanedBlock, duration) + getItemCount('Daybed', cleanedBlock, duration);
+                roomData.trundle = getItemCount('Trundle', cleanedBlock, duration);
+                if (roomData.twin === 0) roomData.double = 1;
+                Object.assign(roomData, extractExtraProducts(cleanedBlock, duration));
+                return roomData;
+            }
+
+            function parseVacantLine(line) {
+                const match = line.match(/^\s*(\d{3})\s+.*\s+(Departure \/ Dirty Room|Room is Clean)/);
+                if (!match) return null;
+                const room = match[1];
+                const hkStatus = match[2];
+                return {
+                    room: room,
+                    isVacantRecord: true,
+                    hkStatus: hkStatus,
+                    status: 'Unknown',
+                    pet: 0, twin: 0, double: 0, daybed: 0, trundle: 0,
+                    customerName: 'Vacant',
+                    guests: 0,
+                    BarecaVoucherValue: 0
+                };
+            }
+
+            function processTurnarounds(rooms) {
+                const roomsByNumber = {};
+                rooms.forEach(room => {
+                    if (!roomsByNumber[room.room]) roomsByNumber[room.room] = [];
+                    roomsByNumber[room.room].push(room);
+                });
+
+                const finalRooms = [];
+                for (const roomNumber in roomsByNumber) {
+                    let entries = roomsByNumber[roomNumber];
+                    let reservations = entries.filter(e => !e.isVacantRecord);
+                    const vacantRecords = entries.filter(e => e.isVacantRecord);
+
+                    if (reservations.length > 1) {
+                        const uniqueEntries = [];
+                        const seenSignatures = new Set();
+                        reservations.forEach(e => {
+                            const sig = `${e.status}-${e.customerName}`;
+                            if (!seenSignatures.has(sig)) {
+                                seenSignatures.add(sig);
+                                uniqueEntries.push(e);
+                            } else {
+                                const existing = uniqueEntries.find(u => `${u.status}-${u.customerName}` === sig);
+                                if (existing) {
+                                    existing.pet = Math.max(existing.pet, e.pet);
+                                    existing.twin = Math.max(existing.twin, e.twin);
+                                    existing.daybed = Math.max(existing.daybed, e.daybed);
+                                    existing.trundle = Math.max(existing.trundle, e.trundle);
+                                    HK_EXTRA_PRODUCTS.forEach(prod => {
+                                        existing[prod.key] = Math.max(existing[prod.key], e[prod.key]);
+                                    });
+                                }
+                            }
+                        });
+                        reservations = uniqueEntries;
+                    }
+
+                    if (reservations.length > 0) {
+                        const vacantStatus = vacantRecords.length > 0 ? vacantRecords[0].hkStatus : null;
+                        reservations.forEach(res => {
+                            if (res.status === 'Arrival') {
+                                if (vacantStatus === 'Departure / Dirty Room') {
+                                    res.status = 'Depart/Arrive';
+                                    // FIX: Do not assume Twin Turnaround just because room is dirty.
+                                    // res.isTwinTurnaround = (res.twin > 0); <- REMOVED THIS
+                                }
+                            }
+                        });
+
+                        if (reservations.length > 1) {
+                            const departure = reservations.find(r => r.status === 'Depart');
+                            const arrival = reservations.find(r => r.status === 'Arrival' || r.status === 'Depart/Arrive');
+                            if (departure && arrival) {
+                                if (departure.customerName.toLowerCase() === arrival.customerName.toLowerCase()) {
+                                    finalRooms.push({ ...arrival, status: 'Stay' });
+                                } else {
+                                    finalRooms.push({ ...arrival, status: 'Depart/Arrive', isTwinTurnaround: departure.twin > 0 && arrival.twin > 0 });
+                                }
+                            } else {
+                                const bestEntry = reservations.reduce((prev, current) => {
+                                    return (prev.pet + prev.twin) > (current.pet + current.twin) ? prev : current;
+                                });
+                                finalRooms.push(bestEntry);
+                            }
+                        } else {
+                            finalRooms.push(reservations[0]);
+                        }
+                    } else {
+                        if (vacantRecords.length > 0) {
+                            const vac = vacantRecords[0];
+                            if (vac.hkStatus === 'Departure / Dirty Room') {
+                                finalRooms.push({
+                                    room: vac.room,
+                                    status: 'Depart',
+                                    customerName: 'Vacant',
+                                    pet: 0, twin: 0, daybed: 0, trundle: 0, guests: 0, double: 1,
+                                    BarecaVoucherValue: 0
+                                });
+                            }
+                        }
+                    }
+                }
+                return finalRooms.sort((a,b) => parseInt(a.room) - parseInt(b.room));
+            }
+
+            dataTextInput.addEventListener('input', () => { autoDetectReportDate(); if (dataTextInput.value.trim().length > 5) { parseAndGenerate(); } else { clearOutput(); } });
+            clearDataBtn.addEventListener('click', clearData);
+
+            printBtn.addEventListener('click', () => {
+                const landscapeStyle = document.createElement('style');
+                landscapeStyle.id = 'hk-landscape-style';
+                landscapeStyle.innerHTML = '@page { size: A4 landscape; margin: 0.5in; }';
+                document.head.appendChild(landscapeStyle);
+                window.print();
+                window.onafterprint = function() {
+                    const styleElement = document.getElementById('hk-landscape-style');
+                    if (styleElement) styleElement.remove();
+                    window.onafterprint = null;
+                };
+                setTimeout(() => {
+                    const styleElement = document.getElementById('hk-landscape-style');
+                    if (styleElement) styleElement.remove();
+                }, 1000);
+            });
+
+            sparkleModeTitle.addEventListener('click', () => { isSparkleMode = !isSparkleMode; updateSparkleMode(isSparkleMode); });
+            changeTickBtn.addEventListener('click', () => { if (isSparkleMode) { currentTickIndex = (currentTickIndex + 1) % tickEmojis.length; currentTickEmojiSpan.textContent = tickEmojis[currentTickIndex]; if (processedRooms.length > 0) renderOutput(processedRooms); } });
+
+            function setupAutoGenerateListeners() {
+                const allCheckboxes = [...(document.getElementById('rowCheckboxes')?.querySelectorAll('input[type="checkbox"]') || []), ...(document.getElementById('listCheckboxes')?.querySelectorAll('input[type="checkbox"]') || [])];
+                allCheckboxes.forEach(checkbox => checkbox.addEventListener('change', () => { if (processedRooms.length > 0) { renderOutput(processedRooms); updateStatus('Print options updated.', 'success'); } else { updateStatus('Please paste data first.', 'default'); } }));
+            }
+            setupAutoGenerateListeners();
+
+            function clearData() { dataTextInput.value = ''; reportDateInput.value = ''; processedRooms = []; clearOutput(); updateStatus('Data cleared.', 'default'); }
+            function clearOutput() { outputContainer.innerHTML = ''; outputContainer.appendChild(placeholder); printTableContainer.innerHTML = ''; }
+
+            function autoDetectReportDate() {
+                const rawText = dataTextInput.value;
+                const dateMatch = rawText.match(/(\d{2})\/([A-Za-z]{3})\/(\d{4})/);
+                if (dateMatch) {
+                    const [_, day, monthStr, year] = dateMatch;
+                    const months = {Jan:'01', Feb:'02', Mar:'03', Apr:'04', May:'05', Jun:'06', Jul:'07', Aug:'08', Sep:'09', Oct:'10', Nov:'11', Dec:'12'};
+                    const month = months[monthStr];
+                    if (month) {
+                        reportDateInput.value = `${year}-${month}-${day}`;
+                        updateStatus(`Date auto-detected: ${day}/${monthStr}/${year}.`, 'success');
+                    }
+                }
+                else if (!reportDateInput.value) { updateStatus('Date not found.', 'error'); }
+            }
+
+            function updateSparkleMode(isSparkle) {
+                sparkleModeTitle.textContent = isSparkle ? '✨Sparkle Mode✨' : 'Work Mode';
+                sparkleOptionsContainer.classList.toggle('hidden', !isSparkle);
+                if (!isSparkle) { currentTickIndex = 0; currentTickEmojiSpan.textContent = tickEmojis[0]; }
+                if (processedRooms.length > 0) { renderOutput(processedRooms); updateStatus(`Mode changed.`, 'success'); }
+            }
+
+            function parseAndGenerate() {
+                const rawText = dataTextInput.value; const reportDateStr = reportDateInput.value;
+                if (!reportDateStr || !rawText.trim()) { updateStatus('Please select a date and paste data.', 'error'); return; }
+                updateStatus('Parsing...', 'loading');
+                const reportDate = new Date(reportDateStr + 'T00:00:00');
+
+                const lines = rawText.split('\n');
+                const blocks = [];
+                const vacantLines = [];
+                let currentBlock = '';
+
+                const resLineRegex = /\d{2}\/[A-Za-z]{3}\/\d{4}.*\d{2}\/[A-Za-z]{3}\/\d{4}/;
+                const vacantLineRegex = /^\s*\d{3}\s+.*\s+(Departure \/ Dirty Room|Room is Clean)/;
+
+                lines.forEach(line => {
+                    if (resLineRegex.test(line)) {
+                        if (currentBlock) blocks.push(currentBlock);
+                        currentBlock = line;
+                    }
+                    else if (vacantLineRegex.test(line)) {
+                        vacantLines.push(line);
+                        if (currentBlock) { blocks.push(currentBlock); currentBlock = ''; }
+                    }
+                    else {
+                        if (currentBlock) currentBlock += '\n' + line;
+                    }
+                });
+                if (currentBlock) blocks.push(currentBlock);
+
+                if (blocks.length === 0 && vacantLines.length === 0) { updateStatus('No valid room data found. Check data is correct.', 'error'); return; }
+
+                const reservationRooms = blocks.map(block => parseBlock(block, reportDate)).filter(Boolean);
+                const vacantRooms = vacantLines.map(line => parseVacantLine(line)).filter(Boolean);
+                const allRawData = [...reservationRooms, ...vacantRooms];
+                processedRooms = processTurnarounds(allRawData);
+
+                if (processedRooms.length > 0) {
+                    renderOutput(processedRooms);
+                    updateStatus(`Generated plan for ${processedRooms.length} rooms.`, 'success');
+                } else {
+                    clearOutput();
+                    updateStatus('No reservations found for date.', 'error');
+                }
+            }
+            function renderOutput(rooms) { generateReportView(rooms); generatePrintView(rooms); }
+
+            function getActiveExtras(rooms) {
+                const activeExtras = {};
+                HK_EXTRA_PRODUCTS.forEach(item => {
+                    const key = item.key;
+                    if (rooms.some(room => {
+                        const status = room.status;
+                        let isRelevant = false;
+                        if (item.condition === 'DepartureDay') isRelevant = room.reportDateFormatted === room.endDateFormatted;
+                        else if (item.condition === 'ArrivalDay') isRelevant = room.reportDateFormatted === room.startDateFormatted;
+                        else if (item.condition === 'Arrival') isRelevant = status === 'Arrival' || status === 'Depart/Arrive';
+                        return (room[key] > 0 && isRelevant);
+                    })) {
+                        activeExtras[key] = item;
+                    }
+                });
+                return activeExtras;
+            }
+
+            function generateReportView(rooms) {
+                outputContainer.innerHTML = '';
+                const needsAlertKey = rooms.some(room => room.guests >= 3 && room.daybed === 0 && room.trundle === 0);
+                const hasTwinTurnaround = rooms.some(room => room.isTwinTurnaround);
+                const activeExtras = getActiveExtras(rooms);
+                const keyContainer = document.createElement('div');
+                keyContainer.className = 'bg-sky-50 p-4 sm:p-6 rounded-2xl border-2 border-sky-200 mb-8 shadow-md';
+
+                let keyHtml = `<div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm font-semibold text-slate-700">
+                    <div class="flex items-center"><span class="inline-block w-5 h-5 mr-2 rounded bg-purple-200"></span>Depart/Arrive</div>
+                    <div class="flex items-center"><span class="inline-block w-5 h-5 mr-2 rounded bg-green-200"></span>Arrival</div>
+                    <div class="flex items-center"><span class="inline-block w-5 h-5 mr-2 rounded bg-red-200"></span>Depart</div>
+                    <div class="flex items-center"><span class="inline-block w-5 h-5 mr-2 rounded bg-blue-200"></span>Stay</div>
+                </div>`;
+
+                let detailsHtml = '';
+                let extrasHtml = '';
+
+                if (needsAlertKey) detailsHtml += `<div class="flex items-center text-slate-700 font-semibold text-sm"><span class="text-xl mr-2">⚠️</span>Missing Daybed/Trundle</div>`;
+                if (hasTwinTurnaround) detailsHtml += `<div class="flex items-center text-slate-700 font-semibold text-sm"><span class="text-xl mr-2">⭐</span>Twin Turnaround</div>`;
+
+                const renderedExtras = Object.values(activeExtras);
+                const isExtrasRowVisible = showExtrasRowCheckbox.checked; 
+
+                if (isExtrasRowVisible && renderedExtras.length > 0) {
+                    extrasHtml = `<h4 class="col-span-2 text-base font-bold text-sky-700 mt-2">Product Key (Extras)</h4>`;
+                    renderedExtras.forEach(item => {
+                        let name = item.name;
+                        if (item.hasValue) name += ' (Total Value)';
+                        extrasHtml += `<div class="flex items-center text-slate-700 font-semibold text-sm"><span class="text-xl mr-2">${item.emoji}</span>${name}</div>`;
+                    });
+                }
+
+                if (detailsHtml || extrasHtml) {
+                    keyHtml += `<div class="grid grid-cols-2 gap-4 pt-3 mt-3 border-t">`;
+                    if (detailsHtml) {
+                        keyHtml += `<div class="col-span-2 sm:col-span-1 space-y-2"><h4 class="text-base font-bold text-sky-700">Alerts</h4>${detailsHtml}</div>`;
+                        keyHtml += `<div class="col-span-2 sm:col-span-1 space-y-2">${extrasHtml}</div>`;
+                    } else if (extrasHtml) {
+                        keyHtml += `<div class="col-span-2 space-y-2 grid grid-cols-2 gap-4">${extrasHtml}</div>`;
+                    }
+                    keyHtml += `</div>`;
+                }
+
+                keyContainer.innerHTML = keyHtml;
+                outputContainer.appendChild(keyContainer);
+
+                const floors = [{ title: 'Ground Floor', rooms: rooms.filter(r => parseInt(r.room) <= 6) }, { title: 'First Floor', rooms: rooms.filter(r => parseInt(r.room) >= 101 && parseInt(r.room) <= 130) }, { title: 'Second Floor', rooms: rooms.filter(r => parseInt(r.room) >= 201 && parseInt(r.room) <= 230) }];
+                floors.forEach(floor => { if (floor.rooms.length > 0) { const floorContainer = document.createElement('div'); floorContainer.className = 'mb-10'; floorContainer.innerHTML = `<h2 class="text-2xl font-bold text-sky-800 mb-3">${floor.title}</h2>`; floorContainer.appendChild(createScreenTableForRooms(floor.rooms)); outputContainer.appendChild(floorContainer); } });
+
+                const listContainer = document.createElement('div'); listContainer.className = 'mt-10 pt-6 border-t-2';
+
+                if (showStayingRoomsListCheckbox.checked) {
+                    const staying = rooms.filter(r => r.status === 'Stay').map(r => r.room);
+                    if (staying.length > 0) listContainer.appendChild(createScreenListSection('Staying Rooms List', staying.join(', ')));
+                }
+
+                if (showPetRoomsListCheckbox.checked) { const pets = rooms.filter(r => r.pet > 0).map(r => r.room); if (pets.length > 0) listContainer.appendChild(createScreenListSection('Pet Rooms List', pets.join(', '))); }
+                if (showTwinRoomsListCheckbox.checked) { const twins = rooms.filter(r => r.twin > 0).map(r => r.room); if (twins.length > 0) listContainer.appendChild(createScreenListSection('Twin Rooms List', twins.join(', '))); }
+
+                if (showExtrasRoomsListCheckbox.checked) {
+                    const extraRooms = rooms.filter(room => {
+                        return HK_EXTRA_PRODUCTS.some(item => {
+                            const key = item.key;
+                            let isRelevant = false;
+                            if (item.condition === 'DepartureDay') isRelevant = room.reportDateFormatted === room.endDateFormatted;
+                            else if (item.condition === 'ArrivalDay') isRelevant = room.reportDateFormatted === room.startDateFormatted;
+                            else if (item.condition === 'Arrival') isRelevant = room.status === 'Arrival' || room.status === 'Depart/Arrive';
+                            return (room[key] > 0 && isRelevant);
+                        });
+                    });
+
+                    if (extraRooms.length > 0) {
+                        const listItems = extraRooms.map(room => {
+                            const activeItems = HK_EXTRA_PRODUCTS.filter(item => {
+                                const key = item.key;
+                                let isRelevant = false;
+                                if (item.condition === 'DepartureDay') isRelevant = room.reportDateFormatted === room.endDateFormatted;
+                                else if (item.condition === 'ArrivalDay') isRelevant = room.reportDateFormatted === room.startDateFormatted;
+                                else if (item.condition === 'Arrival') isRelevant = room.status === 'Arrival' || room.status === 'Depart/Arrive';
+                                return (room[key] > 0 && isRelevant);
+                            }).map(item => {
+                                let label = item.name;
+                                if (item.hasValue && room[`${item.key}Value`] > 0) label += ` (£${room[`${item.key}Value`]} Total)`;
+                                else if (item.hasValue && room[item.key] > 0) label += ` (Price N/A)`;
+                                return `${item.emoji} ${label}`;
                             });
+                            return `${room.room}: ${activeItems.join(', ')}`;
+                        });
+                        listContainer.appendChild(createScreenListSection('Extra List', listItems));
+                    }
+                }
 
-                            return `<tr>
-                                <td style="text-align:center; font-weight:bold;">${r.room}</td>
-                                <td>${r.name}</td>
-                                <td><span style="${badgeStyle}">${r.source}</span></td>
-                                <td>${notesHtml}</td>
-                            </tr>`;
-                        }).join('')}
-                    </tbody>
-                </table>`;
-            };
+                if (listContainer.hasChildNodes()) outputContainer.appendChild(listContainer);
+            }
 
-            const printW = window.open('', '_blank');
-            printW.document.write(`<html><head><title>Front Hall List</title><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet"><style>
-                @media print { @page { size: A4 landscape; margin: 10mm; } }
-                body { font-family: 'Inter', sans-serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 10px; }
-                .print-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 3px solid #000; padding-bottom: 10px; }
-                .print-title { background-color: #ffedd5; color: #c2410c; padding: 10px 30px; border-radius: 30px; font-weight: 800; font-size: 24pt; letter-spacing: -0.5px; }
-                .print-meta { background-color: #ffedd5; color: #c2410c; padding: 10px 20px; border-radius: 10px; text-align: right; font-weight: 600; line-height: 1.4; }
-                
-                /* CHANGED: Removed column flex logic to stack vertically */
-                .print-container { display: block; width: 100%; }
-                
-                .floor-header { text-align: center; font-style: italic; font-weight: 700; font-size: 14pt; margin: 15px 0 5px; color: #000; }
-                table { width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 9pt; }
-                th, td { border: 1px solid #94a3b8; padding: 4px 6px; text-align: left; vertical-align: top; }
-                th { background-color: #f1f5f9; font-weight: bold; color: #334155; }
-                .vcc-alert { color: #dc2626; font-weight: bold; font-size: 8pt; border: 1px solid #dc2626; padding: 1px 3px; border-radius: 3px; display: inline-block; margin-bottom: 2px; }
-            </style></head><body>
-                <div class="print-header">
-                    <div class="print-title">Front Hall - ${titleText}</div>
-                    <div class="print-meta">
-                        <div>${dateStr}</div>
-                        <div>Total: ${data.length}</div>
-                    </div>
-                </div>
-                <div class="print-container">
-                    ${createPrintTable('Ground Floor', floors[0].d)}
-                    ${createPrintTable('First Floor', floors[1].d)}
-                    ${createPrintTable('Second Floor', floors[2].d)}
-                </div>
-            </body></html>`);
-            printW.document.close();
-            setTimeout(() => { printW.print(); printW.close(); }, 250);
+            function createScreenTableForRooms(rooms) {
+                const tableWrapper = document.createElement('div'); tableWrapper.className = 'bg-white rounded-3xl shadow-lg border overflow-x-auto';
+                const table = document.createElement('table'); table.className = 'w-full';
+                let headerHtml = '<thead><tr class="divide-x"><th class="sticky left-0 z-20 p-4 bg-sky-100/70"></th>';
+                rooms.forEach(room => { let screenColor = 'bg-blue-100'; if (room.status === 'Arrival') screenColor = 'bg-green-100'; if (room.status === 'Depart') screenColor = 'bg-red-100'; if (room.status === 'Depart/Arrive') screenColor = 'bg-purple-100'; headerHtml += `<th class="p-3 font-extrabold text-center ${screenColor}">${room.room}</th>`; });
+                headerHtml += '</tr></thead>';
+
+                const tbody = document.createElement('tbody'); tbody.className = 'divide-y';
+                const rows = [];
+                if (showUsedLastNightRowCheckbox.checked) rows.push('Used Last Night');
+                if (showArrivingTodayRowCheckbox.checked) rows.push('Arriving Today');
+                if (showGuestsRowCheckbox.checked) rows.push('Guests');
+                if (showPetRowCheckbox.checked) rows.push('Pet');
+                if (showTwinRowCheckbox.checked) rows.push('Twin');
+                if (showDaybedRowCheckbox.checked) rows.push('Daybed');
+                if (showTrundleRowCheckbox.checked) rows.push('Trundle');
+
+                const isExtrasRowVisible = showExtrasRowCheckbox.checked;
+
+                const hasExtraProducts = rooms.some(room =>
+                    HK_EXTRA_PRODUCTS.some(item => {
+                        const key = item.key;
+                        let isRelevant = false;
+                        if (item.condition === 'DepartureDay') isRelevant = room.reportDateFormatted === room.endDateFormatted;
+                        else if (item.condition === 'ArrivalDay') isRelevant = room.reportDateFormatted === room.startDateFormatted;
+                        else if (item.condition === 'Arrival') isRelevant = room.status === 'Arrival' || room.status === 'Depart/Arrive';
+                        return (room[key] > 0 && isRelevant);
+                    })
+                );
+
+                if (isExtrasRowVisible && hasExtraProducts) rows.push('Extra');
+
+                rows.forEach(feature => {
+                    let rowHtml = '';
+                    if (feature === 'Extra') {
+                        let rowContentHtml = `<tr class="group divide-x"><td class="sticky left-0 z-10 bg-white group-hover:bg-sky-50/70 p-3 pl-6 font-semibold text-gray-800">${feature}</td>`;
+                        rooms.forEach(room => {
+                            let extraItems = [];
+                            HK_EXTRA_PRODUCTS.forEach(item => {
+                                const key = item.key;
+                                let isRelevant = false;
+                                if (item.condition === 'DepartureDay') isRelevant = room.reportDateFormatted === room.endDateFormatted;
+                                else if (item.condition === 'ArrivalDay') isRelevant = room.reportDateFormatted === room.startDateFormatted;
+                                else if (item.condition === 'Arrival') isRelevant = room.status === 'Arrival' || room.status === 'Depart/Arrive';
+                                if (room[item.key] > 0 && isRelevant) {
+                                    extraItems.push(`<span>${item.emoji}</span>`);
+                                }
+                            });
+                            const cellContent = extraItems.join(' ');
+                            rowContentHtml += `<td class="p-3 text-center font-bold group-hover:bg-sky-50/70 compact-display">${cellContent}</td>`;
+                        });
+                        rowHtml = rowContentHtml + '</tr>';
+                    } else {
+                        rowHtml = `<tr class="group divide-x"><td class="sticky left-0 z-10 bg-white group-hover:bg-sky-50/70 p-3 pl-6 font-semibold">${feature}</td>`;
+                        rooms.forEach(room => {
+                            let value = '';
+                            const needsAlert = room.guests >= 3 && room.daybed === 0 && room.trundle === 0;
+                            const alertClass = needsAlert ? 'bg-yellow-100/50' : '';
+                            if (!((room.status === 'Stay' && !showStayingRoomInfoCheckbox.checked) || (room.status === 'Depart' && !showDepartingRoomInfoCheckbox.checked))) {
+                                const isUsed = room.status === 'Stay' || room.status === 'Depart' || room.status === 'Depart/Arrive';
+                                const isArriving = room.status === 'Arrival' || room.status === 'Depart' || room.status === 'Depart/Arrive';
+                                let tickValue = isSparkleMode ? tickEmojis[currentTickIndex] : '✓';
+                                let petValue = room.pet > 0 ? (isSparkleMode ? '🐶'.repeat(room.pet) : room.pet) : '';
+
+                                switch (feature) {
+                                    case 'Used Last Night': value = isUsed ? tickValue : ''; break;
+                                    case 'Arriving Today': value = isArriving ? tickValue : ''; break;
+                                    case 'Guests': value = room.guests > 0 ? room.guests : ''; break;
+                                    case 'Pet': value = petValue; break;
+                                    case 'Twin': value = room.twin > 0 ? (tickValue + (room.isTwinTurnaround ? '⭐' : '')) : ''; break;
+                                    case 'Daybed': value = (room.daybed > 0 ? tickValue : '') + (needsAlert ? ' ⚠️' : ''); break;
+                                    case 'Trundle': value = (room.trundle > 0 ? tickValue : '') + (needsAlert ? ' ⚠️' : ''); break;
+                                }
+                            }
+                            rowHtml += `<td class="p-3 text-center font-bold group-hover:bg-sky-50/70 ${alertClass}">${value}</td>`;
+                        });
+                        rowHtml += '</tr>';
+                    }
+                    tbody.innerHTML += rowHtml;
+                });
+
+                table.innerHTML = headerHtml; table.appendChild(tbody); tableWrapper.appendChild(table); return tableWrapper;
+            }
+
+            function createScreenListSection(title, content) {
+                const container = document.createElement('div');
+                container.className = 'mb-6 p-4 bg-sky-50 rounded-xl';
+                if (Array.isArray(content)) {
+                    const listContent = content.map(item => `<li class="ml-4">${item}</li>`).join('');
+                    container.innerHTML = `<h3 class="text-lg font-bold text-sky-800 mb-2">${title}</h3><ul class="list-disc text-gray-700">${listContent}</ul>`;
+                } else {
+                    container.innerHTML = `<h3 class="text-lg font-bold text-sky-800 mb-2">${title}</h3><p class="text-gray-700 font-medium">${content}</p>`;
+                }
+                return container;
+            }
+
+            function generatePrintView(rooms) {
+                printTableContainer.innerHTML = '';
+                const needsAlertKey = rooms.some(room => room.guests >= 3 && room.daybed === 0 && room.trundle === 0);
+                const hasTwinTurnaround = rooms.some(room => room.isTwinTurnaround);
+
+                const renderedExtras = HK_EXTRA_PRODUCTS.filter(item => {
+                    return rooms.some(room => {
+                        const key = item.key;
+                        let isRelevant = false;
+                        if (item.condition === 'DepartureDay') isRelevant = room.reportDateFormatted === room.endDateFormatted;
+                        else if (item.condition === 'ArrivalDay') isRelevant = room.reportDateFormatted === room.startDateFormatted;
+                        else if (item.condition === 'Arrival') isRelevant = room.status === 'Arrival' || room.status === 'Depart/Arrive';
+                        return (room[key] > 0 && isRelevant);
+                    });
+                });
+
+                let extrasListHtml = '';
+                if (showExtrasRowCheckbox.checked && renderedExtras.length > 0) {
+                     extrasListHtml = renderedExtras.map(item => {
+                         const name = item.name;
+                         const valueText = item.hasValue ? '(Total Value)' : '';
+                         return `<div style="display: flex; align-items: center; white-space: nowrap; margin-right: 1rem;"><span style="font-size: 1.25rem; margin-right: 0.3rem;">${item.emoji}</span><strong>${name}</strong> ${valueText}</div>`;
+                     }).join('');
+                }
+
+                let keyHtml = `<div style="border: 1px solid #334155; margin-bottom: 0.5rem; background: #f1f5f9; padding: 0.5rem 1rem;">
+                         <h4 style="font-size: 1.25rem; font-weight: bold; text-align: center; margin-bottom: 0.5rem;">Housekeeping Key</h4>
+                         <div style="display: flex; flex-wrap: wrap; justify-content: flex-start; align-items: center; gap: 0.75rem 1rem;">
+                            <div style="display: flex; flex-wrap: wrap; gap: 0.75rem 1rem; padding-right: 1rem; border-right: 1px solid #ccc;">
+                                <div style="display: flex; align-items: center; white-space: nowrap;"><span style="display: inline-block; width: 1rem; height: 1rem; background-color: #d8c9e5; margin-right: 0.5rem; border: 1px solid black;"></span><strong>Depart/Arrive</strong></div>
+                                <div style="display: flex; align-items: center; white-space: nowrap;"><span style="display: inline-block; width: 1rem; height: 1rem; background-color: #b3e6c9; margin-right: 0.5rem; border: 1px solid black;"></span><strong>Arrival</strong></div>
+                                <div style="display: flex; align-items: center; white-space: nowrap;"><span style="display: inline-block; width: 1rem; height: 1rem; background-color: #e0a6b5; margin-right: 0.5rem; border: 1px solid black;"></span><strong>Depart</strong></div>
+                                <div style="display: flex; align-items: center; white-space: nowrap;"><span style="display: inline-block; width: 1rem; height: 1rem; background-color: #c9d8e6; margin-right: 0.5rem; border: 1px solid black;"></span><strong>Stay</strong></div>
+                            </div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 0.75rem 1rem; padding-right: 1rem; border-right: 1px solid #ccc;">
+                                 ${hasTwinTurnaround ? `<div style="display: flex; align-items: center; white-space: nowrap;"><span style="margin-right: 0.5rem; font-size: 1.25rem;">⭐</span><strong>Twin Turnaround</strong></div>` : ''}
+                                 ${needsAlertKey ? `<div style="display: flex; align-items: center; white-space: nowrap;"><span style="margin-right: 0.5rem; font-size: 1.25rem;">⚠️</span><strong>Capacity Alert</strong></div>` : ''}
+                            </div>
+                            <div style="display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 0.75rem 1rem; padding-left: 0.5rem;">${extrasListHtml}</div>
+                         </div>
+                        </div>`; 
+
+                printTableContainer.innerHTML += keyHtml;
+
+                const floors = [{ title: 'Ground Floor', rooms: rooms.filter(r => parseInt(r.room) <= 6) }, { title: 'First Floor', rooms: rooms.filter(r => parseInt(r.room) >= 101 && parseInt(r.room) <= 130) }, { title: 'Second Floor', rooms: rooms.filter(r => parseInt(r.room) >= 201 && parseInt(r.room) <= 230) }];
+                floors.forEach(floor => { if (floor.rooms.length > 0) { const floorContainer = document.createElement('div'); floorContainer.className = 'floor-section-print'; floorContainer.innerHTML = `<h2 style="font-size: 1.5rem; font-weight: bold; margin-bottom: 0.5rem;">${floor.title}</h2>`; floorContainer.appendChild(createClassicPrintTable(floor.rooms)); printTableContainer.appendChild(floorContainer); } });
+
+                const listContainer = document.createElement('div'); listContainer.className = "floor-section-print";
+
+                if (showStayingRoomsListCheckbox.checked) {
+                    const staying = rooms.filter(r => r.status === 'Stay').map(r => r.room);
+                    if (staying.length > 0) listContainer.appendChild(createPrintListSection('Staying Rooms List', staying.join(', ')));
+                }
+
+                if (showPetRoomsListCheckbox.checked) { const pets = rooms.filter(r => r.pet > 0).map(r => r.room); if (pets.length > 0) listContainer.appendChild(createPrintListSection('Pet Rooms List', pets.join(', '))); }
+                if (showTwinRoomsListCheckbox.checked) { const twins = rooms.filter(r => r.twin > 0).map(r => r.room); if (twins.length > 0) listContainer.appendChild(createPrintListSection('Twin Rooms List', twins.join(', '))); }
+
+                if (showExtrasRoomsListCheckbox.checked) {
+                    const extraRooms = rooms.filter(room => {
+                        return HK_EXTRA_PRODUCTS.some(item => {
+                            const key = item.key;
+                            let isRelevant = false;
+                            if (item.condition === 'DepartureDay') isRelevant = room.reportDateFormatted === room.endDateFormatted;
+                            else if (item.condition === 'ArrivalDay') isRelevant = room.reportDateFormatted === room.startDateFormatted;
+                            else if (item.condition === 'Arrival') isRelevant = room.status === 'Arrival' || room.status === 'Depart/Arrive';
+                            return (room[key] > 0 && isRelevant);
+                        });
+                    });
+
+                    if (extraRooms.length > 0) {
+                        const listItems = extraRooms.map(room => {
+                            const activeItems = HK_EXTRA_PRODUCTS.filter(item => {
+                                const key = item.key;
+                                let isRelevant = false;
+                                if (item.condition === 'DepartureDay') isRelevant = room.reportDateFormatted === room.endDateFormatted;
+                                else if (item.condition === 'ArrivalDay') isRelevant = room.reportDateFormatted === room.startDateFormatted;
+                                else if (item.condition === 'Arrival') isRelevant = room.status === 'Arrival' || room.status === 'Depart/Arrive';
+                                return (room[key] > 0 && isRelevant);
+                            }).map(item => {
+                                let label = item.name;
+                                if (item.hasValue && room[`${item.key}Value`] > 0) label += ` (£${room[`${item.key}Value`]} Total)`;
+                                else if (item.hasValue && room[item.key] > 0) label += ` (Price N/A)`;
+                                return `<span style="font-size: 1rem;">${item.emoji}</span> ${label}`;
+                            });
+                            return `${room.room}: ${activeItems.join(', ')}`;
+                        });
+                        listContainer.appendChild(createPrintListSection('Extra List', listItems));
+                    }
+                }
+
+                if (listContainer.hasChildNodes()) printTableContainer.appendChild(listContainer);
+            }
+
+            function createClassicPrintTable(rooms) {
+                const table = document.createElement('table'); table.className = 'print-table-classic';
+                let headerHtml = '<thead><tr><th></th>';
+                rooms.forEach(room => { let printBgColor = '#f1f5f9'; if (room.status === 'Arrival') printBgColor = '#b3e6c9'; if (room.status === 'Depart') printBgColor = '#e0a6b5'; if (room.status === 'Depart/Arrive') printBgColor = '#d8c9e5'; if (room.status === 'Stay') printBgColor = '#c9d8e6'; headerHtml += `<th style="background-color: ${printBgColor};">${room.room}</th>`; });
+                headerHtml += '</tr></thead>';
+
+                const tbody = document.createElement('tbody');
+                const rows = [];
+                if (showUsedLastNightRowCheckbox.checked) rows.push('Used Last Night');
+                if (showArrivingTodayRowCheckbox.checked) rows.push('Arriving Today');
+                if (showGuestsRowCheckbox.checked) rows.push('Guests');
+                if (showPetRowCheckbox.checked) rows.push('Pet');
+                if (showTwinRowCheckbox.checked) rows.push('Twin');
+                if (showDaybedRowCheckbox.checked) rows.push('Daybed');
+                if (showTrundleRowCheckbox.checked) rows.push('Trundle');
+
+                const isExtrasRowVisible = showExtrasRowCheckbox.checked;
+                const hasExtraProducts = rooms.some(room =>
+                    HK_EXTRA_PRODUCTS.some(item => {
+                        const key = item.key;
+                        let isRelevant = false;
+                        if (item.condition === 'DepartureDay') isRelevant = room.reportDateFormatted === room.endDateFormatted;
+                        else if (item.condition === 'ArrivalDay') isRelevant = room.reportDateFormatted === room.startDateFormatted;
+                        else if (item.condition === 'Arrival') isRelevant = room.status === 'Arrival' || room.status === 'Depart/Arrive';
+                        return (room[key] > 0 && isRelevant);
+                    })
+                );
+
+                if (isExtrasRowVisible && hasExtraProducts) rows.push('Extra');
+
+                rows.forEach(feature => {
+                    let rowHtml = '';
+                    if (feature === 'Extra') {
+                        let rowContentHtml = `<tr><td style="font-align: left; padding: 0.5rem; background-color: #f1f5f9; border: 1px solid #334155; font-weight: bold; text-align: left;">Extra</td>`;
+                        rooms.forEach(room => {
+                            let extraItems = [];
+                            HK_EXTRA_PRODUCTS.forEach(item => {
+                                const key = item.key;
+                                let isRelevant = false;
+                                if (item.condition === 'DepartureDay') isRelevant = room.reportDateFormatted === room.endDateFormatted;
+                                else if (item.condition === 'ArrivalDay') isRelevant = room.reportDateFormatted === room.startDateFormatted;
+                                else if (item.condition === 'Arrival') isRelevant = room.status === 'Arrival' || room.status === 'Depart/Arrive';
+                                if (room[item.key] > 0 && isRelevant) {
+                                    extraItems.push(`<span>${item.emoji}</span>`);
+                                }
+                            });
+                            const cellContent = extraItems.join(' ');
+                            rowContentHtml += `<td style="text-align: center; border: 1px solid #334155; padding: 0.5rem; background-color: #ffffff;">${cellContent}</td>`;
+                        });
+                        rowContentHtml += '</tr>';
+                        rowHtml = rowContentHtml;
+                    } else {
+                        rowHtml = `<tr><td style="text-align: left; font-weight: bold; padding: 0.5rem; background-color: #f1f5f9;">${feature}</td>`;
+                        rooms.forEach(room => {
+                            let value = '';
+                            const needsAlert = room.guests >= 3 && room.daybed === 0 && room.trundle === 0;
+                            const printAlertStyle = needsAlert ? 'style="background-color: #fffbe6;"' : '';
+                            if (!((room.status === 'Stay' && !showStayingRoomInfoCheckbox.checked) || (room.status === 'Depart' && !showDepartingRoomInfoCheckbox.checked))) {
+                                const isUsed = room.status === 'Stay' || room.status === 'Depart' || room.status === 'Depart/Arrive';
+                                const isArriving = room.status === 'Arrival' || room.status === 'Depart' || room.status === 'Depart/Arrive';
+                                const tickValue = '✓';
+                                switch (feature) {
+                                    case 'Used Last Night': value = isUsed ? tickValue : ''; break;
+                                    case 'Arriving Today': value = isArriving ? tickValue : ''; break;
+                                    case 'Guests': value = room.guests > 0 ? room.guests : ''; break;
+                                    case 'Pet': value = room.pet > 0 ? room.pet : ''; break;
+                                    case 'Twin': value = room.twin > 0 ? (tickValue + (room.isTwinTurnaround ? '⭐' : '')) : ''; break;
+                                    case 'Daybed': value = (room.daybed > 0 ? tickValue : '') + (needsAlert ? ' ⚠️' : ''); break;
+                                    case 'Trundle': value = (room.trundle > 0 ? tickValue : '') + (needsAlert ? ' ⚠️' : ''); break;
+                                }
+                            }
+                            rowHtml += `<td style="text-align: center; border: 1px solid #334155; padding: 0.5rem;" ${printAlertStyle}>${value}</td>`;
+                        });
+                        rowHtml += '</tr>';
+                    }
+                    tbody.innerHTML += rowHtml;
+                });
+                table.innerHTML = headerHtml; table.appendChild(tbody); return table;
+            }
+
+            function createPrintListSection(title, content) {
+                const container = document.createElement('div');
+                container.style.marginBottom = '1rem';
+                if (Array.isArray(content)) {
+                    const listContent = content.map(item => `<li>${item}</li>`).join('');
+                    container.innerHTML = `<h3 style="font-size: 1.25rem; font-weight: bold; margin-bottom: 0.5rem; color: #075985;">${title}</h3><ul style="list-style: none; font-size: 1.1rem; padding-left: 0;">${listContent}</ul>`;
+                } else {
+                     container.innerHTML = `<h3 style="font-size: 1.25rem; font-weight: bold; margin-bottom: 0.5rem; color: #075985;">${title}</h3><p style="font-size: 1.1rem;">${content}</p>`;
+                }
+                return container;
+            }
+
+            function updateStatus(message, type) { statusDiv.textContent = message; statusDiv.className = 'text-center mt-4 font-semibold '; switch (type) { case 'error': statusDiv.classList.add('text-red-600'); break; case 'success': statusDiv.classList.add('text-green-600'); break; default: statusDiv.classList.add('text-gray-600'); break; } }
+            updateSparkleMode(isSparkleMode);
         }
-
     </script>
 </body>
 </html>
