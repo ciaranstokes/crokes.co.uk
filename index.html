@@ -663,7 +663,7 @@
             const showStayingRoomInfoCheckbox = document.getElementById('showStayingRoomInfo');
 
             const changeTickBtn = document.getElementById('changeTickBtn');
-            const currentTickEmojiSpan = document.getElementById('currentTickEmoji');
+            // FIX: Removed invalid getElementById call. The button itself acts as the display span.
             const petEmojiDisplay = document.getElementById('petEmojiDisplay');
             const sparkleModeTitle = document.getElementById('sparkleModeTitle');
             const sparkleOptionsContainer = document.getElementById('sparkleOptionsContainer');
@@ -997,7 +997,13 @@
             });
 
             sparkleModeTitle.addEventListener('click', () => { isSparkleMode = !isSparkleMode; updateSparkleMode(isSparkleMode); });
-            changeTickBtn.addEventListener('click', () => { if (isSparkleMode) { currentTickIndex = (currentTickIndex + 1) % tickEmojis.length; currentTickEmojiSpan.textContent = tickEmojis[currentTickIndex]; if (processedRooms.length > 0) renderOutput(processedRooms); } });
+            changeTickBtn.addEventListener('click', () => { 
+                if (isSparkleMode) { 
+                    currentTickIndex = (currentTickIndex + 1) % tickEmojis.length; 
+                    changeTickBtn.textContent = tickEmojis[currentTickIndex]; // FIX: Use button directly
+                    if (processedRooms.length > 0) renderOutput(processedRooms); 
+                } 
+            });
 
             function setupAutoGenerateListeners() {
                 const allCheckboxes = [...(document.getElementById('rowCheckboxes')?.querySelectorAll('input[type="checkbox"]') || []), ...(document.getElementById('listCheckboxes')?.querySelectorAll('input[type="checkbox"]') || [])];
@@ -1026,7 +1032,10 @@
             function updateSparkleMode(isSparkle) {
                 sparkleModeTitle.textContent = isSparkle ? '✨Sparkle Mode✨' : 'Work Mode';
                 sparkleOptionsContainer.classList.toggle('hidden', !isSparkle);
-                if (!isSparkle) { currentTickIndex = 0; currentTickEmojiSpan.textContent = tickEmojis[0]; }
+                if (!isSparkle) { 
+                    currentTickIndex = 0; 
+                    changeTickBtn.textContent = tickEmojis[0]; // FIX: Use button directly
+                }
                 if (processedRooms.length > 0) { renderOutput(processedRooms); updateStatus(`Mode changed.`, 'success'); }
             }
 
@@ -1291,7 +1300,7 @@
             updateSparkleMode(isSparkleMode);
         }
 
-        // --- FRONT HALL SCRIPT (NEW) ---
+        // --- FRONT HALL SCRIPT (UPDATED) ---
         let fh_parsedData = [];
         let fh_currentView = 'arrivals';
 
@@ -1302,178 +1311,122 @@
         function fh_processData() {
             const rawText = document.getElementById('fh-data-input').value;
             const dateInput = document.getElementById('fh-date-picker');
-
-            // Check for new format
-            if (rawText.includes('List Type')) {
-                fh_parseNewFormat(rawText, dateInput);
-                return;
-            }
             
-            if (!dateInput.value) {
-                const dateMatch = rawText.match(/(\d{2})\/([A-Za-z]{3})\/(\d{4})/);
-                if (dateMatch) {
-                     const months = {Jan:'01', Feb:'02', Mar:'03', Apr:'04', May:'05', Jun:'06', Jul:'07', Aug:'08', Sep:'09', Oct:'10', Nov:'11', Dec:'12'};
-                     dateInput.value = `${dateMatch[3]}-${months[dateMatch[2]]}-${dateMatch[1]}`;
-                }
-            }
-
-            // Use the new Import cleaner regex
+            // 1. Clean the text (Remove messy Import blocks but keep structure)
             const cleanText = rawText.replace(/---ImportStart---[\s\S]*?---ImportEnd---/g, '');
             const lines = cleanText.split('\n');
 
-            let currentSection = '';
             let rooms = [];
             let currentRoomObj = null;
+            let listType = 'arrivals'; // Default
 
-            const bookingLineRegex = /(\d{2}\/[A-Za-z]{3}\/\d{4})\s+(\d{2}\/[A-Za-z]{3}\/\d{4}).*?(BK\S+)\s+.*?\s+(\d{3})\s/;
-            const noteHeadersRegex = /^(Public Notes|Private Notes|Distribution Notes|Food & Beverage Notes|Housekeeping Notes|Confirmation Notes|Assistance Required|Car Reg|Imported PMS Ref|Extras)(:| \:)/i;
+            // 2. Auto-Detect List Type (Arrivals or Departures)
+            if (rawText.includes('List Type')) {
+                if (rawText.includes('Departures')) listType = 'departures';
+                else listType = 'arrivals';
+            }
+            
+            // Switch the UI view automatically
+            fh_currentView = listType;
+            fh_switchView(listType);
 
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i].trim();
-                if (!line) continue;
-
-                if (line.includes('Bedroom Arrivals')) { currentSection = 'Arrivals'; continue; }
-                if (line.includes('Bedroom Departures')) { currentSection = 'Departures'; continue; }
-                if (line.includes('Bedroom Residents')) { currentSection = 'Stay'; continue; } 
-                
-                let source = 'Internal';
-                if (line.toLowerCase().includes('booking.com')) source = 'Booking.com';
-                else if (line.toLowerCase().includes('expedia')) source = 'Expedia';
-                else if (line.toLowerCase().includes('guestline')) source = 'Guestline';
-                else if (line.toLowerCase().includes('transfer')) source = 'Transfer';
-                
-                const match = line.match(bookingLineRegex);
-                if (match) {
-                     const roomId = match[4];
-                     const dateIndex = line.indexOf(match[1]);
-                     let rawName = line.substring(0, dateIndex).trim();
-                     let guests = 2;
-                     const paxMatch = line.match(new RegExp(`${roomId}\\s+\\S+\\s+(\\d+)`));
-                     if(paxMatch) guests = parseInt(paxMatch[1], 10);
-
-                     currentRoomObj = {
-                         room: roomId,
-                         name: rawName,
-                         guests: guests,
-                         section: currentSection,
-                         source: source,
-                         bookRef: match[3],
-                         hasVCC: false, 
-                         notes: [] 
-                     };
-                     rooms.push(currentRoomObj);
-                } else if (currentRoomObj) {
-                    if (line.toLowerCase().includes('virtual credit card') || line.includes('VCC')) {
-                        currentRoomObj.hasVCC = true;
-                    }
-                    if (currentRoomObj.source === 'Internal') {
-                         if (line.toLowerCase().includes('booking.com')) currentRoomObj.source = 'Booking.com';
-                         else if (line.toLowerCase().includes('expedia')) currentRoomObj.source = 'Expedia';
-                    }
-                    if (noteHeadersRegex.test(line)) {
-                        let cleanLine = line.replace(/Distribution Notes:\s*smoking preference: Non-Smoking/i, '').trim();
-                        if(cleanLine) currentRoomObj.notes.push(cleanLine);
-                    }
-                    else if (line.includes('Prepayment:') || line.includes('VCC details:')) {
-                         currentRoomObj.notes.push(line);
-                    }
-                    else if (line.includes('BED PREFERENCE:')) {
-                         currentRoomObj.notes.push(line);
+            // 3. Auto-Detect Date from "From" header (Format: 30/11/2025)
+            if (!dateInput.value) {
+                const fromLine = lines.find(l => l.trim().startsWith('From') && l.includes('/'));
+                if (fromLine) {
+                    const dateMatch = fromLine.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+                    if (dateMatch) {
+                        dateInput.value = `${dateMatch[3]}-${dateMatch[2]}-${dateMatch[1]}`;
                     }
                 }
             }
-            
+
+            // 4. Regex for the Main Booking Row
+            // Format: Name | Date | Date | Room | Type | Adults | Kids | Infants | RatePlan
+            // Uses Regex to be flexible with tabs or multiple spaces
+            const mainRowRegex = /^(.*?)\s+(\d{2}\/\d{2}\/\d{4})\s+(\d{2}\/\d{2}\/\d{4})\s+(\d{3})\s+(\S+)\s+(\d+)\s+\d+\s+\d+\s+(\S+)/;
+
+            for (let i = 0; i < lines.length; i++) {
+                let line = lines[i].trim();
+                if (!line) continue;
+
+                // Skip system headers
+                if (['List Type', 'Arrivals', 'Departures', 'From', 'To', 'Bedrooms', 'Room Moves', 'Functions'].some(x => line.startsWith(x))) continue;
+
+                const rowMatch = line.match(mainRowRegex);
+
+                if (rowMatch) {
+                    // --- NEW RECORD FOUND ---
+                    const name = rowMatch[1].trim();
+                    const roomNum = rowMatch[4];
+                    const adults = parseInt(rowMatch[6]);
+                    const ratePlan = rowMatch[7];
+
+                    currentRoomObj = {
+                        room: roomNum,
+                        name: name,
+                        guests: adults,
+                        section: listType, 
+                        source: fh_determineSource(ratePlan),
+                        ratePlan: ratePlan,
+                        hasVCC: false,
+                        notes: []
+                    };
+                    rooms.push(currentRoomObj);
+
+                } else if (currentRoomObj) {
+                    // --- NOTES PROCESSING ---
+                    
+                    // Check for VCC (Virtual Credit Card) indicators
+                    if (line.toLowerCase().includes('virtual credit card') || line.includes('VCC')) {
+                        currentRoomObj.hasVCC = true;
+                    }
+                    if (line.includes('Expedia Virtual Card')) {
+                        currentRoomObj.hasVCC = true;
+                        currentRoomObj.source = 'Expedia'; // Reinforce source
+                    }
+
+                    // Clean and Add Notes
+                    const cleanNote = fh_cleanNoteLine(line);
+                    if (cleanNote) {
+                        currentRoomObj.notes.push(cleanNote);
+                    }
+                }
+            }
+
             fh_parsedData = rooms;
             fh_renderList();
         }
 
-        function fh_parseNewFormat(rawText, dateInput) {
-            const cleanText = rawText.replace(/---ImportStart---[\s\S]*?---ImportEnd---/g, '');
-            
-            if (!dateInput.value) {
-                const fromMatch = rawText.match(/From\s+([\d\/]+)/);
-                if (fromMatch) {
-                    const parts = fromMatch[1].split('/');
-                    if (parts.length === 3) dateInput.value = `${parts[2]}-${parts[1]}-${parts[0]}`;
-                }
-            }
-
-            let rooms = [];
-            let currentRoomObj = null;
-            
-            // Detect List Type
-            let defaultSection = 'Arrivals'; // Default
-            if (rawText.includes('List Type') && rawText.includes('Departures')) {
-                defaultSection = 'Departures';
-            }
-
-            // New format relies on tab separation or specific headers
-            // We look for the "Bedrooms" line to start
-            const lines = cleanText.split('\n');
-            let parsingBedrooms = false;
-            
-            for (let i = 0; i < lines.length; i++) {
-                let line = lines[i].trim();
-                if (!line) continue;
-                
-                if (line === 'Bedrooms') {
-                    parsingBedrooms = true;
-                    continue;
-                }
-                if (line === 'Room Moves' || line === 'Functions') {
-                    parsingBedrooms = false;
-                    continue;
-                }
-
-                if (parsingBedrooms) {
-                    // Try to match a booking row: Name Date Date Room Type Adults ...
-                    // e.g. Miss Jayne Andrews 30/11/2025 01/12/2025 101 02_MED_DBL 2 0 0 BOOTCREW_PKG 100.00
-                    // Regex: Name (Date) (Date) (Room)
-                    const rowMatch = line.match(/^(.+?)\t(\d{2}\/\d{2}\/\d{4})\t(\d{2}\/\d{2}\/\d{4})\t(\d{3})\t/);
-                    
-                    if (rowMatch) {
-                        currentRoomObj = {
-                            room: rowMatch[4],
-                            name: rowMatch[1],
-                            guests: 0, // Need to parse further if columns align, typically after Room Type
-                            section: defaultSection, // Use detected section
-                            source: 'Internal', // Default
-                            bookRef: '', // Not clearly in this row, maybe hidden
-                            hasVCC: false,
-                            notes: []
-                        };
-                        
-                        // Attempt to find pax count: it's after room type code
-                        const parts = line.split('\t');
-                        if (parts.length > 6) {
-                            currentRoomObj.guests = parseInt(parts[5]) || 1; 
-                        }
-                        
-                        rooms.push(currentRoomObj);
-                    } else if (currentRoomObj) {
-                        // It's a note line
-                        // Check for headers
-                        if (line.startsWith('Public Notes') || line.startsWith('Private Notes') || line.startsWith('Distribution Notes') || line.startsWith('Housekeeping Notes')) {
-                             // Remove the header label and add to notes
-                             let content = line.replace(/^(Public|Private|Distribution|Housekeeping) Notes\t?/, '').trim();
-                             if (content) currentRoomObj.notes.push(content);
-                        } else {
-                             // Could be just text on a new line?
-                             // Avoid adding "Page x of y" or report metadata
-                             if (!line.includes('Page ') && !line.includes('Total Bookings')) {
-                                 currentRoomObj.notes.push(line);
-                             }
-                        }
-                    }
-                }
-            }
-            
-            fh_parsedData = rooms;
-            // Auto-switch view to match the pasted data type
-            fh_currentView = defaultSection.toLowerCase();
-            fh_switchView(fh_currentView);
+        // --- HELPER: Determine Source from Rate Plan ---
+        function fh_determineSource(ratePlan) {
+            const rp = ratePlan.toUpperCase();
+            if (rp.includes('EXPEDIA')) return 'Expedia';
+            if (rp.includes('BOOK_RM') || rp.includes('BOOK_FLEX') || rp.includes('BOOK_FIX')) return 'Booking.com';
+            if (rp.includes('BOOTCREW') || rp.includes('ADVANCED') || rp.includes('WEEKEND') || rp.includes('FLEX') || rp.includes('CORPORATE')) return 'Direct';
+            return 'Internal';
         }
 
+        // --- HELPER: Clean Note Lines ---
+        function fh_cleanNoteLine(line) {
+            // Ignore pagination or report totals
+            if (line.startsWith('Total Bookings Found') || line.startsWith('Page ')) return null;
+            if (line.includes('smoking preference: Non-Smoking')) return null; // Too generic
+            if (line.includes('Room total including extras')) return null;
+
+            // Remove headers to make it read naturally
+            let content = line;
+            content = content.replace(/^(Public Notes|Private Notes|Distribution Notes|Housekeeping Notes)\t?/, '');
+            
+            // Clean up common system artifacts
+            content = content.replace(/Collect payment from guests at your property.*/i, 'Collect Payment from Guest.');
+            content = content.replace(/For cancellation and no-show fees.*/i, '');
+            
+            content = content.trim();
+            return content.length > 0 ? content : null;
+        }
+
+        // --- RENDER FUNCTIONS ---
         function fh_renderList() {
             const container = document.getElementById('fh-list-content');
             const placeholder = document.getElementById('fh-placeholder');
@@ -1487,9 +1440,7 @@
             container.classList.remove('hidden');
             placeholder.classList.add('hidden');
 
-            // In the new format, everything is likely an "Arrival" if the file is "Arrivals"
-            // If mixed, we filter.
-            const viewData = fh_parsedData.filter(r => r.section.toLowerCase().includes(fh_currentView === 'arrivals' ? 'arrival' : 'departure'));
+            const viewData = fh_parsedData.filter(r => r.section === fh_currentView);
             viewData.sort((a, b) => parseInt(a.room) - parseInt(b.room));
 
             let html = `<h3 class="text-xl font-bold text-gray-800 mb-4 capitalize">${fh_currentView} (${viewData.length})</h3>`;
@@ -1514,7 +1465,7 @@
                         </div>
                         <div class="mt-2 sm:mt-0 w-full sm:w-1/2 text-sm text-gray-600">
                             ${room.hasVCC ? '<div class="vcc-alert">VCC Alert</div>' : ''}
-                            ${room.notes.map(n => `<div class="note-line">${n.replace(/^([^:]+):/, '<span class="note-label">$1</span>')}</div>`).join('')}
+                            ${room.notes.map(n => `<div class="note-line">${n}</div>`).join('')}
                         </div>
                     </div>`;
                 });
@@ -1560,20 +1511,13 @@
         function fh_printCurrentView() {
             if (!fh_parsedData || fh_parsedData.length === 0) { alert("No data to print"); return; }
             const viewName = fh_currentView === 'arrivals' ? 'Arrival' : 'Departure';
-            const filterKey = fh_currentView === 'arrivals' ? 'arrival' : 'departure';
-            const dataToPrint = fh_parsedData.filter(r => r.section.toLowerCase().includes(filterKey));
+            const dataToPrint = fh_parsedData.filter(r => r.section === fh_currentView);
             dataToPrint.sort((a, b) => parseInt(a.room) - parseInt(b.room));
             
             const dateVal = document.getElementById('fh-date-picker').value;
             const dateObj = dateVal ? new Date(dateVal) : new Date();
             const dateStr = dateObj.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
-            // Removed splitting into floors
-            // const ground = dataToPrint.filter(r => parseInt(r.room) < 100);
-            // const first = dataToPrint.filter(r => parseInt(r.room) >= 100 && parseInt(r.room) < 200);
-            // const second = dataToPrint.filter(r => parseInt(r.room) >= 200);
-
-            // One unified section creation function
             const createPrintSection = (title, rooms) => {
                 if (rooms.length === 0) return '';
                 let rows = rooms.map(r => `
