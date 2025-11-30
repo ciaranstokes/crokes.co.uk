@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Room Extractor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .whatsapp-bg { background-color: #E5DDD5; }
+        .message-bubble { background-color: #DCF8C6; box-shadow: 0 1px 0.5px rgba(0,0,0,0.13); }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col items-center py-8 px-4">
+
+    <div class="w-full max-w-2xl bg-white rounded-xl shadow-lg overflow-hidden">
+        
+        <!-- Header -->
+        <div class="bg-teal-600 p-6">
+            <h1 class="text-white text-2xl font-bold flex items-center gap-2">
+                <i class="fa-solid fa-hotel"></i> Room Extractor
+            </h1>
+            <p class="text-teal-100 mt-2 text-sm">Paste your departure report below to generate the checkout list.</p>
+        </div>
+
+        <div class="p-6 space-y-6">
+            
+            <!-- Input Section -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Paste Report Data</label>
+                <textarea id="inputData" rows="6" 
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition text-sm font-mono"
+                    placeholder="Paste the text from your file here (e.g., 'Mr Owen Kitchen... 001...')"></textarea>
+            </div>
+
+            <!-- Action Button -->
+            <button onclick="processData()" 
+                class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-6 rounded-lg transition transform active:scale-95 shadow-md flex justify-center items-center gap-2">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Message
+            </button>
+
+            <!-- Output Section -->
+            <div id="outputContainer" class="hidden">
+                <div class="flex justify-between items-center mb-2">
+                    <label class="block text-sm font-medium text-gray-700">Preview</label>
+                    <span id="copyFeedback" class="text-xs font-bold text-teal-600 opacity-0 transition-opacity">Copied!</span>
+                </div>
+                
+                <!-- Whatsapp Style Preview -->
+                <div class="whatsapp-bg p-4 rounded-lg border border-gray-200">
+                    <div class="message-bubble p-3 rounded-lg text-gray-800 text-sm leading-relaxed relative max-w-[90%]">
+                        <div id="outputPreview" class="whitespace-pre-wrap font-sans"></div>
+                        <div class="text-[10px] text-gray-500 text-right mt-1 flex justify-end items-center gap-1">
+                            <span id="msgTime"></span>
+                            <i class="fa-solid fa-check-double text-blue-400"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Copy Button -->
+                <button onclick="copyToClipboard()" 
+                    class="mt-4 w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold py-2 px-4 rounded-lg transition shadow-sm flex justify-center items-center gap-2">
+                    <i class="fa-regular fa-copy"></i> Copy to Clipboard
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        function processData() {
+            const input = document.getElementById('inputData').value;
+            const outputContainer = document.getElementById('outputContainer');
+            const outputPreview = document.getElementById('outputPreview');
+            const msgTime = document.getElementById('msgTime');
+            
+            if (!input.trim()) {
+                alert("Please paste some data first!");
+                return;
+            }
+
+            const lines = input.split('\n');
+            const rooms = [];
+
+            // Regex looks for: tab -> Date (DD/MM/YYYY) -> tab -> 3 Digits (The Room) -> tab
+            // This ensures we don't accidentally pick up rates or years
+            const roomRegex = /\t\d{2}\/\d{2}\/\d{4}\t(\d{3})\t/;
+
+            lines.forEach(line => {
+                const match = line.match(roomRegex);
+                if (match && match[1]) {
+                    rooms.push(match[1]);
+                }
+            });
+
+            if (rooms.length === 0) {
+                alert("No room numbers found. Make sure you pasted the correct format (Date followed by Room Number).");
+                return;
+            }
+
+            // Sort rooms numerically
+            rooms.sort((a, b) => parseInt(a) - parseInt(b));
+
+            // Grouping logic
+            const ground = rooms.filter(r => r.startsWith('0'));
+            const first = rooms.filter(r => r.startsWith('1'));
+            const second = rooms.filter(r => r.startsWith('2'));
+            // Optional: catch any that don't fit standard floors (e.g. 3rd floor or cottages)
+            const others = rooms.filter(r => !r.startsWith('0') && !r.startsWith('1') && !r.startsWith('2'));
+
+            // Build the message string
+            const now = new Date();
+            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }).toLowerCase();
+            
+            let message = `Checkouts as of ${timeString}\n\n`;
+            
+            if (ground.length > 0) message += `Ground: ${ground.join(', ')}\n\n`;
+            if (first.length > 0) message += `First: ${first.join(', ')}\n\n`;
+            if (second.length > 0) message += `Second: ${second.join(', ')}\n\n`;
+            if (others.length > 0) message += `Others: ${others.join(', ')}\n`;
+
+            // Remove trailing newlines
+            message = message.trim();
+
+            // Render
+            outputPreview.textContent = message;
+            msgTime.textContent = timeString.replace(/(am|pm)/, ''); // Simple time for the bubble footer
+            outputContainer.classList.remove('hidden');
+        }
+
+        function copyToClipboard() {
+            const text = document.getElementById('outputPreview').textContent;
+            
+            // Fallback for older browsers or iframe restrictions
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            
+            // Ensure textarea is not visible but part of DOM
+            textArea.style.position = "fixed";
+            textArea.style.left = "-9999px";
+            textArea.style.top = "0";
+            document.body.appendChild(textArea);
+            
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                showCopyFeedback();
+            } catch (err) {
+                console.error('Fallback: Oops, unable to copy', err);
+                // Try modern API as backup (may fail in some iframe contexts without permissions)
+                navigator.clipboard.writeText(text).then(showCopyFeedback).catch(e => alert("Could not copy automatically. Please select the text and copy manually."));
+            }
+            
+            document.body.removeChild(textArea);
+        }
+
+        function showCopyFeedback() {
+            const feedback = document.getElementById('copyFeedback');
+            feedback.style.opacity = '1';
+            setTimeout(() => {
+                feedback.style.opacity = '0';
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
