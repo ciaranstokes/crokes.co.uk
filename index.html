@@ -61,7 +61,7 @@
             font-weight: 600; 
         }
 
-        /* --- Front Hall Styles (Imported from ResHub_old) --- */
+        /* --- Front Hall Styles --- */
         .source-badge {
             font-size: 0.7rem;
             padding: 2px 8px;
@@ -116,16 +116,22 @@
             .no-print { display: none !important; }
 
             /* General Print Table for Front Hall & Breakfast */
-            .print-section-table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
+            .print-section-table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
             .print-section-table th, .print-section-table td {
                 border: 1px solid #ddd;
-                padding: 8px;
+                padding: 4px 6px; /* Reduced padding for compactness */
                 text-align: left;
                 vertical-align: top; /* Ensure notes start at top */
+                font-size: 0.85rem; /* Smaller font for compactness */
             }
             .print-section-table th {
                 background-color: #f3f4f6 !important;
                 font-weight: bold;
+                font-size: 0.9rem;
+            }
+            /* Prevent rows from splitting across pages */
+            .print-section-table tr {
+                page-break-inside: avoid;
             }
             .page-break { page-break-before: always; }
 
@@ -174,7 +180,7 @@
             }
 
             /* Kitchen Products Print */
-            @page { size: A4 portrait; margin: 0.4in 0.75in; }
+            @page { size: A4 portrait; margin: 0.3in 0.4in; } /* Tighter margins */
             #kitchen-app-container #results, #kitchen-app-container #results * { visibility: visible; }
             #kitchen-app-container #results { position: absolute; left: 0; top: 0; width: 100%; padding: 0; }
             #kitchen-app-container #reportTitle { display: block !important; color: #581c87 !important; text-align: center; font-size: 1.5rem; font-weight: bold; margin-bottom: 1rem; }
@@ -242,7 +248,7 @@
                             <div class="flex flex-col gap-6 no-print">
                                 <div class="bg-white p-6 rounded-2xl border border-gray-200/80">
                                     <label for="orderData" class="block text-sm font-bold text-green-800 mb-2">Breakfast Data (Paste Here)</label>
-                                    <textarea id="orderData" oninput="breakfast_calculateTotal()" rows="4" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-green-300 focus:border-green-400" placeholder="Paste Rezlynx data here..."></textarea>
+                                    <textarea id="orderData" oninput="breakfast_calculateTotal()" rows="4" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-green-300 focus:border-green-400 transition duration-150 ease-in-out" placeholder="Paste Rezlynx data here..."></textarea>
                                 </div>
                                 <div class="bg-green-100 p-6 rounded-2xl text-center border border-green-200">
                                     <h2 class="text-lg font-semibold text-green-800 mb-2">Total Breakfasts</h2>
@@ -398,7 +404,7 @@
                         <div class="lg:col-span-1 flex flex-col gap-4">
                             <div class="bg-white p-6 rounded-3xl border border-orange-200 shadow-lg">
                                 <label for="fh-data-input" class="block text-lg font-bold text-gray-800 mb-2">Paste Report Data</label>
-                                <textarea id="fh-data-input" oninput="fh_processData()" rows="12" class="w-full p-4 bg-orange-50/50 border border-orange-200 rounded-2xl focus:ring-2 focus:ring-orange-400 focus:border-orange-500 transition resize-none" placeholder="Paste Rezlynx House Status data here..."></textarea>
+                                <textarea id="fh-data-input" oninput="fh_processData()" rows="12" class="w-full p-4 bg-orange-50/50 border border-orange-200 rounded-2xl focus:ring-2 focus:ring-orange-400 focus:border-orange-500 transition resize-none min-h-[300px]" placeholder="Paste Rezlynx House Status or Arrivals data here..."></textarea>
                                 <div class="mt-4 flex gap-3">
                                      <button onclick="fh_printCurrentView()" class="flex-1 bg-gray-800 text-white font-bold py-3 rounded-xl hover:bg-gray-900 transition shadow-md flex items-center justify-center gap-2">
                                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
@@ -1269,192 +1275,6 @@
                 table.innerHTML = headerHtml; table.appendChild(tbody); tableWrapper.appendChild(table); return tableWrapper;
             }
 
-            function createScreenListSection(title, content) {
-                const container = document.createElement('div');
-                container.className = 'mb-6 p-4 bg-sky-50 rounded-xl';
-                if (Array.isArray(content)) {
-                    const listContent = content.map(item => `<li class="ml-4">${item}</li>`).join('');
-                    container.innerHTML = `<h3 class="text-lg font-bold text-sky-800 mb-2">${title}</h3><ul class="list-disc text-gray-700">${listContent}</ul>`;
-                } else {
-                    container.innerHTML = `<h3 class="text-lg font-bold text-sky-800 mb-2">${title}</h3><p class="text-gray-700 font-medium">${content}</p>`;
-                }
-                return container;
-            }
-
-            function generatePrintView(rooms) {
-                printTableContainer.innerHTML = '';
-                const needsAlertKey = rooms.some(room => room.guests >= 3 && room.daybed === 0 && room.trundle === 0);
-                const hasTwinTurnaround = rooms.some(room => room.isTwinTurnaround);
-
-                const renderedExtras = HK_EXTRA_PRODUCTS.filter(item => {
-                    return rooms.some(room => {
-                        const key = item.key;
-                        let isRelevant = false;
-                        if (item.condition === 'DepartureDay') isRelevant = room.reportDateFormatted === room.endDateFormatted;
-                        else if (item.condition === 'ArrivalDay') isRelevant = room.reportDateFormatted === room.startDateFormatted;
-                        else if (item.condition === 'Arrival') isRelevant = room.status === 'Arrival' || room.status === 'Depart/Arrive';
-                        return (room[key] > 0 && isRelevant);
-                    });
-                });
-
-                let extrasListHtml = '';
-                if (showExtrasRowCheckbox.checked && renderedExtras.length > 0) {
-                     extrasListHtml = renderedExtras.map(item => {
-                         const name = item.name;
-                         const valueText = item.hasValue ? '(Total Value)' : '';
-                         return `<div style="display: flex; align-items: center; white-space: nowrap; margin-right: 1rem;"><span style="font-size: 1.25rem; margin-right: 0.3rem;">${item.emoji}</span><strong>${name}</strong> ${valueText}</div>`;
-                     }).join('');
-                }
-
-                let keyHtml = `<div style="border: 1px solid #334155; margin-bottom: 0.5rem; background: #f1f5f9; padding: 0.5rem 1rem;">
-                         <h4 style="font-size: 1.25rem; font-weight: bold; text-align: center; margin-bottom: 0.5rem;">Housekeeping Key</h4>
-                         <div style="display: flex; flex-wrap: wrap; justify-content: flex-start; align-items: center; gap: 0.75rem 1rem;">
-                            <div style="display: flex; flex-wrap: wrap; gap: 0.75rem 1rem; padding-right: 1rem; border-right: 1px solid #ccc;">
-                                <div style="display: flex; align-items: center; white-space: nowrap;"><span style="display: inline-block; width: 1rem; height: 1rem; background-color: #d8c9e5; margin-right: 0.5rem; border: 1px solid black;"></span><strong>Depart/Arrive</strong></div>
-                                <div style="display: flex; align-items: center; white-space: nowrap;"><span style="display: inline-block; width: 1rem; height: 1rem; background-color: #b3e6c9; margin-right: 0.5rem; border: 1px solid black;"></span><strong>Arrival</strong></div>
-                                <div style="display: flex; align-items: center; white-space: nowrap;"><span style="display: inline-block; width: 1rem; height: 1rem; background-color: #e0a6b5; margin-right: 0.5rem; border: 1px solid black;"></span><strong>Depart</strong></div>
-                                <div style="display: flex; align-items: center; white-space: nowrap;"><span style="display: inline-block; width: 1rem; height: 1rem; background-color: #c9d8e6; margin-right: 0.5rem; border: 1px solid black;"></span><strong>Stay</strong></div>
-                            </div>
-                            <div style="display: flex; flex-wrap: wrap; gap: 0.75rem 1rem; padding-right: 1rem; border-right: 1px solid #ccc;">
-                                 ${hasTwinTurnaround ? `<div style="display: flex; align-items: center; white-space: nowrap;"><span style="margin-right: 0.5rem; font-size: 1.25rem;">⭐</span><strong>Twin Turnaround</strong></div>` : ''}
-                                 ${needsAlertKey ? `<div style="display: flex; align-items: center; white-space: nowrap;"><span style="margin-right: 0.5rem; font-size: 1.25rem;">⚠️</span><strong>Capacity Alert</strong></div>` : ''}
-                            </div>
-                            <div style="display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 0.75rem 1rem; padding-left: 0.5rem;">${extrasListHtml}</div>
-                         </div>
-                        </div>`; 
-
-                printTableContainer.innerHTML += keyHtml;
-
-                const floors = [{ title: 'Ground Floor', rooms: rooms.filter(r => parseInt(r.room) <= 6) }, { title: 'First Floor', rooms: rooms.filter(r => parseInt(r.room) >= 101 && parseInt(r.room) <= 130) }, { title: 'Second Floor', rooms: rooms.filter(r => parseInt(r.room) >= 201 && parseInt(r.room) <= 230) }];
-                floors.forEach(floor => { if (floor.rooms.length > 0) { const floorContainer = document.createElement('div'); floorContainer.className = 'floor-section-print'; floorContainer.innerHTML = `<h2 style="font-size: 1.5rem; font-weight: bold; margin-bottom: 0.5rem;">${floor.title}</h2>`; floorContainer.appendChild(createClassicPrintTable(floor.rooms)); printTableContainer.appendChild(floorContainer); } });
-
-                const listContainer = document.createElement('div'); listContainer.className = "floor-section-print";
-
-                if (showStayingRoomsListCheckbox.checked) {
-                    const staying = rooms.filter(r => r.status === 'Stay').map(r => r.room);
-                    if (staying.length > 0) listContainer.appendChild(createPrintListSection('Staying Rooms List', staying.join(', ')));
-                }
-
-                if (showPetRoomsListCheckbox.checked) { const pets = rooms.filter(r => r.pet > 0).map(r => r.room); if (pets.length > 0) listContainer.appendChild(createPrintListSection('Pet Rooms List', pets.join(', '))); }
-                if (showTwinRoomsListCheckbox.checked) { const twins = rooms.filter(r => r.twin > 0).map(r => r.room); if (twins.length > 0) listContainer.appendChild(createPrintListSection('Twin Rooms List', twins.join(', '))); }
-
-                if (showExtrasRoomsListCheckbox.checked) {
-                    const extraRooms = rooms.filter(room => {
-                        return HK_EXTRA_PRODUCTS.some(item => {
-                            const key = item.key;
-                            let isRelevant = false;
-                            if (item.condition === 'DepartureDay') isRelevant = room.reportDateFormatted === room.endDateFormatted;
-                            else if (item.condition === 'ArrivalDay') isRelevant = room.reportDateFormatted === room.startDateFormatted;
-                            else if (item.condition === 'Arrival') isRelevant = room.status === 'Arrival' || room.status === 'Depart/Arrive';
-                            return (room[key] > 0 && isRelevant);
-                        });
-                    });
-
-                    if (extraRooms.length > 0) {
-                        const listItems = extraRooms.map(room => {
-                            const activeItems = HK_EXTRA_PRODUCTS.filter(item => {
-                                const key = item.key;
-                                let isRelevant = false;
-                                if (item.condition === 'DepartureDay') isRelevant = room.reportDateFormatted === room.endDateFormatted;
-                                else if (item.condition === 'ArrivalDay') isRelevant = room.reportDateFormatted === room.startDateFormatted;
-                                else if (item.condition === 'Arrival') isRelevant = room.status === 'Arrival' || room.status === 'Depart/Arrive';
-                                return (room[key] > 0 && isRelevant);
-                            }).map(item => {
-                                let label = item.name;
-                                if (item.hasValue && room[`${item.key}Value`] > 0) label += ` (£${room[`${item.key}Value`]} Total)`;
-                                else if (item.hasValue && room[item.key] > 0) label += ` (Price N/A)`;
-                                return `${item.emoji} ${label}`;
-                            });
-                            return `${room.room}: ${activeItems.join(', ')}`;
-                        });
-                        listContainer.appendChild(createPrintListSection('Extra List', listItems));
-                    }
-                }
-
-                if (listContainer.hasChildNodes()) printTableContainer.appendChild(listContainer);
-            }
-
-            function createClassicPrintTable(rooms) {
-                const table = document.createElement('table'); table.className = 'print-table-classic';
-                let headerHtml = '<thead><tr><th></th>';
-                rooms.forEach(room => { let printBgColor = '#f1f5f9'; if (room.status === 'Arrival') printBgColor = '#b3e6c9'; if (room.status === 'Depart') printBgColor = '#e0a6b5'; if (room.status === 'Depart/Arrive') printBgColor = '#d8c9e5'; if (room.status === 'Stay') printBgColor = '#c9d8e6'; headerHtml += `<th style="background-color: ${printBgColor};">${room.room}</th>`; });
-                headerHtml += '</tr></thead>';
-
-                const tbody = document.createElement('tbody');
-                const rows = [];
-                if (showUsedLastNightRowCheckbox.checked) rows.push('Used Last Night');
-                if (showArrivingTodayRowCheckbox.checked) rows.push('Arriving Today');
-                if (showGuestsRowCheckbox.checked) rows.push('Guests');
-                if (showPetRowCheckbox.checked) rows.push('Pet');
-                if (showTwinRowCheckbox.checked) rows.push('Twin');
-                if (showDaybedRowCheckbox.checked) rows.push('Daybed');
-                if (showTrundleRowCheckbox.checked) rows.push('Trundle');
-
-                const isExtrasRowVisible = showExtrasRowCheckbox.checked;
-
-                const hasExtraProducts = rooms.some(room =>
-                    HK_EXTRA_PRODUCTS.some(item => {
-                        const key = item.key;
-                        let isRelevant = false;
-                        if (item.condition === 'DepartureDay') isRelevant = room.reportDateFormatted === room.endDateFormatted;
-                        else if (item.condition === 'ArrivalDay') isRelevant = room.reportDateFormatted === room.startDateFormatted;
-                        else if (item.condition === 'Arrival') isRelevant = room.status === 'Arrival' || room.status === 'Depart/Arrive';
-                        return (room[key] > 0 && isRelevant);
-                    })
-                );
-
-                if (isExtrasRowVisible && hasExtraProducts) rows.push('Extra');
-
-                rows.forEach(feature => {
-                    let rowHtml = '';
-                    if (feature === 'Extra') {
-                        let rowContentHtml = `<tr><td style="font-align: left; padding: 0.5rem; background-color: #f1f5f9; border: 1px solid #334155; font-weight: bold; text-align: left;">Extra</td>`;
-                        rooms.forEach(room => {
-                            let extraItems = [];
-                            HK_EXTRA_PRODUCTS.forEach(item => {
-                                const key = item.key;
-                                let isRelevant = false;
-                                if (item.condition === 'DepartureDay') isRelevant = room.reportDateFormatted === room.endDateFormatted;
-                                else if (item.condition === 'ArrivalDay') isRelevant = room.reportDateFormatted === room.startDateFormatted;
-                                else if (item.condition === 'Arrival') isRelevant = room.status === 'Arrival' || room.status === 'Depart/Arrive';
-                                if (room[item.key] > 0 && isRelevant) {
-                                    extraItems.push(`<span>${item.emoji}</span>`);
-                                }
-                            });
-                            const cellContent = extraItems.join(' ');
-                            rowContentHtml += `<td style="text-align: center; border: 1px solid #334155; padding: 0.5rem; background-color: #ffffff;">${cellContent}</td>`;
-                        });
-                        rowContentHtml += '</tr>';
-                        rowHtml = rowContentHtml;
-                    } else {
-                        rowHtml = `<tr><td style="text-align: left; font-weight: bold; padding: 0.5rem; background-color: #f1f5f9;">${feature}</td>`;
-                        rooms.forEach(room => {
-                            let value = '';
-                            const needsAlert = room.guests >= 3 && room.daybed === 0 && room.trundle === 0;
-                            const printAlertStyle = needsAlert ? 'style="background-color: #fffbe6;"' : '';
-                            if (!((room.status === 'Stay' && !showStayingRoomInfoCheckbox.checked) || (room.status === 'Depart' && !showDepartingRoomInfoCheckbox.checked))) {
-                                const isUsed = room.status === 'Stay' || room.status === 'Depart' || room.status === 'Depart/Arrive';
-                                const isArriving = room.status === 'Arrival' || room.status === 'Depart' || room.status === 'Depart/Arrive';
-                                const tickValue = '✓';
-                                switch (feature) {
-                                    case 'Used Last Night': value = isUsed ? tickValue : ''; break;
-                                    case 'Arriving Today': value = isArriving ? tickValue : ''; break;
-                                    case 'Guests': value = room.guests > 0 ? room.guests : ''; break;
-                                    case 'Pet': value = room.pet > 0 ? room.pet : ''; break;
-                                    case 'Twin': value = room.twin > 0 ? (tickValue + (room.isTwinTurnaround ? '⭐' : '')) : ''; break;
-                                    case 'Daybed': value = (room.daybed > 0 ? tickValue : '') + (needsAlert ? ' ⚠️' : ''); break;
-                                    case 'Trundle': value = (room.trundle > 0 ? tickValue : '') + (needsAlert ? ' ⚠️' : ''); break;
-                                }
-                            }
-                            rowHtml += `<td style="text-align: center; border: 1px solid #334155; padding: 0.5rem;" ${printAlertStyle}>${value}</td>`;
-                        });
-                        rowHtml += '</tr>';
-                    }
-                    tbody.innerHTML += rowHtml;
-                });
-                table.innerHTML = headerHtml; table.appendChild(tbody); return table;
-            }
-
             function createPrintListSection(title, content) {
                 const container = document.createElement('div');
                 container.style.marginBottom = '1rem';
@@ -1482,6 +1302,12 @@
         function fh_processData() {
             const rawText = document.getElementById('fh-data-input').value;
             const dateInput = document.getElementById('fh-date-picker');
+
+            // Check for new format
+            if (rawText.includes('List Type')) {
+                fh_parseNewFormat(rawText, dateInput);
+                return;
+            }
             
             if (!dateInput.value) {
                 const dateMatch = rawText.match(/(\d{2})\/([A-Za-z]{3})\/(\d{4})/);
@@ -1491,7 +1317,10 @@
                 }
             }
 
-            const lines = rawText.split('\n');
+            // Use the new Import cleaner regex
+            const cleanText = rawText.replace(/---ImportStart---[\s\S]*?---ImportEnd---/g, '');
+            const lines = cleanText.split('\n');
+
             let currentSection = '';
             let rooms = [];
             let currentRoomObj = null;
@@ -1558,6 +1387,93 @@
             fh_renderList();
         }
 
+        function fh_parseNewFormat(rawText, dateInput) {
+            const cleanText = rawText.replace(/---ImportStart---[\s\S]*?---ImportEnd---/g, '');
+            
+            if (!dateInput.value) {
+                const fromMatch = rawText.match(/From\s+([\d\/]+)/);
+                if (fromMatch) {
+                    const parts = fromMatch[1].split('/');
+                    if (parts.length === 3) dateInput.value = `${parts[2]}-${parts[1]}-${parts[0]}`;
+                }
+            }
+
+            let rooms = [];
+            let currentRoomObj = null;
+            
+            // Detect List Type
+            let defaultSection = 'Arrivals'; // Default
+            if (rawText.includes('List Type') && rawText.includes('Departures')) {
+                defaultSection = 'Departures';
+            }
+
+            // New format relies on tab separation or specific headers
+            // We look for the "Bedrooms" line to start
+            const lines = cleanText.split('\n');
+            let parsingBedrooms = false;
+            
+            for (let i = 0; i < lines.length; i++) {
+                let line = lines[i].trim();
+                if (!line) continue;
+                
+                if (line === 'Bedrooms') {
+                    parsingBedrooms = true;
+                    continue;
+                }
+                if (line === 'Room Moves' || line === 'Functions') {
+                    parsingBedrooms = false;
+                    continue;
+                }
+
+                if (parsingBedrooms) {
+                    // Try to match a booking row: Name Date Date Room Type Adults ...
+                    // e.g. Miss Jayne Andrews 30/11/2025 01/12/2025 101 02_MED_DBL 2 0 0 BOOTCREW_PKG 100.00
+                    // Regex: Name (Date) (Date) (Room)
+                    const rowMatch = line.match(/^(.+?)\t(\d{2}\/\d{2}\/\d{4})\t(\d{2}\/\d{2}\/\d{4})\t(\d{3})\t/);
+                    
+                    if (rowMatch) {
+                        currentRoomObj = {
+                            room: rowMatch[4],
+                            name: rowMatch[1],
+                            guests: 0, // Need to parse further if columns align, typically after Room Type
+                            section: defaultSection, // Use detected section
+                            source: 'Internal', // Default
+                            bookRef: '', // Not clearly in this row, maybe hidden
+                            hasVCC: false,
+                            notes: []
+                        };
+                        
+                        // Attempt to find pax count: it's after room type code
+                        const parts = line.split('\t');
+                        if (parts.length > 6) {
+                            currentRoomObj.guests = parseInt(parts[5]) || 1; 
+                        }
+                        
+                        rooms.push(currentRoomObj);
+                    } else if (currentRoomObj) {
+                        // It's a note line
+                        // Check for headers
+                        if (line.startsWith('Public Notes') || line.startsWith('Private Notes') || line.startsWith('Distribution Notes') || line.startsWith('Housekeeping Notes')) {
+                             // Remove the header label and add to notes
+                             let content = line.replace(/^(Public|Private|Distribution|Housekeeping) Notes\t?/, '').trim();
+                             if (content) currentRoomObj.notes.push(content);
+                        } else {
+                             // Could be just text on a new line?
+                             // Avoid adding "Page x of y" or report metadata
+                             if (!line.includes('Page ') && !line.includes('Total Bookings')) {
+                                 currentRoomObj.notes.push(line);
+                             }
+                        }
+                    }
+                }
+            }
+            
+            fh_parsedData = rooms;
+            // Auto-switch view to match the pasted data type
+            fh_currentView = defaultSection.toLowerCase();
+            fh_switchView(fh_currentView);
+        }
+
         function fh_renderList() {
             const container = document.getElementById('fh-list-content');
             const placeholder = document.getElementById('fh-placeholder');
@@ -1571,6 +1487,8 @@
             container.classList.remove('hidden');
             placeholder.classList.add('hidden');
 
+            // In the new format, everything is likely an "Arrival" if the file is "Arrivals"
+            // If mixed, we filter.
             const viewData = fh_parsedData.filter(r => r.section.toLowerCase().includes(fh_currentView === 'arrivals' ? 'arrival' : 'departure'));
             viewData.sort((a, b) => parseInt(a.room) - parseInt(b.room));
 
@@ -1650,10 +1568,12 @@
             const dateObj = dateVal ? new Date(dateVal) : new Date();
             const dateStr = dateObj.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
-            const ground = dataToPrint.filter(r => parseInt(r.room) < 100);
-            const first = dataToPrint.filter(r => parseInt(r.room) >= 100 && parseInt(r.room) < 200);
-            const second = dataToPrint.filter(r => parseInt(r.room) >= 200);
+            // Removed splitting into floors
+            // const ground = dataToPrint.filter(r => parseInt(r.room) < 100);
+            // const first = dataToPrint.filter(r => parseInt(r.room) >= 100 && parseInt(r.room) < 200);
+            // const second = dataToPrint.filter(r => parseInt(r.room) >= 200);
 
+            // One unified section creation function
             const createPrintSection = (title, rooms) => {
                 if (rooms.length === 0) return '';
                 let rows = rooms.map(r => `
@@ -1672,11 +1592,11 @@
                         </td>
                     </tr>
                 `).join('');
-                return `<div style="margin-bottom: 20px;"><h3 style="border-bottom: 2px solid #eee; padding-bottom: 5px; margin-bottom: 10px;">${title}</h3><table class="print-section-table"><thead><tr><th>Room</th><th>Guest</th><th>Source</th><th>Notes</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+                return `<div style="margin-bottom: 20px;"><table class="print-section-table"><thead><tr><th>Room</th><th>Guest</th><th>Source</th><th>Notes</th></tr></thead><tbody>${rows}</tbody></table></div>`;
             };
 
             const printWindow = window.open('', '_blank');
-            printWindow.document.write(`<html><head><title>Front Hall - ${viewName}</title><style>body { font-family: sans-serif; font-size: 10pt; padding: 20px; } h1 { text-align: center; margin-bottom: 5px; } .meta { text-align: center; margin-bottom: 20px; font-size: 1.1em; color: #555; } .print-section-table { width: 100%; border-collapse: collapse; } .print-section-table th, .print-section-table td { border: 1px solid #ccc; padding: 6px; text-align: left; vertical-align: top; } .print-section-table th { background-color: #f3f4f6; } .source-badge { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; text-transform: uppercase; color: white; display: inline-block; -webkit-print-color-adjust: exact; print-color-adjust: exact; } .source-booking { background-color: #003580; } .source-expedia { background-color: #FFC20E; color: black; } .source-direct { background-color: #059669; } .source-other { background-color: #6b7280; } .source-transfer { background-color: #f97316; } .source-guestline { background-color: #64748b; } .source-internal { background-color: #4ade80; color: black; }</style></head><body><h1>Front Hall - ${viewName} List</h1><div class="meta">${dateStr} &bull; Total: ${dataToPrint.length}</div>${createPrintSection('Ground Floor', ground)}${createPrintSection('First Floor', first)}${createPrintSection('Second Floor', second)}<script>setTimeout(() => { window.print(); window.close(); }, 500);<\/script></body></html>`);
+            printWindow.document.write(`<html><head><title>Front Hall - ${viewName}</title><style>body { font-family: sans-serif; font-size: 10pt; padding: 20px; } h1 { text-align: center; margin-bottom: 5px; } .meta { text-align: center; margin-bottom: 20px; font-size: 1.1em; color: #555; } .print-section-table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; } .print-section-table th, .print-section-table td { border: 1px solid #ddd; padding: 4px 6px; text-align: left; vertical-align: top; font-size: 0.85rem; } .print-section-table th { background-color: #f3f4f6; font-weight: bold; font-size: 0.9rem; } .print-section-table tr { page-break-inside: avoid; } .page-break { page-break-before: always; } .source-badge { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; text-transform: uppercase; color: white; display: inline-block; -webkit-print-color-adjust: exact; print-color-adjust: exact; } .source-booking { background-color: #003580; } .source-expedia { background-color: #FFC20E; color: black; } .source-direct { background-color: #059669; } .source-other { background-color: #6b7280; } .source-transfer { background-color: #f97316; } .source-guestline { background-color: #64748b; } .source-internal { background-color: #4ade80; color: black; }</style></head><body><h1>Front Hall - ${viewName} List</h1><div class="meta">${dateStr} &bull; Total: ${dataToPrint.length}</div>${createPrintSection('All Rooms', dataToPrint)}<script>setTimeout(() => { window.print(); window.close(); }, 500);<\/script></body></html>`);
             printWindow.document.close();
         }
     </script>
