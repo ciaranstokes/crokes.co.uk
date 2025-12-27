@@ -487,24 +487,26 @@
         function breakfast_init() { }
         function breakfast_formatDateForButton(date) { const day = date.getDate(); let suffix = 'th'; if (day % 10 === 1 && day !== 11) suffix = 'st'; else if (day % 10 === 2 && day !== 12) suffix = 'nd'; else if (day % 10 === 3 && day !== 13) suffix = 'rd'; const month = date.toLocaleDateString('en-GB', { month: 'short' }); return `${day}${suffix} ${month}`; }
 
-        function breakfast_calculateTotal() {
-    let data = document.getElementById('orderData').value;
-    // Regex to match format like 01/Jan/2024
-    const dateMatch = data.match(/(\d{2})\/([A-Za-z]{3})\/(\d{4})/);
-    
-    if (dateMatch) {
-        const [_, day, monthStr, year] = dateMatch;
-        const months = {Jan:0, Feb:1, Mar:2, Apr:3, May:4, Jun:5, Jul:6, Aug:7, Sep:8, Oct:9, Nov:10, Dec:11};
-        
-        // 1. Create the initial date object
-        breakfast_detectedDate = new Date(year, months[monthStr], day);
+        function breakfast_init() { }
 
-        // 2. Add 1 day
-        breakfast_detectedDate.setDate(breakfast_detectedDate.getDate() + 1);
+function breakfast_formatDateForButton(date) { const day = date.getDate(); let suffix = 'th'; if (day % 10 === 1 && day !== 11) suffix = 'st'; else if (day % 10 === 2 && day !== 12) suffix = 'nd'; else if (day % 10 === 3 && day !== 13) suffix = 'rd'; const month = date.toLocaleDateString('en-GB', { month: 'short' }); return `${day}${suffix} ${month}`; }
 
-        // Debugging: Check the result in the console
-        console.log("New Date:", breakfast_detectedDate); 
-    }
+
+
+function breakfast_calculateTotal() {
+
+let data = document.getElementById('orderData').value;
+
+const dateMatch = data.match(/(\d{2})\/([A-Za-z]{3})\/(\d{4})/);
+
+if (dateMatch) {
+
+const [_, day, monthStr, year] = dateMatch;
+
+const months = {Jan:0, Feb:1, Mar:2, Apr:3, May:4, Jun:5, Jul:6, Aug:7, Sep:8, Oct:9, Nov:10, Dec:11};
+
+breakfast_detectedDate = new Date(year, months[monthStr], day);
+
 }
 
             const tableBody = document.getElementById('ordersTableBody');
