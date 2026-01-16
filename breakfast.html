@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Breakfast List Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                background: white;
+                font-size: 12pt;
+            }
+            .print-container {
+                padding: 0;
+                margin: 0;
+                width: 100%;
+                max-width: none;
+            }
+            /* Ensure background colors print */
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            thead {
+                display: table-header-group; 
+            }
+            tr {
+                page-break-inside: avoid;
+            }
+            th, td {
+                border: 1px solid #000;
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen font-sans text-gray-800">
+
+    <!-- Control Panel (Hidden on Print) -->
+    <div class="no-print max-w-4xl mx-auto p-6">
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
+            <h1 class="text-2xl font-bold text-gray-900 mb-2">🍳 Breakfast List Generator</h1>
+            <p class="text-sm text-gray-500 mb-4">Paste the raw data from your report below.</p>
+            
+            <textarea id="inputData" class="w-full h-48 p-4 border border-gray-300 rounded-lg font-mono text-xs focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none mb-4" placeholder="Paste data here..."></textarea>
+            
+            <div class="flex gap-4">
+                <button onclick="processData()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition shadow-sm flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a1 1 0 01-.664.921l-2.204.882a1 1 0 00-.594.92v6.236l1.378.551a1 1 0 01.664.92V17a1 1 0 01-1 1H2a1 1 0 01-1-1v-4.135a3 3 0 011.664-2.763l2.204-.882a1 1 0 00.594-.92V4.938l-1.378-.55A1 1 0 013 3.465V3a1 1 0 011-1zm12 0a1 1 0 011 1v2.101a1 1 0 01-.664.921l-2.204.882a1 1 0 00-.594.92v6.236l1.378.551a1 1 0 01.664.92V17a1 1 0 01-1 1h-2a1 1 0 01-1-1v-4.135a3 3 0 011.664-2.763l2.204-.882a1 1 0 00.594-.92V4.938l-1.378-.55A1 1 0 0115 3.465V3a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                    Generate List
+                </button>
+                <button onclick="window.print()" class="bg-gray-800 hover:bg-gray-900 text-white font-semibold py-2 px-6 rounded-lg transition shadow-sm flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clip-rule="evenodd" />
+                    </svg>
+                    Print
+                </button>
+                <button onclick="loadSample()" class="text-gray-500 hover:text-gray-700 font-medium py-2 px-4 rounded-lg transition text-sm ml-auto">
+                    Load Sample Data
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Printable Output Area -->
+    <div class="print-container max-w-5xl mx-auto p-8 bg-white min-h-screen">
+        
+        <!-- Header -->
+        <div class="flex justify-between items-end border-b-4 border-gray-900 pb-2 mb-4">
+            <div>
+                <h1 class="text-3xl font-black text-gray-900 uppercase tracking-tight">Breakfast List</h1>
+                <p id="dateDisplay" class="text-md text-gray-600 font-bold mt-1">Date: --/--/----</p>
+            </div>
+            <div class="text-right">
+                <div class="text-xs font-bold text-gray-500 uppercase tracking-wide">Total Covers</div>
+                <div id="totalCovers" class="text-3xl font-black text-gray-900">0</div>
+            </div>
+        </div>
+
+        <!-- Table Container -->
+        <div id="outputContainer">
+            <div class="text-center text-gray-400 py-12 italic border-2 border-dashed border-gray-200 rounded-lg no-print">
+                No data generated yet. Paste data and click "Generate List".
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Regex to parse the messy input lines
+        // Captures: Room, Ref, Name, Keyword(BREAKFAST), Description, Qty, Date, Value
+        // It handles newlines breaking the Ref (e.g. BK../.. \n digit)
+        const ROW_REGEX = /(\d{3})\s+(BK[^\s]+(?:\s+\d+)?)\s+(.+?)\s+BREAKFAST\s+(.*?)\s+(\d+)\s+(\d{1,2}\/[A-Za-z]{3}\/\d{4})\s+(\d+(?:\.\d+)?)/gi;
+
+        function processData() {
+            const rawInput = document.getElementById('inputData').value;
+            
+            // 1. Cleaning the input
+            // Replace newlines with spaces to handle fragmented rows, 
+            // but first remove report headers to avoid merging them into data
+            let cleaned = rawInput
+                .replace(/Bike & Boot Peaks Product Distribution Report/g, '')
+                .replace(/Page \d+ of \d+.*$/gm, '') // Remove footer lines
+                .replace(/Room ID BookRef Guest Name.*/g, '') // Remove table headers
+                .replace(/\n/g, ' '); // Join everything into one long string
+
+            // 2. Extracting matches
+            const matches = [...cleaned.matchAll(ROW_REGEX)];
+            const guests = [];
+
+            if (matches.length === 0) {
+                alert("No valid data found! Make sure you pasted the correct format.");
+                return;
+            }
+
+            // Set the date based on the first record found
+            if(matches[0] && matches[0][6]) {
+                document.getElementById('dateDisplay').textContent = `Date: ${matches[0][6]}`;
+            }
+
+            matches.forEach(m => {
+                // Fix fragmented Ref (e.g. "BK006/1 5" -> "BK006/15")
+                let ref = m[2].replace(/\s+/g, '');
+                
+                guests.push({
+                    room: m[1],
+                    ref: ref,
+                    name: m[3].trim(),
+                    description: m[4].trim(),
+                    qty: parseInt(m[5]),
+                    date: m[6],
+                    value: m[7]
+                });
+            });
+
+            // 3. Group by Room Number
+            const rooms = {};
+            let totalQty = 0;
+
+            guests.forEach(guest => {
+                totalQty += guest.qty;
+                if (!rooms[guest.room]) {
+                    rooms[guest.room] = [];
+                }
+                rooms[guest.room].push(guest);
+            });
+
+            document.getElementById('totalCovers').textContent = totalQty;
+
+            renderTable(rooms);
+        }
+
+        function renderTable(rooms) {
+            const container = document.getElementById('outputContainer');
+            container.innerHTML = '';
+
+            // Create Table Structure
+            const table = document.createElement('table');
+            table.className = "w-full text-left border-collapse border border-gray-300";
+            
+            // Table Header
+            const thead = document.createElement('thead');
+            thead.className = "bg-gray-100";
+            thead.innerHTML = `
+                <tr>
+                    <th class="p-2 border border-gray-400 w-16 text-center text-lg font-black">ROOM</th>
+                    <th class="p-2 border border-gray-400 font-bold">GUEST NAME</th>
+                    <th class="p-2 border border-gray-400 w-48 font-bold">TYPE</th>
+                    <th class="p-2 border border-gray-400 w-16 text-center font-bold">QTY</th>
+                    <th class="p-2 border border-gray-400 w-16 text-center font-bold">CHECK</th>
+                </tr>
+            `;
+            table.appendChild(thead);
+
+            const tbody = document.createElement('tbody');
+            
+            // Sort room numbers
+            const sortedRoomKeys = Object.keys(rooms).sort();
+
+            sortedRoomKeys.forEach((roomNum, index) => {
+                const roomGuests = rooms[roomNum];
+                
+                roomGuests.forEach((g, gIndex) => {
+                    const row = document.createElement('tr');
+                    
+                    // Add background stripe for alternate rooms (not just rows) for readability
+                    if (index % 2 !== 0) {
+                        row.className = "bg-gray-50 print:bg-gray-50";
+                    } else {
+                        row.className = "bg-white";
+                    }
+
+                    // Room Cell (Merged if multiple guests)
+                    if (gIndex === 0) {
+                        const roomCell = document.createElement('td');
+                        roomCell.className = "p-2 border border-gray-400 text-center font-black text-xl align-middle";
+                        roomCell.rowSpan = roomGuests.length;
+                        roomCell.textContent = roomNum;
+                        row.appendChild(roomCell);
+                    }
+
+                    // Guest Name
+                    row.innerHTML += `
+                        <td class="p-2 border border-gray-400 font-medium text-lg">
+                            ${g.name}
+                            <div class="text-xs text-gray-500 font-mono no-print">${g.ref}</div>
+                        </td>
+                        <td class="p-2 border border-gray-400 text-sm">
+                            ${g.description}
+                        </td>
+                        <td class="p-2 border border-gray-400 text-center font-bold text-lg">
+                            ${g.qty}
+                        </td>
+                        <td class="p-2 border border-gray-400 text-center align-middle">
+                            <div class="w-6 h-6 border-2 border-gray-400 mx-auto rounded-sm"></div>
+                        </td>
+                    `;
+                    
+                    tbody.appendChild(row);
+                });
+            });
+
+            table.appendChild(tbody);
+            container.appendChild(table);
+        }
+
+        function loadSample() {
+            const sample = `BREAKFAST
+Room ID BookRef Guest Name Product Code Description Quantity Product Date Value
+001 BK001752/1 Miss Jenna Stewart BREAKFAST Bareca Buffet
+Breakfast
+1 16/Jan/2026 14
+001 BK001752/1 Miss Jenna Stewart BREAKFAST Bareca Buffet
+Breakfast
+1 16/Jan/2026 14
+101 BK001123/1 Mrs Christine Deakin BREAKFAST Bareca Buffet
+Breakfast
+1 16/Jan/2026 14
+105 BK000608/1
+5
+Mr Geoff Brewster BREAKFAST Bareca Buffet
+Breakfast
+1 16/Jan/2026 12.5
+111 BK000608/1
+7
+Mel Clarke BREAKFAST Bareca Buffet
+Breakfast
+1 16/Jan/2026 14`;
+            document.getElementById('inputData').value = sample;
+            processData();
+        }
+    </script>
+</body>
+</html>
