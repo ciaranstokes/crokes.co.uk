@@ -9,14 +9,14 @@
         @media print {
             @page {
                 size: A4 portrait;
-                margin: 5mm; /* Reduced margins to fit more vertically */
+                margin: 5mm;
             }
             .no-print {
                 display: none !important;
             }
             body {
                 background: white;
-                font-size: 9pt; /* Smaller font for density */
+                font-size: 9pt;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
@@ -29,49 +29,61 @@
             .columns-container {
                 display: flex !important;
                 flex-direction: row !important;
-                gap: 15px !important;
+                gap: 20px !important; /* Increased gap for cleaner separation */
                 align-items: flex-start !important;
             }
             .floor-column {
                 flex: 1 !important;
-                width: 49% !important;
+                width: 48% !important;
             }
             
+            /* Modern Table Styles for Print */
             table {
                 width: 100%;
-                border-collapse: collapse;
+                border-collapse: separate; /* Required for rounded corners */
+                border-spacing: 0;
                 page-break-inside: avoid;
-                margin-bottom: 15px; /* Reduced gap between tables */
             }
+            
+            /* Clean Borders */
             th, td {
-                border: 1px solid #000;
-                padding: 2px 4px; /* Tighter padding */
+                border-bottom: 1px solid #e2e8f0; /* slate-200 */
+                padding: 4px 8px;
             }
-            /* Adjust header sizes for print */
-            h1 { font-size: 16pt !important; }
-            .header-info { font-size: 10pt !important; }
-            .total-covers { font-size: 18pt !important; }
+            
+            /* Remove default borders to use modern dividers */
+            th { border-top: none; border-left: none; border-right: none; }
+            td { border-left: none; border-right: none; }
+            tr:last-child td { border-bottom: none; }
+
+            /* Header adjustments */
+            h1 { font-size: 18pt !important; color: #1e293b !important; /* slate-800 */ }
+            .header-info { font-size: 10pt !important; color: #64748b !important; /* slate-500 */ }
+            .total-covers { font-size: 20pt !important; color: #334155 !important; /* slate-700 */ }
         }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen font-sans text-gray-800">
+<body class="bg-slate-50 min-h-screen font-sans text-slate-800">
 
     <!-- Control Panel (Hidden on Print) -->
     <div class="no-print max-w-4xl mx-auto p-6">
-        <div class="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
-            <h1 class="text-2xl font-bold text-gray-900 mb-2">🍳 Breakfast List Generator</h1>
-            <p class="text-sm text-gray-500 mb-4">Paste the raw data from your report below.</p>
+        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 border border-slate-200">
+            <div class="flex items-center gap-3 mb-2">
+                <span class="text-3xl">🍳</span>
+                <h1 class="text-2xl font-bold text-slate-800">Breakfast List Generator</h1>
+            </div>
+            <p class="text-sm text-slate-500 mb-6 ml-1">Paste the raw data from your report below.</p>
             
-            <textarea id="inputData" class="w-full h-48 p-4 border border-gray-300 rounded-lg font-mono text-xs focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none mb-4" placeholder="Paste data here..."></textarea>
+            <textarea id="inputData" class="w-full h-48 p-4 border border-slate-200 rounded-xl font-mono text-xs focus:ring-2 focus:ring-slate-400 focus:border-transparent outline-none mb-6 bg-slate-50 text-slate-600 shadow-inner" placeholder="Paste data here..."></textarea>
             
             <div class="flex gap-4">
-                <button onclick="processData()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition shadow-sm flex items-center gap-2">
+                <button onclick="processData()" class="bg-slate-800 hover:bg-slate-700 text-white font-semibold py-2.5 px-6 rounded-xl transition shadow-sm flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a1 1 0 01-.664.921l-2.204.882a1 1 0 00-.594.92v6.236l1.378.551a1 1 0 01.664.92V17a1 1 0 01-1 1H2a1 1 0 01-1-1v-4.135a3 3 0 011.664-2.763l2.204-.882a1 1 0 00.594-.92V4.938l-1.378-.55A1 1 0 013 3.465V3a1 1 0 011-1zm12 0a1 1 0 011 1v2.101a1 1 0 01-.664.921l-2.204.882a1 1 0 00-.594.92v6.236l1.378.551a1 1 0 01.664.92V17a1 1 0 01-1 1h-2a1 1 0 01-1-1v-4.135a3 3 0 011.664-2.763l2.204-.882a1 1 0 00.594-.92V4.938l-1.378-.55A1 1 0 0115 3.465V3a1 1 0 011-1z" clip-rule="evenodd" />
                     </svg>
                     Generate List
                 </button>
-                <button onclick="window.print()" class="bg-gray-800 hover:bg-gray-900 text-white font-semibold py-2 px-6 rounded-lg transition shadow-sm flex items-center gap-2">
+                <button onclick="window.print()" class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold py-2.5 px-6 rounded-xl transition shadow-sm flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clip-rule="evenodd" />
                     </svg>
@@ -85,21 +97,21 @@
     <div class="print-container max-w-full mx-auto p-4 bg-white min-h-screen">
         
         <!-- Header -->
-        <div class="flex justify-between items-end border-b-2 border-gray-900 pb-2 mb-4">
+        <div class="flex justify-between items-end border-b border-slate-200 pb-3 mb-6">
             <div>
-                <h1 class="text-3xl font-black text-gray-900 uppercase tracking-tight">Breakfast List</h1>
-                <p id="dateDisplay" class="header-info text-lg text-gray-600 font-bold mt-1">Date: --/--/----</p>
+                <h1 class="text-3xl font-bold text-slate-800 tracking-tight">Breakfast List</h1>
+                <p id="dateDisplay" class="header-info text-lg text-slate-500 font-medium mt-1">Date: --/--/----</p>
             </div>
             <div class="text-right">
-                <div class="text-xs font-bold text-gray-500 uppercase tracking-wide">Total Covers</div>
-                <div id="totalCovers" class="total-covers text-4xl font-black text-gray-900">0</div>
+                <div class="text-xs font-bold text-slate-400 uppercase tracking-widest">Total Covers</div>
+                <div id="totalCovers" class="total-covers text-4xl font-bold text-slate-700">0</div>
             </div>
         </div>
 
         <!-- 2-Column Layout Container -->
         <div id="outputContainer" class="columns-container flex flex-col md:flex-row gap-8 align-top">
             
-            <div class="text-center w-full text-gray-400 py-12 italic border-2 border-dashed border-gray-200 rounded-lg no-print">
+            <div class="text-center w-full text-slate-300 py-12 italic border-2 border-dashed border-slate-100 rounded-2xl no-print">
                 No data generated yet. Paste data and click "Generate List".
             </div>
 
@@ -129,24 +141,18 @@
                 return;
             }
 
-            // Date Processing: Add 1 day and format nicely
+            // Date Processing
             if(matches[0] && matches[0][6]) {
                 try {
-                    // Convert "16/Jan/2026" to "16 Jan 2026" for parsing
                     const rawDateString = matches[0][6].replace(/\//g, ' ');
                     const dateObj = new Date(rawDateString);
-                    
-                    // Add 1 day
                     dateObj.setDate(dateObj.getDate() + 1);
-                    
-                    // Format: Saturday, 17 January 2026
                     const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
                     const formattedDate = dateObj.toLocaleDateString('en-GB', options);
-                    
-                    document.getElementById('dateDisplay').textContent = `Date: ${formattedDate}`;
+                    document.getElementById('dateDisplay').textContent = formattedDate;
                 } catch (e) {
                     console.error("Date parsing error:", e);
-                    document.getElementById('dateDisplay').textContent = `Date: ${matches[0][6]}`;
+                    document.getElementById('dateDisplay').textContent = matches[0][6];
                 }
             }
 
@@ -163,7 +169,7 @@
                 });
             });
 
-            // 3. Group by Room (Aggregate Qty)
+            // 3. Group by Room
             const rooms = {};
             let totalQty = 0;
 
@@ -172,7 +178,7 @@
                 if (!rooms[guest.room]) {
                     rooms[guest.room] = {
                         room: guest.room,
-                        name: guest.name, // Take first name
+                        name: guest.name,
                         qty: 0
                     };
                 }
@@ -206,36 +212,36 @@
             const container = document.getElementById('outputContainer');
             container.innerHTML = '';
 
-            // Helper to build a table HTML string for a list of rooms
             const createTableHtml = (title, roomList) => {
                 if (roomList.length === 0) return '';
                 
                 let rows = '';
                 roomList.forEach((r, idx) => {
-                    const bgClass = idx % 2 === 0 ? 'bg-white' : 'bg-gray-50';
+                    // Cleaner logic: no background stripes for eco-printing, just borders
                     rows += `
-                        <tr class="${bgClass}">
-                            <td class="text-center font-black text-lg p-1 align-middle border-black w-14">${r.room}</td>
-                            <td class="font-medium text-sm truncate max-w-[250px] p-1 align-middle border-black">${r.name}</td>
-                            <td class="text-center font-bold text-lg p-1 align-middle border-black w-10">${r.qty}</td>
+                        <tr class="group hover:bg-slate-50">
+                            <td class="text-center font-bold text-lg text-slate-800 p-2 align-middle w-16">${r.room}</td>
+                            <td class="font-medium text-sm text-slate-600 truncate max-w-[250px] p-2 align-middle">${r.name}</td>
+                            <td class="text-center font-semibold text-lg text-slate-700 p-2 align-middle w-12">${r.qty}</td>
                         </tr>
                     `;
                 });
 
+                // Modern Card + Table Structure
                 return `
-                    <div class="mb-4 break-inside-avoid">
-                        <div class="bg-black text-white p-1 text-center font-bold uppercase text-md mb-0 rounded-t-sm border border-black border-b-0">
+                    <div class="mb-6 break-inside-avoid rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                        <div class="bg-slate-50 p-3 text-center font-bold text-slate-600 uppercase tracking-widest text-xs border-b border-slate-200">
                             ${title}
                         </div>
-                        <table class="w-full text-left border-collapse border border-black">
-                            <thead class="bg-gray-200">
+                        <table class="w-full text-left">
+                            <thead class="bg-white text-slate-400 border-b border-slate-100 text-[10px] uppercase tracking-wider">
                                 <tr>
-                                    <th class="w-14 text-center font-bold border-black text-xs">RM</th>
-                                    <th class="font-bold border-black text-xs">NAME</th>
-                                    <th class="w-10 text-center font-bold border-black text-xs">Qty</th>
+                                    <th class="w-16 text-center font-semibold py-2">Room</th>
+                                    <th class="font-semibold py-2">Guest Name</th>
+                                    <th class="w-12 text-center font-semibold py-2">Qty</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody class="divide-y divide-slate-100 bg-white">
                                 ${rows}
                             </tbody>
                         </table>
@@ -243,14 +249,9 @@
                 `;
             };
 
-            // Generate HTML for each floor
             const groundHtml = createTableHtml("Ground Floor", floors.ground);
             const firstHtml = createTableHtml("First Floor", floors.first);
             const secondHtml = createTableHtml("Second Floor", floors.second);
-
-            // Structure for 2 columns:
-            // Column 1: Ground + First
-            // Column 2: Second
             
             const leftCol = `
                 <div class="floor-column">
