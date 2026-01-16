@@ -7,12 +7,18 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @media print {
+            @page {
+                size: A4 landscape;
+                margin: 10mm;
+            }
             .no-print {
                 display: none !important;
             }
             body {
                 background: white;
-                font-size: 12pt;
+                font-size: 11pt;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
             .print-container {
                 padding: 0;
@@ -20,25 +26,30 @@
                 width: 100%;
                 max-width: none;
             }
-            /* Ensure background colors print */
-            * {
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
+            /* Force 2 columns on print */
+            .columns-container {
+                display: flex !important;
+                flex-direction: row !important;
+                gap: 20px !important;
+                align-items: flex-start !important;
             }
+            .floor-column {
+                flex: 1 !important;
+                width: 48% !important; /* Slightly less than 50 to account for gap */
+            }
+            
             table {
                 width: 100%;
                 border-collapse: collapse;
-            }
-            thead {
-                display: table-header-group; 
-            }
-            tr {
                 page-break-inside: avoid;
+                margin-bottom: 20px;
             }
             th, td {
                 border: 1px solid #000;
-                padding: 8px;
+                padding: 4px 8px;
             }
+            /* Hide empty rows if needed to save space */
+            tr:empty { display: none; }
         }
     </style>
 </head>
@@ -73,48 +84,45 @@
     </div>
 
     <!-- Printable Output Area -->
-    <div class="print-container max-w-5xl mx-auto p-8 bg-white min-h-screen">
+    <div class="print-container max-w-full mx-auto p-4 bg-white min-h-screen">
         
         <!-- Header -->
-        <div class="flex justify-between items-end border-b-4 border-gray-900 pb-2 mb-4">
+        <div class="flex justify-between items-end border-b-4 border-gray-900 pb-2 mb-6">
             <div>
                 <h1 class="text-3xl font-black text-gray-900 uppercase tracking-tight">Breakfast List</h1>
-                <p id="dateDisplay" class="text-md text-gray-600 font-bold mt-1">Date: --/--/----</p>
+                <p id="dateDisplay" class="text-lg text-gray-600 font-bold mt-1">Date: --/--/----</p>
             </div>
             <div class="text-right">
                 <div class="text-xs font-bold text-gray-500 uppercase tracking-wide">Total Covers</div>
-                <div id="totalCovers" class="text-3xl font-black text-gray-900">0</div>
+                <div id="totalCovers" class="text-4xl font-black text-gray-900">0</div>
             </div>
         </div>
 
-        <!-- Table Container -->
-        <div id="outputContainer">
-            <div class="text-center text-gray-400 py-12 italic border-2 border-dashed border-gray-200 rounded-lg no-print">
+        <!-- 2-Column Layout Container -->
+        <div id="outputContainer" class="columns-container flex flex-col md:flex-row gap-8 align-top">
+            
+            <div class="text-center w-full text-gray-400 py-12 italic border-2 border-dashed border-gray-200 rounded-lg no-print">
                 No data generated yet. Paste data and click "Generate List".
             </div>
+
         </div>
 
     </div>
 
     <script>
-        // Regex to parse the messy input lines
-        // Captures: Room, Ref, Name, Keyword(BREAKFAST), Description, Qty, Date, Value
-        // It handles newlines breaking the Ref (e.g. BK../.. \n digit)
         const ROW_REGEX = /(\d{3})\s+(BK[^\s]+(?:\s+\d+)?)\s+(.+?)\s+BREAKFAST\s+(.*?)\s+(\d+)\s+(\d{1,2}\/[A-Za-z]{3}\/\d{4})\s+(\d+(?:\.\d+)?)/gi;
 
         function processData() {
             const rawInput = document.getElementById('inputData').value;
             
-            // 1. Cleaning the input
-            // Replace newlines with spaces to handle fragmented rows, 
-            // but first remove report headers to avoid merging them into data
+            // 1. Clean Data
             let cleaned = rawInput
                 .replace(/Bike & Boot Peaks Product Distribution Report/g, '')
-                .replace(/Page \d+ of \d+.*$/gm, '') // Remove footer lines
-                .replace(/Room ID BookRef Guest Name.*/g, '') // Remove table headers
-                .replace(/\n/g, ' '); // Join everything into one long string
+                .replace(/Page \d+ of \d+.*$/gm, '') 
+                .replace(/Room ID BookRef Guest Name.*/g, '') 
+                .replace(/\n/g, ' '); 
 
-            // 2. Extracting matches
+            // 2. Extract Data
             const matches = [...cleaned.matchAll(ROW_REGEX)];
             const guests = [];
 
@@ -123,15 +131,12 @@
                 return;
             }
 
-            // Set the date based on the first record found
             if(matches[0] && matches[0][6]) {
                 document.getElementById('dateDisplay').textContent = `Date: ${matches[0][6]}`;
             }
 
             matches.forEach(m => {
-                // Fix fragmented Ref (e.g. "BK006/1 5" -> "BK006/15")
                 let ref = m[2].replace(/\s+/g, '');
-                
                 guests.push({
                     room: m[1],
                     ref: ref,
@@ -143,95 +148,109 @@
                 });
             });
 
-            // 3. Group by Room Number
+            // 3. Group by Room (Aggregate Qty)
             const rooms = {};
             let totalQty = 0;
 
             guests.forEach(guest => {
                 totalQty += guest.qty;
                 if (!rooms[guest.room]) {
-                    rooms[guest.room] = [];
+                    rooms[guest.room] = {
+                        room: guest.room,
+                        name: guest.name, // Take first name
+                        qty: 0
+                    };
                 }
-                rooms[guest.room].push(guest);
+                rooms[guest.room].qty += guest.qty;
             });
 
             document.getElementById('totalCovers').textContent = totalQty;
 
-            renderTable(rooms);
+            // 4. Distribute into Floors
+            const floors = {
+                ground: [], // 0 - 99
+                first: [],  // 100 - 199
+                second: []  // 200+
+            };
+
+            Object.values(rooms).sort((a,b) => a.room.localeCompare(b.room)).forEach(r => {
+                const roomNum = parseInt(r.room);
+                if (roomNum < 100) {
+                    floors.ground.push(r);
+                } else if (roomNum < 200) {
+                    floors.first.push(r);
+                } else {
+                    floors.second.push(r);
+                }
+            });
+
+            renderColumns(floors);
         }
 
-        function renderTable(rooms) {
+        function renderColumns(floors) {
             const container = document.getElementById('outputContainer');
             container.innerHTML = '';
 
-            // Create Table Structure
-            const table = document.createElement('table');
-            table.className = "w-full text-left border-collapse border border-gray-300";
-            
-            // Table Header
-            const thead = document.createElement('thead');
-            thead.className = "bg-gray-100";
-            thead.innerHTML = `
-                <tr>
-                    <th class="p-2 border border-gray-400 w-16 text-center text-lg font-black">ROOM</th>
-                    <th class="p-2 border border-gray-400 font-bold">GUEST NAME</th>
-                    <th class="p-2 border border-gray-400 w-48 font-bold">TYPE</th>
-                    <th class="p-2 border border-gray-400 w-16 text-center font-bold">QTY</th>
-                    <th class="p-2 border border-gray-400 w-16 text-center font-bold">CHECK</th>
-                </tr>
-            `;
-            table.appendChild(thead);
-
-            const tbody = document.createElement('tbody');
-            
-            // Sort room numbers
-            const sortedRoomKeys = Object.keys(rooms).sort();
-
-            sortedRoomKeys.forEach((roomNum, index) => {
-                const roomGuests = rooms[roomNum];
+            // Helper to build a table HTML string for a list of rooms
+            const createTableHtml = (title, roomList) => {
+                if (roomList.length === 0) return '';
                 
-                roomGuests.forEach((g, gIndex) => {
-                    const row = document.createElement('tr');
-                    
-                    // Add background stripe for alternate rooms (not just rows) for readability
-                    if (index % 2 !== 0) {
-                        row.className = "bg-gray-50 print:bg-gray-50";
-                    } else {
-                        row.className = "bg-white";
-                    }
-
-                    // Room Cell (Merged if multiple guests)
-                    if (gIndex === 0) {
-                        const roomCell = document.createElement('td');
-                        roomCell.className = "p-2 border border-gray-400 text-center font-black text-xl align-middle";
-                        roomCell.rowSpan = roomGuests.length;
-                        roomCell.textContent = roomNum;
-                        row.appendChild(roomCell);
-                    }
-
-                    // Guest Name
-                    row.innerHTML += `
-                        <td class="p-2 border border-gray-400 font-medium text-lg">
-                            ${g.name}
-                            <div class="text-xs text-gray-500 font-mono no-print">${g.ref}</div>
-                        </td>
-                        <td class="p-2 border border-gray-400 text-sm">
-                            ${g.description}
-                        </td>
-                        <td class="p-2 border border-gray-400 text-center font-bold text-lg">
-                            ${g.qty}
-                        </td>
-                        <td class="p-2 border border-gray-400 text-center align-middle">
-                            <div class="w-6 h-6 border-2 border-gray-400 mx-auto rounded-sm"></div>
-                        </td>
+                let rows = '';
+                roomList.forEach((r, idx) => {
+                    const bgClass = idx % 2 === 0 ? 'bg-white' : 'bg-gray-50';
+                    rows += `
+                        <tr class="${bgClass}">
+                            <td class="text-center font-black text-xl p-2 align-middle border-black">${r.room}</td>
+                            <td class="font-medium text-md truncate max-w-[250px] p-2 align-middle border-black">${r.name}</td>
+                            <td class="text-center font-bold text-xl p-2 align-middle border-black">${r.qty}</td>
+                        </tr>
                     `;
-                    
-                    tbody.appendChild(row);
                 });
-            });
 
-            table.appendChild(tbody);
-            container.appendChild(table);
+                return `
+                    <div class="mb-8 break-inside-avoid">
+                        <div class="bg-black text-white p-2 text-center font-bold uppercase text-lg mb-0 rounded-t-sm border border-black border-b-0">
+                            ${title}
+                        </div>
+                        <table class="w-full text-left border-collapse border border-black">
+                            <thead class="bg-gray-200">
+                                <tr>
+                                    <th class="w-20 text-center font-bold border-black text-sm">RM</th>
+                                    <th class="font-bold border-black text-sm">NAME</th>
+                                    <th class="w-16 text-center font-bold border-black text-sm">Qty</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${rows}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            };
+
+            // Generate HTML for each floor
+            const groundHtml = createTableHtml("Ground Floor", floors.ground);
+            const firstHtml = createTableHtml("First Floor", floors.first);
+            const secondHtml = createTableHtml("Second Floor", floors.second);
+
+            // Structure for 2 columns:
+            // Column 1: Ground + First
+            // Column 2: Second
+            
+            const leftCol = `
+                <div class="floor-column">
+                    ${groundHtml}
+                    ${firstHtml}
+                </div>
+            `;
+            
+            const rightCol = `
+                <div class="floor-column">
+                    ${secondHtml}
+                </div>
+            `;
+
+            container.innerHTML = leftCol + rightCol;
         }
 
         function loadSample() {
@@ -240,7 +259,7 @@ Room ID BookRef Guest Name Product Code Description Quantity Product Date Value
 001 BK001752/1 Miss Jenna Stewart BREAKFAST Bareca Buffet
 Breakfast
 1 16/Jan/2026 14
-001 BK001752/1 Miss Jenna Stewart BREAKFAST Bareca Buffet
+005 BK001752/1 Mr Test Guest BREAKFAST Bareca Buffet
 Breakfast
 1 16/Jan/2026 14
 101 BK001123/1 Mrs Christine Deakin BREAKFAST Bareca Buffet
@@ -251,9 +270,14 @@ Breakfast
 Mr Geoff Brewster BREAKFAST Bareca Buffet
 Breakfast
 1 16/Jan/2026 12.5
-111 BK000608/1
+201 BK000608/1
 7
 Mel Clarke BREAKFAST Bareca Buffet
+Breakfast
+1 16/Jan/2026 14
+220 BK000608/1
+9
+Another Guest BREAKFAST Bareca Buffet
 Breakfast
 1 16/Jan/2026 14`;
             document.getElementById('inputData').value = sample;
