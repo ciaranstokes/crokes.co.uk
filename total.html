@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotel Occupancy Analyzer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .glass-panel { background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
+        
+        @media print {
+            @page {
+                size: A4 landscape;
+                margin: 1cm;
+            }
+            body {
+                background-color: white !important;
+                padding: 0 !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .glass-panel {
+                box-shadow: none !important;
+                border: 1px solid #e5e7eb !important;
+                border-radius: 0 !important;
+            }
+            #resultsArea {
+                display: block !important;
+            }
+            table {
+                font-size: 12px;
+            }
+            th, td {
+                padding: 4px 8px !important;
+            }
+            /* Ensure background colors (bars) print */
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+        }
+    </style>
+</head>
+<body class="p-6">
+
+    <div class="max-w-6xl mx-auto space-y-6">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between no-print">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">Occupancy Analyzer</h1>
+                <p class="text-sm text-gray-500">Paste resident report data to calculate daily room occupancy (Capacity: 60 Rooms).</p>
+            </div>
+        </div>
+
+        <!-- Input Section -->
+        <div class="glass-panel p-6 no-print">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Paste Report Data Here</label>
+            <textarea id="inputData" class="w-full h-48 p-4 border border-gray-300 rounded-lg font-mono text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Paste the text from your report here (e.g., 'Bike & Boot Peaks Residents...')"></textarea>
+            <div class="mt-4 flex justify-end">
+                <button onclick="processData()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors shadow-sm">
+                    Analyze Occupancy
+                </button>
+            </div>
+        </div>
+
+        <!-- Dashboard Stats (Hidden initially) -->
+        <div id="resultsArea" class="hidden space-y-6">
+            
+            <!-- Print Button Row -->
+            <div class="flex justify-end no-print">
+                <button onclick="window.print()" class="flex items-center gap-2 text-gray-600 bg-white border border-gray-300 hover:bg-gray-50 font-medium py-2 px-4 rounded-lg transition-colors text-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                    </svg>
+                    Print Report
+                </button>
+            </div>
+
+            <!-- Summary Cards removed as requested -->
+
+            <!-- Main Table -->
+            <div class="glass-panel overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+                    <h3 class="font-semibold text-gray-800">Daily Room Occupancy</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead class="text-xs text-gray-500 uppercase bg-gray-50 border-b">
+                            <tr>
+                                <th class="px-6 py-3">Date</th>
+                                <th class="px-6 py-3 text-center">Total Guests</th>
+                                <th class="px-6 py-3 text-center">Rooms Occupied</th>
+                                <th class="px-6 py-3 w-1/2">Occupancy (Total Rooms: 60)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="occupancyTableBody" class="divide-y divide-gray-100">
+                            <!-- Rows injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Error Log -->
+            <div id="errorLog" class="hidden p-4 bg-red-50 text-red-700 rounded-lg text-xs font-mono"></div>
+        </div>
+
+    </div>
+
+    <script>
+        const TOTAL_ROOMS = 60;
+
+        function parseDate(dateStr) {
+            // Converts 16/Jan/2026 to a JS Date object
+            return new Date(dateStr.replace(/\//g, ' '));
+        }
+
+        function formatDate(dateObj) {
+            // Returns "Fri, 16 Jan 2026"
+            return dateObj.toLocaleDateString('en-GB', { 
+                weekday: 'short', 
+                day: 'numeric', 
+                month: 'short', 
+                year: 'numeric' 
+            });
+        }
+
+        function getDatesInRange(startDate, endDate) {
+            const date = new Date(startDate.getTime());
+            const dates = [];
+            // We loop while date < endDate. 
+            // Standard hotel logic: If I leave on the 20th, I am NOT in-house the night of the 20th.
+            while (date < endDate) {
+                dates.push(new Date(date));
+                date.setDate(date.getDate() + 1);
+            }
+            return dates;
+        }
+
+        function processData() {
+            const rawInput = document.getElementById('inputData').value;
+            const lines = rawInput.split('\n');
+            const reservations = [];
+            const dailyStats = {}; // Key: TimeValue, Value: { rooms: 0, totalGuests: 0 }
+            
+            // 1. Detect Header Date Range
+            const headerRegex = /From\s+(\d{2}\/[A-Za-z]{3}\/\d{4})\s+To\s+(\d{2}\/[A-Za-z]{3}\/\d{4})/i;
+            const headerMatch = rawInput.match(headerRegex);
+            let headerStart = null;
+            let headerEnd = null;
+
+            if (headerMatch) {
+                headerStart = parseDate(headerMatch[1]);
+                headerEnd = parseDate(headerMatch[2]);
+            }
+
+            // 2. Parse Reservations
+            const regex = /(\d{2}\/[A-Za-z]{3}\/\d{4})\s+(\d{2}\/[A-Za-z]{3}\/\d{4})\s+\S+\s+\S+\s+(\d+)\s+(\d+)\s+(\d+)/;
+
+            lines.forEach(line => {
+                const match = line.match(regex);
+                if (match) {
+                    const arrivalStr = match[1];
+                    const departureStr = match[2];
+                    const adults = parseInt(match[3]);
+                    const children = parseInt(match[4]);
+                    const infants = parseInt(match[5]);
+
+                    const arrivalDate = parseDate(arrivalStr);
+                    const departureDate = parseDate(departureStr);
+
+                    reservations.push({ arrivalDate, departureDate });
+
+                    // Calculate stats for all days these guests are in house
+                    const stayDates = getDatesInRange(arrivalDate, departureDate);
+
+                    stayDates.forEach(d => {
+                        const key = d.getTime();
+                        if (!dailyStats[key]) {
+                            dailyStats[key] = { rooms: 0, totalGuests: 0 };
+                        }
+                        
+                        dailyStats[key].rooms += 1; // 1 reservation line = 1 room occupied
+                        dailyStats[key].totalGuests += (adults + children + infants);
+                    });
+                }
+            });
+
+            if (reservations.length === 0) {
+                alert("No valid reservation data found. Please ensure the format matches the standard report.");
+                return;
+            }
+
+            // 3. Determine Output Date Range
+            let datesToRender = [];
+            
+            if (headerStart && headerEnd) {
+                let current = new Date(headerStart);
+                while (current <= headerEnd) {
+                    datesToRender.push(new Date(current));
+                    current.setDate(current.getDate() + 1);
+                }
+                // Date range display removed
+            } else {
+                const sortedKeys = Object.keys(dailyStats).sort((a, b) => a - b);
+                if (sortedKeys.length > 0) {
+                    datesToRender = sortedKeys.map(k => new Date(parseInt(k)));
+                    // Date range display removed
+                }
+            }
+
+            // Render Results
+            document.getElementById('resultsArea').classList.remove('hidden');
+
+            const tbody = document.getElementById('occupancyTableBody');
+            tbody.innerHTML = '';
+
+            datesToRender.forEach(dateObj => {
+                const key = dateObj.getTime();
+                const data = dailyStats[key] || { rooms: 0, totalGuests: 0 };
+                
+                // Visualization based on Total Rooms (60)
+                const percentage = (data.rooms / TOTAL_ROOMS) * 100;
+                
+                // Color logic
+                let barColor = 'bg-green-500';
+                if(percentage > 90) barColor = 'bg-red-500';
+                else if(percentage > 70) barColor = 'bg-orange-400';
+                else if(percentage > 40) barColor = 'bg-blue-500';
+
+                const row = `
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap border-r border-gray-100">
+                            ${formatDate(dateObj)}
+                        </td>
+                        <td class="px-6 py-4 text-center text-gray-600 font-medium">${data.totalGuests}</td>
+                        <td class="px-6 py-4 text-center text-gray-800 font-bold border-l border-r border-gray-100">
+                            ${data.rooms}
+                        </td>
+                        <td class="px-6 py-4 align-middle">
+                            <div class="flex items-center space-x-3">
+                                <span class="text-xs font-semibold text-gray-500 w-12 text-right">${Math.round(percentage)}%</span>
+                                <div class="w-full bg-gray-200 rounded-full h-4">
+                                    <div class="${barColor} h-4 rounded-full transition-all duration-500" style="width: ${percentage}%"></div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+    </script>
+</body>
+</html>
