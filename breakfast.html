@@ -77,9 +77,6 @@
                     </svg>
                     Print
                 </button>
-                <button onclick="loadSample()" class="text-gray-500 hover:text-gray-700 font-medium py-2 px-4 rounded-lg transition text-sm ml-auto">
-                    Load Sample Data
-                </button>
             </div>
         </div>
     </div>
@@ -269,37 +266,6 @@
             `;
 
             container.innerHTML = leftCol + rightCol;
-        }
-
-        function loadSample() {
-            const sample = `BREAKFAST
-Room ID BookRef Guest Name Product Code Description Quantity Product Date Value
-001 BK001752/1 Miss Jenna Stewart BREAKFAST Bareca Buffet
-Breakfast
-1 16/Jan/2026 14
-005 BK001752/1 Mr Test Guest BREAKFAST Bareca Buffet
-Breakfast
-1 16/Jan/2026 14
-101 BK001123/1 Mrs Christine Deakin BREAKFAST Bareca Buffet
-Breakfast
-1 16/Jan/2026 14
-105 BK000608/1
-5
-Mr Geoff Brewster BREAKFAST Bareca Buffet
-Breakfast
-1 16/Jan/2026 12.5
-201 BK000608/1
-7
-Mel Clarke BREAKFAST Bareca Buffet
-Breakfast
-1 16/Jan/2026 14
-220 BK000608/1
-9
-Another Guest BREAKFAST Bareca Buffet
-Breakfast
-1 16/Jan/2026 14`;
-            document.getElementById('inputData').value = sample;
-            processData();
         }
     </script>
 </body>
