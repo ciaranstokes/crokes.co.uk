@@ -132,8 +132,25 @@
                 return;
             }
 
+            // Date Processing: Add 1 day and format nicely
             if(matches[0] && matches[0][6]) {
-                document.getElementById('dateDisplay').textContent = `Date: ${matches[0][6]}`;
+                try {
+                    // Convert "16/Jan/2026" to "16 Jan 2026" for parsing
+                    const rawDateString = matches[0][6].replace(/\//g, ' ');
+                    const dateObj = new Date(rawDateString);
+                    
+                    // Add 1 day
+                    dateObj.setDate(dateObj.getDate() + 1);
+                    
+                    // Format: Saturday, 17 January 2026
+                    const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+                    const formattedDate = dateObj.toLocaleDateString('en-GB', options);
+                    
+                    document.getElementById('dateDisplay').textContent = `Date: ${formattedDate}`;
+                } catch (e) {
+                    console.error("Date parsing error:", e);
+                    document.getElementById('dateDisplay').textContent = `Date: ${matches[0][6]}`;
+                }
             }
 
             matches.forEach(m => {
