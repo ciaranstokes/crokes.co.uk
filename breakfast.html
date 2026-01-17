@@ -6,110 +6,105 @@
     <title>Breakfast List Generator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Print Styles - The most critical part for your request */
+        /* Shared Styles for Layout (Screen & Print) */
+        .columns-container {
+            display: flex;
+            flex-direction: row;
+            gap: 15px;
+            align-items: flex-start;
+        }
+        .floor-column {
+            flex: 1;
+            width: 49%;
+        }
+        .floor-card {
+            margin-bottom: 10px;
+            border: 1px solid #cbd5e1; /* slate-300 */
+            border-radius: 8px;
+            overflow: hidden;
+            background: white;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border-bottom: 1px solid #e2e8f0;
+            padding: 2px 6px;
+            line-height: 1.2;
+            font-size: 8.5pt;
+        }
+        tr:last-child td { border-bottom: none; }
+
+        /* Print Specifics */
         @media print {
             @page {
                 size: A4 portrait;
-                margin: 3mm; /* Ultra-tight margins to force single page */
+                margin: 3mm;
             }
             .no-print {
                 display: none !important;
             }
             body {
                 background: white;
-                font-size: 8.5pt; /* Smaller font for density */
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
-                color: #1e293b; /* Slate 800 */
+                color: #1e293b;
             }
             .print-container {
                 padding: 0;
                 margin: 0;
                 width: 100%;
                 max-width: none;
+                box-shadow: none;
+                border: none;
             }
-            .columns-container {
-                display: flex !important;
-                flex-direction: row !important;
-                gap: 10px !important;
-                align-items: flex-start !important;
-            }
-            .floor-column {
-                flex: 1 !important;
-                width: 49% !important;
-            }
-            
-            /* Compact Header for Print */
-            .print-header {
-                display: flex !important;
-                justify-content: space-between;
-                align-items: center;
-                border-bottom: 2px solid #e2e8f0;
-                padding-bottom: 5px;
-                margin-bottom: 10px;
-            }
-            
-            /* Tighter Tables */
-            .floor-card {
-                margin-bottom: 10px !important;
-                border: 1px solid #cbd5e1; /* slate-300 */
-                border-radius: 8px;
-                overflow: hidden;
-            }
-            
-            table {
-                width: 100%;
-                border-collapse: collapse;
-            }
-            
-            th, td {
-                border-bottom: 1px solid #e2e8f0;
-                padding: 2px 6px; /* Very tight padding */
-                line-height: 1.2;
-            }
-            
-            tr:last-child td { border-bottom: none; }
-            
-            /* Hide unnecessary visual fluff in print */
             .input-section { display: none; }
+        }
+
+        /* Screen Specifics (The "Virtual Paper" Look) */
+        @media screen {
+            .print-container {
+                width: 210mm; /* A4 Width */
+                min-height: 297mm; /* A4 Height */
+                margin: 0 auto 3rem auto; /* Center on screen */
+                background: white;
+                padding: 5mm; /* Screen padding to mimic print margins */
+                box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1); /* Drop shadow */
+                border: 1px solid #e2e8f0;
+            }
         }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen font-sans text-slate-800">
+<body class="bg-slate-100 min-h-screen font-sans text-slate-800">
 
     <!-- Control Panel (Hidden on Print) -->
     <div class="no-print input-section max-w-4xl mx-auto p-6">
-        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 border border-slate-200">
-            <div class="flex items-center gap-3 mb-2">
-                <span class="text-3xl">🍳</span>
-                <h1 class="text-2xl font-bold text-slate-800">Breakfast List Generator</h1>
-            </div>
-            <p class="text-sm text-slate-500 mb-6 ml-1">Paste the raw data from your report below.</p>
-            
-            <textarea id="inputData" class="w-full h-48 p-4 border border-slate-200 rounded-xl font-mono text-xs focus:ring-2 focus:ring-slate-400 focus:border-transparent outline-none mb-6 bg-slate-50 text-slate-600 shadow-inner" placeholder="Paste data here..."></textarea>
-            
-            <div class="flex gap-4">
-                <button onclick="processData()" class="bg-slate-800 hover:bg-slate-700 text-white font-semibold py-2.5 px-6 rounded-xl transition shadow-sm flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a1 1 0 01-.664.921l-2.204.882a1 1 0 00-.594.92v6.236l1.378.551a1 1 0 01.664.92V17a1 1 0 01-1 1H2a1 1 0 01-1-1v-4.135a3 3 0 011.664-2.763l2.204-.882a1 1 0 00.594-.92V4.938l-1.378-.55A1 1 0 013 3.465V3a1 1 0 011-1zm12 0a1 1 0 011 1v2.101a1 1 0 01-.664.921l-2.204.882a1 1 0 00-.594.92v6.236l1.378.551a1 1 0 01.664.92V17a1 1 0 01-1 1h-2a1 1 0 01-1-1v-4.135a3 3 0 011.664-2.763l2.204-.882a1 1 0 00.594-.92V4.938l-1.378-.55A1 1 0 0115 3.465V3a1 1 0 011-1z" clip-rule="evenodd" />
-                    </svg>
-                    Generate List
-                </button>
-                <button onclick="window.print()" class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold py-2.5 px-6 rounded-xl transition shadow-sm flex items-center gap-2">
+        <div class="bg-white rounded-2xl shadow-sm p-6 mb-8 border border-slate-200">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                    <span class="text-3xl">🍳</span>
+                    <h1 class="text-2xl font-bold text-slate-800">Breakfast List Generator</h1>
+                </div>
+                <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 text-white font-semibold py-2 px-6 rounded-lg transition shadow-sm flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clip-rule="evenodd" />
                     </svg>
-                    Print
+                    Print List
                 </button>
             </div>
+            
+            <p class="text-sm text-slate-500 mb-2">Paste your report data below. The list will generate automatically.</p>
+            <!-- Auto-generate triggered on 'input' event -->
+            <textarea id="inputData" oninput="processData()" class="w-full h-32 p-4 border border-slate-200 rounded-xl font-mono text-xs focus:ring-2 focus:ring-slate-400 focus:border-transparent outline-none bg-slate-50 text-slate-600 shadow-inner" placeholder="Paste report data here..."></textarea>
         </div>
     </div>
 
-    <!-- Printable Output Area -->
-    <div class="print-container max-w-full mx-auto p-4 bg-white min-h-screen">
+    <!-- Printable Output Area (Styled as Paper on Screen) -->
+    <div class="print-container">
         
-        <!-- Optimized Compact Header -->
-        <div class="print-header flex justify-between items-center mb-6">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-6 border-b-2 border-slate-200 pb-2">
             <div class="flex items-baseline gap-4">
                 <h1 class="text-2xl font-bold text-slate-900 uppercase tracking-tight">Breakfast List</h1>
                 <p id="dateDisplay" class="text-md text-slate-600 font-semibold border-l-2 border-slate-300 pl-4">--/--/----</p>
@@ -120,31 +115,39 @@
             </div>
         </div>
 
-        <!-- 2-Column Layout Container -->
-        <div id="outputContainer" class="columns-container flex flex-col md:flex-row gap-8 align-top">
-            
-            <div class="text-center w-full text-slate-300 py-12 italic border-2 border-dashed border-slate-100 rounded-2xl no-print">
-                No data generated yet. Paste data and click "Generate List".
+        <!-- Layout Container -->
+        <div id="outputContainer" class="columns-container">
+            <!-- Default Placeholder -->
+            <div class="w-full text-center py-24 text-slate-300 italic border-2 border-dashed border-slate-100 rounded-xl no-print">
+                Waiting for data...
             </div>
-
         </div>
 
     </div>
 
     <script>
-        // Regex update: Now matches "BREAKFAST" OR "KIDS_BFAST" to capture children's meals
         const ROW_REGEX = /(\d{3})\s+(BK[^\s]+(?:\s+\d+)?)\s+(.+?)\s+(?:BREAKFAST|KIDS_BFAST)\s+(.*?)\s+(\d+)\s+(\d{1,2}\/[A-Za-z]{3}\/\d{4})\s+(\d+(?:\.\d+)?)/gi;
 
         function processData() {
             const rawInput = document.getElementById('inputData').value;
             
+            if (!rawInput.trim()) {
+                // Clear output if input is empty
+                document.getElementById('outputContainer').innerHTML = `
+                    <div class="w-full text-center py-24 text-slate-300 italic border-2 border-dashed border-slate-100 rounded-xl no-print">
+                        Waiting for data...
+                    </div>`;
+                document.getElementById('totalCovers').textContent = "0";
+                document.getElementById('dateDisplay').textContent = "--/--/----";
+                return;
+            }
+
             // 1. Clean Data
-            // Remove headers, footers, public notes, and join broken lines
             let cleaned = rawInput
                 .replace(/Bike & Boot Peaks Product Distribution Report/g, '')
                 .replace(/Page \d+ of \d+.*$/gm, '') 
                 .replace(/Room ID BookRef Guest Name.*/g, '') 
-                .replace(/Public Notes :/g, '') // Remove junk text
+                .replace(/Public Notes :/g, '') 
                 .replace(/\n/g, ' '); 
 
             // 2. Extract Data
@@ -152,22 +155,21 @@
             const guests = [];
 
             if (matches.length === 0) {
-                alert("No valid data found! Make sure you pasted the correct format.");
+                // Don't alert on auto-type, just show status
+                // console.log("No matches found yet");
                 return;
             }
 
-            // Date Processing: Find date, add 1 day, format nicely
+            // Date Processing
             if(matches[0] && matches[0][6]) {
                 try {
                     const rawDateString = matches[0][6].replace(/\//g, ' ');
                     const dateObj = new Date(rawDateString);
-                    dateObj.setDate(dateObj.getDate() + 1); // Add 1 day
-                    
+                    dateObj.setDate(dateObj.getDate() + 1);
                     const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
                     const formattedDate = dateObj.toLocaleDateString('en-GB', options);
                     document.getElementById('dateDisplay').textContent = formattedDate;
                 } catch (e) {
-                    console.error("Date parsing error:", e);
                     document.getElementById('dateDisplay').textContent = matches[0][6];
                 }
             }
@@ -186,7 +188,6 @@
             });
 
             // 3. Group by Room
-            // Consolidate multiple entries for the same room into one row
             const rooms = {};
             let totalQty = 0;
 
@@ -205,7 +206,6 @@
             document.getElementById('totalCovers').textContent = totalQty;
 
             // 4. Distribute into Floors
-            // Ground: < 100, First: 100-199, Second: 200+
             const floors = {
                 ground: [], 
                 first: [],  
@@ -237,16 +237,15 @@
                 roomList.forEach((r, idx) => {
                     rows += `
                         <tr class="group">
-                            <td class="text-center font-bold text-base text-slate-800 align-middle w-12">${r.room}</td>
-                            <td class="font-medium text-sm text-slate-600 truncate max-w-[200px] align-middle">${r.name}</td>
-                            <td class="text-center font-bold text-base text-slate-700 align-middle w-10">${r.qty}</td>
+                            <td class="text-center font-bold text-slate-800 align-middle w-12">${r.room}</td>
+                            <td class="font-medium text-slate-600 truncate max-w-[200px] align-middle">${r.name}</td>
+                            <td class="text-center font-bold text-slate-700 align-middle w-10">${r.qty}</td>
                         </tr>
                     `;
                 });
 
-                // Compact Table Structure for Print
                 return `
-                    <div class="floor-card mb-4 break-inside-avoid shadow-sm bg-white">
+                    <div class="floor-card break-inside-avoid shadow-sm">
                         <div class="bg-slate-50 p-1.5 text-center font-bold text-slate-600 uppercase tracking-widest text-[10px] border-b border-slate-200">
                             ${title}
                         </div>
@@ -270,7 +269,6 @@
             const firstHtml = createTableHtml("First Floor", floors.first);
             const secondHtml = createTableHtml("Second Floor", floors.second);
             
-            // Layout: Left Column (Ground + First), Right Column (Second)
             const leftCol = `
                 <div class="floor-column">
                     ${groundHtml}
