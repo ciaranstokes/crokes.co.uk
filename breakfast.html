@@ -132,18 +132,19 @@
     </div>
 
     <script>
-        // Regex to extract specific fields from the pasted report
-        const ROW_REGEX = /(\d{3})\s+(BK[^\s]+(?:\s+\d+)?)\s+(.+?)\s+BREAKFAST\s+(.*?)\s+(\d+)\s+(\d{1,2}\/[A-Za-z]{3}\/\d{4})\s+(\d+(?:\.\d+)?)/gi;
+        // Regex update: Now matches "BREAKFAST" OR "KIDS_BFAST" to capture children's meals
+        const ROW_REGEX = /(\d{3})\s+(BK[^\s]+(?:\s+\d+)?)\s+(.+?)\s+(?:BREAKFAST|KIDS_BFAST)\s+(.*?)\s+(\d+)\s+(\d{1,2}\/[A-Za-z]{3}\/\d{4})\s+(\d+(?:\.\d+)?)/gi;
 
         function processData() {
             const rawInput = document.getElementById('inputData').value;
             
             // 1. Clean Data
-            // Remove headers, footers, and join broken lines
+            // Remove headers, footers, public notes, and join broken lines
             let cleaned = rawInput
                 .replace(/Bike & Boot Peaks Product Distribution Report/g, '')
                 .replace(/Page \d+ of \d+.*$/gm, '') 
                 .replace(/Room ID BookRef Guest Name.*/g, '') 
+                .replace(/Public Notes :/g, '') // Remove junk text
                 .replace(/\n/g, ' '); 
 
             // 2. Extract Data
