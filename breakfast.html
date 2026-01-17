@@ -6,19 +6,21 @@
     <title>Breakfast List Generator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        /* Print Styles - The most critical part for your request */
         @media print {
             @page {
                 size: A4 portrait;
-                margin: 5mm;
+                margin: 3mm; /* Ultra-tight margins to force single page */
             }
             .no-print {
                 display: none !important;
             }
             body {
                 background: white;
-                font-size: 9pt;
+                font-size: 8.5pt; /* Smaller font for density */
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
+                color: #1e293b; /* Slate 800 */
             }
             .print-container {
                 padding: 0;
@@ -29,44 +31,54 @@
             .columns-container {
                 display: flex !important;
                 flex-direction: row !important;
-                gap: 20px !important; /* Increased gap for cleaner separation */
+                gap: 10px !important;
                 align-items: flex-start !important;
             }
             .floor-column {
                 flex: 1 !important;
-                width: 48% !important;
+                width: 49% !important;
             }
             
-            /* Modern Table Styles for Print */
+            /* Compact Header for Print */
+            .print-header {
+                display: flex !important;
+                justify-content: space-between;
+                align-items: center;
+                border-bottom: 2px solid #e2e8f0;
+                padding-bottom: 5px;
+                margin-bottom: 10px;
+            }
+            
+            /* Tighter Tables */
+            .floor-card {
+                margin-bottom: 10px !important;
+                border: 1px solid #cbd5e1; /* slate-300 */
+                border-radius: 8px;
+                overflow: hidden;
+            }
+            
             table {
                 width: 100%;
-                border-collapse: separate; /* Required for rounded corners */
-                border-spacing: 0;
-                page-break-inside: avoid;
+                border-collapse: collapse;
             }
             
-            /* Clean Borders */
             th, td {
-                border-bottom: 1px solid #e2e8f0; /* slate-200 */
-                padding: 4px 8px;
+                border-bottom: 1px solid #e2e8f0;
+                padding: 2px 6px; /* Very tight padding */
+                line-height: 1.2;
             }
             
-            /* Remove default borders to use modern dividers */
-            th { border-top: none; border-left: none; border-right: none; }
-            td { border-left: none; border-right: none; }
             tr:last-child td { border-bottom: none; }
-
-            /* Header adjustments */
-            h1 { font-size: 18pt !important; color: #1e293b !important; /* slate-800 */ }
-            .header-info { font-size: 10pt !important; color: #64748b !important; /* slate-500 */ }
-            .total-covers { font-size: 20pt !important; color: #334155 !important; /* slate-700 */ }
+            
+            /* Hide unnecessary visual fluff in print */
+            .input-section { display: none; }
         }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen font-sans text-slate-800">
 
     <!-- Control Panel (Hidden on Print) -->
-    <div class="no-print max-w-4xl mx-auto p-6">
+    <div class="no-print input-section max-w-4xl mx-auto p-6">
         <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 border border-slate-200">
             <div class="flex items-center gap-3 mb-2">
                 <span class="text-3xl">🍳</span>
@@ -96,15 +108,15 @@
     <!-- Printable Output Area -->
     <div class="print-container max-w-full mx-auto p-4 bg-white min-h-screen">
         
-        <!-- Header -->
-        <div class="flex justify-between items-end border-b border-slate-200 pb-3 mb-6">
-            <div>
-                <h1 class="text-3xl font-bold text-slate-800 tracking-tight">Breakfast List</h1>
-                <p id="dateDisplay" class="header-info text-lg text-slate-500 font-medium mt-1">Date: --/--/----</p>
+        <!-- Optimized Compact Header -->
+        <div class="print-header flex justify-between items-center mb-6">
+            <div class="flex items-baseline gap-4">
+                <h1 class="text-2xl font-bold text-slate-900 uppercase tracking-tight">Breakfast List</h1>
+                <p id="dateDisplay" class="text-md text-slate-600 font-semibold border-l-2 border-slate-300 pl-4">--/--/----</p>
             </div>
-            <div class="text-right">
-                <div class="text-xs font-bold text-slate-400 uppercase tracking-widest">Total Covers</div>
-                <div id="totalCovers" class="total-covers text-4xl font-bold text-slate-700">0</div>
+            <div class="flex items-center gap-3 bg-slate-100 rounded-lg px-3 py-1 border border-slate-200">
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total</span>
+                <span id="totalCovers" class="text-xl font-bold text-slate-900">0</span>
             </div>
         </div>
 
@@ -120,12 +132,14 @@
     </div>
 
     <script>
+        // Regex to extract specific fields from the pasted report
         const ROW_REGEX = /(\d{3})\s+(BK[^\s]+(?:\s+\d+)?)\s+(.+?)\s+BREAKFAST\s+(.*?)\s+(\d+)\s+(\d{1,2}\/[A-Za-z]{3}\/\d{4})\s+(\d+(?:\.\d+)?)/gi;
 
         function processData() {
             const rawInput = document.getElementById('inputData').value;
             
             // 1. Clean Data
+            // Remove headers, footers, and join broken lines
             let cleaned = rawInput
                 .replace(/Bike & Boot Peaks Product Distribution Report/g, '')
                 .replace(/Page \d+ of \d+.*$/gm, '') 
@@ -141,12 +155,13 @@
                 return;
             }
 
-            // Date Processing
+            // Date Processing: Find date, add 1 day, format nicely
             if(matches[0] && matches[0][6]) {
                 try {
                     const rawDateString = matches[0][6].replace(/\//g, ' ');
                     const dateObj = new Date(rawDateString);
-                    dateObj.setDate(dateObj.getDate() + 1);
+                    dateObj.setDate(dateObj.getDate() + 1); // Add 1 day
+                    
                     const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
                     const formattedDate = dateObj.toLocaleDateString('en-GB', options);
                     document.getElementById('dateDisplay').textContent = formattedDate;
@@ -170,6 +185,7 @@
             });
 
             // 3. Group by Room
+            // Consolidate multiple entries for the same room into one row
             const rooms = {};
             let totalQty = 0;
 
@@ -188,10 +204,11 @@
             document.getElementById('totalCovers').textContent = totalQty;
 
             // 4. Distribute into Floors
+            // Ground: < 100, First: 100-199, Second: 200+
             const floors = {
-                ground: [], // 0 - 99
-                first: [],  // 100 - 199
-                second: []  // 200+
+                ground: [], 
+                first: [],  
+                second: []  
             };
 
             Object.values(rooms).sort((a,b) => a.room.localeCompare(b.room)).forEach(r => {
@@ -217,31 +234,30 @@
                 
                 let rows = '';
                 roomList.forEach((r, idx) => {
-                    // Cleaner logic: no background stripes for eco-printing, just borders
                     rows += `
-                        <tr class="group hover:bg-slate-50">
-                            <td class="text-center font-bold text-lg text-slate-800 p-2 align-middle w-16">${r.room}</td>
-                            <td class="font-medium text-sm text-slate-600 truncate max-w-[250px] p-2 align-middle">${r.name}</td>
-                            <td class="text-center font-semibold text-lg text-slate-700 p-2 align-middle w-12">${r.qty}</td>
+                        <tr class="group">
+                            <td class="text-center font-bold text-base text-slate-800 align-middle w-12">${r.room}</td>
+                            <td class="font-medium text-sm text-slate-600 truncate max-w-[200px] align-middle">${r.name}</td>
+                            <td class="text-center font-bold text-base text-slate-700 align-middle w-10">${r.qty}</td>
                         </tr>
                     `;
                 });
 
-                // Modern Card + Table Structure
+                // Compact Table Structure for Print
                 return `
-                    <div class="mb-6 break-inside-avoid rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-                        <div class="bg-slate-50 p-3 text-center font-bold text-slate-600 uppercase tracking-widest text-xs border-b border-slate-200">
+                    <div class="floor-card mb-4 break-inside-avoid shadow-sm bg-white">
+                        <div class="bg-slate-50 p-1.5 text-center font-bold text-slate-600 uppercase tracking-widest text-[10px] border-b border-slate-200">
                             ${title}
                         </div>
                         <table class="w-full text-left">
-                            <thead class="bg-white text-slate-400 border-b border-slate-100 text-[10px] uppercase tracking-wider">
+                            <thead class="bg-white text-slate-400 border-b border-slate-100 text-[9px] uppercase tracking-wider">
                                 <tr>
-                                    <th class="w-16 text-center font-semibold py-2">Room</th>
-                                    <th class="font-semibold py-2">Guest Name</th>
-                                    <th class="w-12 text-center font-semibold py-2">Qty</th>
+                                    <th class="w-12 text-center font-semibold py-1">Room</th>
+                                    <th class="font-semibold py-1">Guest Name</th>
+                                    <th class="w-10 text-center font-semibold py-1">Qty</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-100 bg-white">
+                            <tbody class="divide-y divide-slate-100">
                                 ${rows}
                             </tbody>
                         </table>
@@ -253,6 +269,7 @@
             const firstHtml = createTableHtml("First Floor", floors.first);
             const secondHtml = createTableHtml("Second Floor", floors.second);
             
+            // Layout: Left Column (Ground + First), Right Column (Second)
             const leftCol = `
                 <div class="floor-column">
                     ${groundHtml}
