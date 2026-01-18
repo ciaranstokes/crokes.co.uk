@@ -6,7 +6,28 @@
     <title>Breakfast List Generator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        /* CSS Variables for Dynamic Theming */
+        :root {
+            /* Default Theme (Slate-ish) */
+            --theme-hue: 215;
+            --theme-sat: 25%;
+            
+            --color-text-main: hsl(var(--theme-hue), var(--theme-sat), 20%);    /* Dark text */
+            --color-text-sub: hsl(var(--theme-hue), var(--theme-sat), 40%);     /* Muted text */
+            --color-bg-header: hsl(var(--theme-hue), var(--theme-sat), 96%);    /* Light header bg */
+            --color-border: hsl(var(--theme-hue), var(--theme-sat), 80%);       /* Borders */
+            --color-accent: hsl(var(--theme-hue), var(--theme-sat), 50%);       /* Accents */
+
+            /* Typography & Layout */
+            --doc-font-size: 9pt; /* Default Size */
+            --table-padding: 2px; /* Default Density */
+        }
+
         /* Shared Styles */
+        body {
+            color: var(--color-text-main);
+        }
+
         .columns-container {
             display: flex;
             flex-direction: row;
@@ -17,40 +38,57 @@
             flex: 1;
             width: 49%;
         }
+        
+        /* Themed Components */
         .floor-card {
             margin-bottom: 10px;
-            border: 1px solid #cbd5e1; /* slate-300 */
+            border: 1px solid var(--color-border);
             border-radius: 8px;
             overflow: hidden;
             background: white;
         }
+        
+        .floor-header-bg {
+            background-color: var(--color-bg-header);
+            border-bottom: 1px solid var(--color-border);
+            color: var(--color-text-sub);
+        }
+
+        .table-header {
+            border-bottom: 1px solid var(--color-border);
+            color: var(--color-text-sub);
+            background: white;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
         }
+        
         th, td {
-            border-bottom: 1px solid #e2e8f0;
-            padding: 2px 6px; /* Very tight padding */
-            line-height: 1.2;
-            font-size: 8.5pt;
+            border-bottom: 1px solid var(--color-border);
+            padding: var(--table-padding) 6px; /* Dynamic Padding */
+            line-height: 1.25;
+            font-size: var(--doc-font-size);
+            color: var(--color-text-main);
+            transition: padding 0.2s ease;
         }
+        
         tr:last-child td { border-bottom: none; }
 
-        /* Print Styles - The most critical part for your request */
+        /* Print Styles */
         @media print {
             @page {
                 size: A4 portrait;
-                margin: 3mm; /* Ultra-tight margins to force single page */
+                margin: 4mm; /* Keeping tight margins */
             }
             .no-print {
                 display: none !important;
             }
             body {
                 background: white;
-                font-size: 8.5pt; /* Smaller font for density */
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
-                color: #1e293b; /* Slate 800 */
             }
             .print-container {
                 padding: 0;
@@ -66,80 +104,124 @@
                 display: flex !important;
                 justify-content: space-between;
                 align-items: center;
-                border-bottom: 2px solid #e2e8f0;
+                border-bottom: 2px solid var(--color-border);
                 padding-bottom: 5px;
                 margin-bottom: 10px;
             }
             
-            /* Hide unnecessary visual fluff in print */
             .input-section { display: none; }
         }
 
-        /* Screen Specifics (The "Virtual Paper" Look) */
+        /* Screen Specifics */
         @media screen {
             .print-container {
-                width: 210mm; /* A4 Width */
-                min-height: 297mm; /* A4 Height */
-                margin: 0 auto 3rem auto; /* Center on screen */
+                width: 210mm;
+                min-height: 297mm;
+                margin: 0 auto 3rem auto;
                 background: white;
-                padding: 5mm; /* Screen padding to mimic print margins */
-                box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1); /* Drop shadow */
+                padding: 5mm;
+                box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
                 border: 1px solid #e2e8f0;
+                transition: all 0.2s ease;
             }
             .print-header {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                border-bottom: 2px solid #e2e8f0;
+                border-bottom: 2px solid var(--color-border);
                 padding-bottom: 5px;
                 margin-bottom: 10px;
             }
         }
     </style>
 </head>
-<body class="bg-slate-100 min-h-screen font-sans text-slate-800">
+<body class="bg-slate-100 min-h-screen font-sans">
 
     <!-- Control Panel (Hidden on Print) -->
     <div class="no-print input-section max-w-4xl mx-auto p-6">
         <div class="bg-white rounded-2xl shadow-sm p-6 mb-8 border border-slate-200">
-            <div class="flex items-center justify-between mb-4">
+            
+            <!-- Header & Main Actions -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
                 <div class="flex items-center gap-3">
                     <span class="text-3xl">🍳</span>
-                    <h1 class="text-2xl font-bold text-slate-800">Breakfast List Generator</h1>
+                    <h1 class="text-2xl font-bold text-slate-800">Breakfast Generator</h1>
                 </div>
-                <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 text-white font-semibold py-2 px-6 rounded-lg transition shadow-sm flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clip-rule="evenodd" />
-                    </svg>
-                    Print List
-                </button>
+                <div class="flex gap-3">
+                     <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 text-white font-semibold py-2 px-6 rounded-lg transition shadow-sm flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clip-rule="evenodd" />
+                        </svg>
+                        Print List
+                    </button>
+                </div>
+            </div>
+
+            <!-- Customization Toolbar -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                
+                <!-- Font Size Control -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Font Size</label>
+                    <div class="flex items-center gap-4">
+                        <input type="range" id="fontSizeSlider" min="7.5" max="11" step="0.5" value="9" 
+                               class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-slate-600"
+                               oninput="updateSettings()">
+                        <span id="fontSizeLabel" class="text-sm font-mono font-bold text-slate-700 min-w-[3rem]">9pt</span>
+                    </div>
+                </div>
+
+                <!-- Table Density Control -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Table Spacing</label>
+                    <div class="flex items-center gap-4">
+                        <input type="range" id="densitySlider" min="1" max="6" step="0.5" value="2" 
+                               class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-slate-600"
+                               oninput="updateSettings()">
+                        <span id="densityLabel" class="text-xs font-bold text-slate-500 min-w-[3rem]">Tight</span>
+                    </div>
+                </div>
+
+                <!-- Theme Color Control -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Theme Color</label>
+                    <div class="flex gap-3 items-center">
+                        <!-- Slate (Default) -->
+                        <button onclick="setTheme(215, '25%')" class="w-8 h-8 rounded-full bg-slate-500 border-2 border-white shadow-sm ring-2 ring-transparent focus:ring-slate-400 hover:scale-110 transition" title="Default Slate"></button>
+                        <!-- Blue -->
+                        <button onclick="setTheme(220, '90%')" class="w-8 h-8 rounded-full bg-blue-600 border-2 border-white shadow-sm ring-2 ring-transparent focus:ring-blue-400 hover:scale-110 transition" title="Blue"></button>
+                        <!-- Emerald -->
+                        <button onclick="setTheme(160, '84%')" class="w-8 h-8 rounded-full bg-emerald-600 border-2 border-white shadow-sm ring-2 ring-transparent focus:ring-emerald-400 hover:scale-110 transition" title="Emerald"></button>
+                        <!-- Random -->
+                        <button onclick="randomizeTheme()" class="w-8 h-8 rounded-full bg-white border-2 border-slate-200 shadow-sm flex items-center justify-center hover:bg-slate-50 hover:scale-110 transition text-lg" title="Random Color">🎲</button>
+                    </div>
+                </div>
             </div>
             
-            <p class="text-sm text-slate-500 mb-2">Paste your report data below. The list will generate automatically.</p>
-            
-            <textarea id="inputData" oninput="processData()" class="w-full h-32 p-4 border border-slate-200 rounded-xl font-mono text-xs focus:ring-2 focus:ring-slate-400 focus:border-transparent outline-none mb-6 bg-slate-50 text-slate-600 shadow-inner" placeholder="Paste data here..."></textarea>
+            <p class="text-sm text-slate-500 mb-2">Paste your report data below:</p>
+            <textarea id="inputData" oninput="processData()" class="w-full h-32 p-4 border border-slate-200 rounded-xl font-mono text-xs focus:ring-2 focus:ring-slate-400 focus:border-transparent outline-none bg-slate-50 text-slate-600 shadow-inner" placeholder="Paste data here..."></textarea>
         </div>
     </div>
 
     <!-- Printable Output Area -->
     <div class="print-container">
         
-        <!-- Optimized Compact Header -->
+        <!-- Header -->
         <div class="print-header">
             <div class="flex items-baseline gap-4">
-                <h1 class="text-2xl font-bold text-slate-900 uppercase tracking-tight">Breakfast List</h1>
-                <p id="dateDisplay" class="text-md text-slate-600 font-semibold border-l-2 border-slate-300 pl-4">--/--/----</p>
+                <h1 class="text-2xl font-bold uppercase tracking-tight" style="color: var(--color-text-main)">Breakfast List</h1>
+                <p id="dateDisplay" class="text-md font-semibold border-l-2 pl-4" style="color: var(--color-text-sub); border-color: var(--color-border)">--/--/----</p>
             </div>
-            <div class="flex items-center gap-3 bg-slate-100 rounded-lg px-3 py-1 border border-slate-200">
-                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total</span>
-                <span id="totalCovers" class="text-xl font-bold text-slate-900">0</span>
+            <div class="flex items-center gap-3 rounded-lg px-3 py-1 border" style="background-color: var(--color-bg-header); border-color: var(--color-border)">
+                <span class="text-[10px] font-bold uppercase tracking-wider" style="color: var(--color-text-sub)">Total</span>
+                <span id="totalCovers" class="text-xl font-bold" style="color: var(--color-text-main)">0</span>
             </div>
         </div>
 
         <!-- 2-Column Layout Container -->
         <div id="outputContainer" class="columns-container">
             
-            <div class="w-full text-center py-24 text-slate-300 italic border-2 border-dashed border-slate-100 rounded-2xl no-print">
+            <div class="w-full text-center py-24 italic border-2 border-dashed rounded-2xl no-print" style="border-color: var(--color-border); color: var(--color-text-sub)">
                 Waiting for data...
             </div>
 
@@ -148,16 +230,44 @@
     </div>
 
     <script>
-        // Regex matches "BREAKFAST", "KIDS_BFAST", or "SALE_BFAST"
+        // --- Settings Management ---
+        function updateSettings() {
+            // Font Size
+            const size = document.getElementById('fontSizeSlider').value;
+            document.getElementById('fontSizeLabel').textContent = size + "pt";
+            document.documentElement.style.setProperty('--doc-font-size', size + "pt");
+
+            // Table Density
+            const density = document.getElementById('densitySlider').value;
+            let densityText = "Normal";
+            if (density < 2) densityText = "Tight";
+            if (density > 4) densityText = "Relaxed";
+            
+            document.getElementById('densityLabel').textContent = densityText;
+            document.documentElement.style.setProperty('--table-padding', density + "px");
+        }
+
+        function setTheme(hue, sat) {
+            document.documentElement.style.setProperty('--theme-hue', hue);
+            document.documentElement.style.setProperty('--theme-sat', sat);
+        }
+
+        function randomizeTheme() {
+            const hue = Math.floor(Math.random() * 360);
+            // Keep saturation reasonably high for visibility, between 50% and 90%
+            const sat = Math.floor(Math.random() * 40) + 50 + '%';
+            setTheme(hue, sat);
+        }
+
+        // --- Data Processing ---
         const ROW_REGEX = /(\d{3})\s+(BK[^\s]+(?:\s+\d+)?)\s+(.+?)\s+(?:BREAKFAST|KIDS_BFAST|SALE_BFAST)\s+(.*?)\s+(\d+)\s+(\d{1,2}\/[A-Za-z]{3}\/\d{4})\s+(\d+(?:\.\d+)?)/gi;
 
         function processData() {
             const rawInput = document.getElementById('inputData').value;
             
-            // Clear if empty
             if (!rawInput.trim()) {
                 document.getElementById('outputContainer').innerHTML = `
-                    <div class="w-full text-center py-24 text-slate-300 italic border-2 border-dashed border-slate-100 rounded-2xl no-print">
+                    <div class="w-full text-center py-24 italic border-2 border-dashed rounded-2xl no-print" style="border-color: var(--color-border); color: var(--color-text-sub)">
                         Waiting for data...
                     </div>`;
                 document.getElementById('totalCovers').textContent = "0";
@@ -166,35 +276,28 @@
             }
 
             // 1. Clean Data
-            // Remove headers, footers, public notes, and join broken lines
             let cleaned = rawInput
                 .replace(/Bike & Boot Peaks Product Distribution Report/g, '')
                 .replace(/Page \d+ of \d+.*$/gm, '') 
                 .replace(/Room ID BookRef Guest Name.*/g, '') 
-                .replace(/Public Notes :/g, '') // Remove junk text
+                .replace(/Public Notes :/g, '') 
                 .replace(/\n/g, ' '); 
 
             // 2. Extract Data
             const matches = [...cleaned.matchAll(ROW_REGEX)];
             const guests = [];
 
-            if (matches.length === 0) {
-                // Do nothing if typing but no match yet
-                return;
-            }
+            if (matches.length === 0) return;
 
-            // Date Processing: Find date, add 1 day, format nicely
+            // Date Processing
             if(matches[0] && matches[0][6]) {
                 try {
                     const rawDateString = matches[0][6].replace(/\//g, ' ');
                     const dateObj = new Date(rawDateString);
-                    dateObj.setDate(dateObj.getDate() + 1); // Add 1 day
-                    
+                    dateObj.setDate(dateObj.getDate() + 1);
                     const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-                    const formattedDate = dateObj.toLocaleDateString('en-GB', options);
-                    document.getElementById('dateDisplay').textContent = formattedDate;
+                    document.getElementById('dateDisplay').textContent = dateObj.toLocaleDateString('en-GB', options);
                 } catch (e) {
-                    console.error("Date parsing error:", e);
                     document.getElementById('dateDisplay').textContent = matches[0][6];
                 }
             }
@@ -213,18 +316,13 @@
             });
 
             // 3. Group by Room
-            // Consolidate multiple entries for the same room into one row
             const rooms = {};
             let totalQty = 0;
 
             guests.forEach(guest => {
                 totalQty += guest.qty;
                 if (!rooms[guest.room]) {
-                    rooms[guest.room] = {
-                        room: guest.room,
-                        name: guest.name,
-                        qty: 0
-                    };
+                    rooms[guest.room] = { room: guest.room, name: guest.name, qty: 0 };
                 }
                 rooms[guest.room].qty += guest.qty;
             });
@@ -232,22 +330,13 @@
             document.getElementById('totalCovers').textContent = totalQty;
 
             // 4. Distribute into Floors
-            // Ground: < 100, First: 100-199, Second: 200+
-            const floors = {
-                ground: [], 
-                first: [],  
-                second: []  
-            };
+            const floors = { ground: [], first: [], second: [] };
 
             Object.values(rooms).sort((a,b) => a.room.localeCompare(b.room)).forEach(r => {
                 const roomNum = parseInt(r.room);
-                if (roomNum < 100) {
-                    floors.ground.push(r);
-                } else if (roomNum < 200) {
-                    floors.first.push(r);
-                } else {
-                    floors.second.push(r);
-                }
+                if (roomNum < 100) floors.ground.push(r);
+                else if (roomNum < 200) floors.first.push(r);
+                else floors.second.push(r);
             });
 
             renderColumns(floors);
@@ -262,30 +351,31 @@
                 
                 let rows = '';
                 roomList.forEach((r, idx) => {
+                    // Removed specific tailwind colors, relying on CSS vars inherited from body/th/td
                     rows += `
-                        <tr class="group">
-                            <td class="text-center font-bold text-base text-slate-800 align-middle w-12">${r.room}</td>
-                            <td class="font-medium text-sm text-slate-600 truncate max-w-[200px] align-middle">${r.name}</td>
-                            <td class="text-center font-bold text-base text-slate-700 align-middle w-10">${r.qty}</td>
+                        <tr class="group hover:bg-slate-50 transition-colors">
+                            <td class="text-center font-bold align-middle w-12">${r.room}</td>
+                            <td class="font-medium truncate max-w-[200px] align-middle">${r.name}</td>
+                            <td class="text-center font-bold align-middle w-10">${r.qty}</td>
                         </tr>
                     `;
                 });
 
-                // Compact Table Structure for Print
+                // Using new theme classes
                 return `
-                    <div class="floor-card mb-4 break-inside-avoid shadow-sm bg-white">
-                        <div class="bg-slate-50 p-1.5 text-center font-bold text-slate-600 uppercase tracking-widest text-[10px] border-b border-slate-200">
+                    <div class="floor-card break-inside-avoid shadow-sm">
+                        <div class="floor-header-bg p-1.5 text-center font-bold uppercase tracking-widest text-[10px]">
                             ${title}
                         </div>
                         <table class="w-full text-left">
-                            <thead class="bg-white text-slate-400 border-b border-slate-100 text-[9px] uppercase tracking-wider">
+                            <thead class="table-header text-[9px] uppercase tracking-wider">
                                 <tr>
                                     <th class="w-12 text-center font-semibold py-1">Room</th>
                                     <th class="font-semibold py-1">Guest Name</th>
                                     <th class="w-10 text-center font-semibold py-1">Qty</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-100">
+                            <tbody class="divide-y" style="border-color: var(--color-border)">
                                 ${rows}
                             </tbody>
                         </table>
@@ -297,21 +387,10 @@
             const firstHtml = createTableHtml("First Floor", floors.first);
             const secondHtml = createTableHtml("Second Floor", floors.second);
             
-            // Layout: Left Column (Ground + First), Right Column (Second)
-            const leftCol = `
-                <div class="floor-column">
-                    ${groundHtml}
-                    ${firstHtml}
-                </div>
+            container.innerHTML = `
+                <div class="floor-column">${groundHtml}${firstHtml}</div>
+                <div class="floor-column">${secondHtml}</div>
             `;
-            
-            const rightCol = `
-                <div class="floor-column">
-                    ${secondHtml}
-                </div>
-            `;
-
-            container.innerHTML = leftCol + rightCol;
         }
     </script>
 </body>
