@@ -81,8 +81,18 @@
         <!-- Dashboard Stats (Hidden initially) -->
         <div id="resultsArea" class="hidden space-y-6">
             
-            <!-- Print Button Row -->
-            <div class="flex justify-end no-print">
+            <!-- Controls Row -->
+            <div class="flex justify-between items-center no-print">
+                 <div class="flex items-center space-x-2">
+                    <label for="statsVisibility" class="text-sm font-medium text-gray-700">Display:</label>
+                    <select id="statsVisibility" onchange="processData()" class="block w-40 pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md border bg-white">
+                        <option value="all">Show All Stats</option>
+                        <option value="rooms">Occupancy Only</option>
+                        <option value="breakfast">Breakfast Only</option>
+                        <option value="none">Hide Stats</option>
+                    </select>
+                </div>
+
                 <button onclick="window.print()" class="flex items-center gap-2 text-gray-600 bg-white border border-gray-300 hover:bg-gray-50 font-medium py-2 px-4 rounded-lg transition-colors text-sm">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -100,11 +110,11 @@
                     <table class="w-full text-sm text-left">
                         <thead class="text-xs text-gray-500 uppercase bg-gray-50 border-b">
                             <tr>
-                                <th class="px-6 py-3">Date</th>
+                                <th class="px-6 py-3 text-center">Date</th>
                                 <th class="px-6 py-3 text-center">Total Guests</th>
                                 <th class="px-6 py-3 text-center">Rooms Occupied</th>
                                 <th class="px-6 py-3 text-center">Total Breakfasts</th>
-                                <th class="px-6 py-3 w-5/12">Occupancy & Breakfast Stats</th>
+                                <th id="statsHeader" class="px-6 py-3 w-5/12 text-center">Occupancy & Breakfast Stats</th>
                             </tr>
                         </thead>
                         <tbody id="occupancyTableBody" class="divide-y divide-gray-100">
@@ -150,6 +160,7 @@
         function processData() {
             const rawInput = document.getElementById('inputData').value;
             const rawBreakfast = document.getElementById('inputBreakfast').value;
+            const statsMode = document.getElementById('statsVisibility').value; // 'all', 'rooms', 'breakfast', 'none'
             
             // Clear UI if occupancy data is empty
             if (!rawInput.trim()) {
@@ -261,6 +272,14 @@
             const tbody = document.getElementById('occupancyTableBody');
             tbody.innerHTML = '';
 
+            // Handle Stats Column Visibility
+            const statsHeader = document.getElementById('statsHeader');
+            if (statsMode === 'none') {
+                statsHeader.classList.add('hidden');
+            } else {
+                statsHeader.classList.remove('hidden');
+            }
+
             datesToRender.forEach(dateObj => {
                 const key = dateObj.getTime();
                 const data = dailyStats[key] || { rooms: 0, totalGuests: 0 };
@@ -273,23 +292,37 @@
                 else if(percentage > 70) barColor = 'bg-orange-400';
                 else if(percentage > 40) barColor = 'bg-blue-500';
 
+                // Visualization HTML Builders
+                let roomVisualHTML = '';
+                if (statsMode === 'all' || statsMode === 'rooms') {
+                     roomVisualHTML = `
+                        <div class="flex items-center space-x-2 w-full">
+                            <span class="text-xs font-semibold text-gray-500 w-16 text-right">Rooms: ${Math.round(percentage)}%</span>
+                            <div class="flex-1 bg-gray-200 rounded-full h-2.5">
+                                <div class="${barColor} h-2.5 rounded-full transition-all duration-500" style="width: ${percentage}%"></div>
+                            </div>
+                        </div>`;
+                }
+
                 // Visualization 2: Breakfast Capture Rate (Breakfasts / Total Guests)
-                let breakfastVisual = '';
-                if (bkCount > 0 && data.totalGuests > 0) {
+                let breakfastVisualHTML = '';
+                if (bkCount > 0 && data.totalGuests > 0 && (statsMode === 'all' || statsMode === 'breakfast')) {
                     const captureRate = (bkCount / data.totalGuests) * 100;
-                    breakfastVisual = `
-                        <div class="flex items-center space-x-2 mt-1">
+                    breakfastVisualHTML = `
+                        <div class="flex items-center space-x-2 mt-1 w-full">
                              <span class="text-[10px] font-medium text-blue-600 w-16 text-right">Bkfst: ${Math.round(captureRate)}%</span>
-                             <div class="w-full bg-blue-50 rounded-full h-1.5 border border-blue-100">
+                             <div class="flex-1 bg-blue-50 rounded-full h-1.5 border border-blue-100">
                                  <div class="bg-blue-500 h-1.5 rounded-full" style="width: ${Math.min(captureRate, 100)}%"></div>
                              </div>
                         </div>
                     `;
                 }
 
+                const visualCellClass = statsMode === 'none' ? 'hidden' : '';
+
                 const row = `
                     <tr class="hover:bg-gray-50 transition-colors">
-                        <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap border-r border-gray-100 align-top">
+                        <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap border-r border-gray-100 align-top text-center">
                             ${formatDate(dateObj)}
                         </td>
                         <td class="px-6 py-4 text-center text-gray-900 font-bold align-top">${data.totalGuests}</td>
@@ -299,17 +332,10 @@
                         <td class="px-6 py-4 text-center text-blue-700 font-semibold border-l border-r border-gray-100 bg-gray-50/10 align-top">
                             ${bkCount > 0 ? bkCount : ''}
                         </td>
-                        <td class="px-6 py-4 align-middle">
-                            <div class="flex flex-col justify-center">
-                                <!-- Room Occupancy -->
-                                <div class="flex items-center space-x-2">
-                                    <span class="text-xs font-semibold text-gray-500 w-16 text-right">Rooms: ${Math.round(percentage)}%</span>
-                                    <div class="w-full bg-gray-200 rounded-full h-2.5">
-                                        <div class="${barColor} h-2.5 rounded-full transition-all duration-500" style="width: ${percentage}%"></div>
-                                    </div>
-                                </div>
-                                <!-- Breakfast (Conditional) -->
-                                ${breakfastVisual}
+                        <td class="px-6 py-4 align-middle ${visualCellClass}">
+                            <div class="flex flex-col justify-center items-center w-full">
+                                ${roomVisualHTML}
+                                ${breakfastVisualHTML}
                             </div>
                         </td>
                     </tr>
