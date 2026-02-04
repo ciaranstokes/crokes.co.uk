@@ -437,7 +437,7 @@
                 <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
                     <div class="w-full max-w-sm p-6 rounded-2xl shadow-2xl ${isDark ? 'bg-slate-800' : 'bg-white'}">
                         <h2 class="text-xl font-bold mb-4 text-center">Staff Access</h2>
-                        <input id="pinInput" type="password" maxlength="4" placeholder="PIN" 
+                        <input id="pinInput" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="PIN" 
                             value="${state.pinInput}"
                             oninput="handlePinInput(this.value)"
                             class="w-full text-center text-2xl tracking-widest p-3 rounded-lg border mb-4 outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-slate-900 border-slate-700' : 'bg-slate-50 border-slate-200'}"
