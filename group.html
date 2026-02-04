@@ -23,63 +23,59 @@
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-900 font-sans">
 
-    <!-- Loading/Error State Overlay -->
-    <div id="loadingOverlay" class="fixed inset-0 z-50 flex items-center justify-center loading-overlay">
-        <div class="flex flex-col items-center gap-4 max-w-lg p-8 text-center">
-            <div id="spinner" class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-            
-            <div id="statusContent">
-                <p class="text-slate-600 font-medium">Connecting to Firebase...</p>
-                <p class="text-xs text-slate-400 mt-2">Project ID: web-app-32eea</p>
+    <!-- Auth Screen (Login/Register) -->
+    <div id="authScreen" class="fixed inset-0 z-[60] flex items-center justify-center bg-slate-100 hidden">
+        <div class="bg-white p-8 rounded-3xl shadow-xl border border-slate-200 w-full max-w-md mx-4">
+            <div class="text-center mb-8">
+                <h2 id="authTitle" class="text-3xl font-bold text-indigo-900">Welcome Back</h2>
+                <p id="authSubtitle" class="text-slate-500 mt-2">Sign in to manage your arrivals</p>
             </div>
             
-            <!-- This section appears specifically when Permissions fail -->
-            <div id="ruleFixInstructions" class="hidden mt-4 text-left bg-white p-6 rounded-2xl border-2 border-red-100 shadow-xl">
-                <div class="flex items-center gap-2 mb-4">
-                    <div class="bg-red-100 p-2 rounded-full">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m0-6V9m0-6H6.333M12 3h5.667M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z" />
-                        </svg>
-                    </div>
-                    <h3 class="text-red-800 font-bold text-lg">Permission Denied</h3>
+            <form id="authForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Email Address</label>
+                    <input type="email" id="authEmail" required class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
                 </div>
-                
-                <p class="text-sm text-slate-600 mb-4">
-                    Firebase is blocking the app. You <b>must</b> update your Security Rules in the Firebase Console:
-                </p>
-                
-                <ol class="text-xs text-slate-600 list-decimal ml-4 space-y-3 mb-6">
-                    <li>Open your <a href="https://console.firebase.google.com/" target="_blank" class="text-indigo-600 underline font-bold">Firebase Console</a>.</li>
-                    <li>Go to <b>Firestore Database</b> &gt; <b>Rules</b> tab.</li>
-                    <li>Delete everything there and <b>Paste</b> the following exactly:</li>
-                </ol>
-
-                <div class="relative group">
-                    <pre id="ruleCode" class="bg-slate-900 text-indigo-300 p-4 rounded-lg text-[11px] overflow-x-auto font-mono shadow-inner mb-4">rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /artifacts/web-app-32eea/users/{userId}/{allPaths=**} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-  }
-}</pre>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Password</label>
+                    <input type="password" id="authPassword" required class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
                 </div>
+                <button type="submit" id="authSubmitBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl shadow-lg transition-all transform active:scale-[0.98]">
+                    Sign In
+                </button>
+            </form>
 
-                <p class="text-xs text-slate-500 font-medium bg-amber-50 p-2 rounded border border-amber-100">
-                    💡 <b>Tip:</b> Click the "Publish" button in the console, wait 30 seconds, then refresh this page.
-                </p>
+            <div class="mt-6 text-center">
+                <button id="toggleAuthMode" class="text-indigo-600 font-semibold text-sm hover:underline">
+                    Don't have an account? Create one
+                </button>
             </div>
+            
+            <div id="authError" class="mt-4 text-red-600 text-xs text-center hidden"></div>
         </div>
     </div>
 
-    <div class="max-w-4xl mx-auto p-4 md:p-8">
+    <!-- Loading State Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 z-50 flex items-center justify-center loading-overlay">
+        <div class="flex flex-col items-center gap-4 max-w-lg p-8 text-center">
+            <div id="spinner" class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+            <p id="loadingText" class="text-slate-600 font-medium">Connecting to Firebase...</p>
+        </div>
+    </div>
+
+    <!-- Main App UI -->
+    <div id="appUI" class="max-w-4xl mx-auto p-4 md:p-8 opacity-0 transition-opacity duration-500">
         <header class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
                 <h1 class="text-3xl font-bold text-indigo-900 flex items-center gap-2">
                     Arrival Tracker
-                    <span id="syncStatus" class="text-[10px] uppercase tracking-widest px-2 py-1 bg-slate-100 text-slate-500 rounded-full">Starting...</span>
+                    <span id="syncStatus" class="text-[10px] uppercase tracking-widest px-2 py-1 bg-slate-100 text-slate-500 rounded-full">Syncing</span>
                 </h1>
-                <p class="text-slate-500">Cloud database: web-app-32eea</p>
+                <div class="flex items-center gap-2 mt-1">
+                    <p id="userDisplay" class="text-xs text-indigo-600 font-medium"></p>
+                    <span class="text-slate-300 text-xs">|</span>
+                    <button onclick="handleLogout()" class="text-xs text-slate-400 hover:text-red-500 font-bold transition-colors">Sign Out</button>
+                </div>
             </div>
             <div id="stats" class="hidden flex items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
                 <div class="text-center">
@@ -138,7 +134,7 @@ service cloud.firestore {
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -153,54 +149,87 @@ service cloud.firestore {
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const appId = "web-app-32eea"; // Consistent app ID for rule pathing
+        const appId = "web-app-32eea"; 
 
         let roomData = [];
         let unsubscribe = null;
+        let isRegistering = false;
 
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        const spinner = document.getElementById('spinner');
-        const statusContent = document.getElementById('statusContent');
-        const ruleFixInstructions = document.getElementById('ruleFixInstructions');
+        // UI Selectors
+        const authScreen = document.getElementById('authScreen');
+        const authForm = document.getElementById('authForm');
+        const authEmail = document.getElementById('authEmail');
+        const authPassword = document.getElementById('authPassword');
+        const authTitle = document.getElementById('authTitle');
+        const authSubtitle = document.getElementById('authSubtitle');
+        const authSubmitBtn = document.getElementById('authSubmitBtn');
+        const toggleAuthMode = document.getElementById('toggleAuthMode');
+        const authError = document.getElementById('authError');
         
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const appUI = document.getElementById('appUI');
+        const userDisplay = document.getElementById('userDisplay');
         const pastedDataInput = document.getElementById('pastedData');
         const checklistBody = document.getElementById('checklistBody');
         const listSection = document.getElementById('listSection');
         const statsSection = document.getElementById('stats');
         const syncStatus = document.getElementById('syncStatus');
 
-        // Rule 3: Auth Before Queries
-        const startApp = async () => {
+        // --- AUTH LOGIC ---
+
+        toggleAuthMode.onclick = () => {
+            isRegistering = !isRegistering;
+            authTitle.textContent = isRegistering ? "Create Account" : "Welcome Back";
+            authSubtitle.textContent = isRegistering ? "Start managing your arrivals" : "Sign in to manage your arrivals";
+            authSubmitBtn.textContent = isRegistering ? "Sign Up" : "Sign In";
+            toggleAuthMode.textContent = isRegistering ? "Already have an account? Sign In" : "Don't have an account? Create one";
+            authError.classList.add('hidden');
+        };
+
+        authForm.onsubmit = async (e) => {
+            e.preventDefault();
+            authError.classList.add('hidden');
+            const email = authEmail.value;
+            const password = authPassword.value;
+
             try {
-                await signInAnonymously(auth);
+                if (isRegistering) {
+                    await createUserWithEmailAndPassword(auth, email, password);
+                } else {
+                    await signInWithEmailAndPassword(auth, email, password);
+                }
             } catch (err) {
-                console.error("Authentication Error:", err);
-                spinner.classList.add('hidden');
-                statusContent.innerHTML = `<p class="text-red-600 font-bold">Authentication Failed</p><p class="text-xs text-slate-500 mt-2">Error: ${err.message}<br><br><b>Fix:</b> Enable "Anonymous" sign-in in the Firebase Authentication console.</p>`;
+                authError.textContent = err.message.replace("Firebase: ", "");
+                authError.classList.remove('hidden');
             }
         };
 
+        window.handleLogout = () => {
+            signOut(auth);
+            location.reload();
+        };
+
         onAuthStateChanged(auth, (user) => {
+            loadingOverlay.classList.add('hidden');
             if (user) {
-                setSyncStatus("Authenticated", "indigo");
+                authScreen.classList.add('hidden');
+                appUI.classList.remove('opacity-0');
+                userDisplay.textContent = user.email;
                 setupSync(user.uid);
             } else {
-                setSyncStatus("Disconnected", "slate");
+                authScreen.classList.remove('hidden');
+                appUI.classList.add('opacity-0');
             }
         });
 
-        startApp();
+        // --- FIRESTORE LOGIC ---
 
         function setupSync(uid) {
-            // Rule 1 Pathing: /artifacts/{appId}/users/{userId}/{collectionName}/{docId}
             const docRef = doc(db, 'artifacts', appId, 'users', uid, 'checklists', 'current');
             
             if (unsubscribe) unsubscribe();
 
             unsubscribe = onSnapshot(docRef, (docSnap) => {
-                loadingOverlay.classList.add('hidden');
-                ruleFixInstructions.classList.add('hidden');
-                
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     roomData = data.roomData || [];
@@ -212,14 +241,7 @@ service cloud.firestore {
                 setSyncStatus("Synced", "green");
             }, (error) => {
                 console.error("Firestore Error:", error);
-                if (error.code === 'permission-denied') {
-                    spinner.classList.add('hidden');
-                    statusContent.innerHTML = `<p class="text-red-600 font-bold text-lg">Firestore Blocked</p>`;
-                    ruleFixInstructions.classList.remove('hidden');
-                    setSyncStatus("Locked", "red");
-                } else {
-                    showMessage("Sync Error: " + error.code);
-                }
+                setSyncStatus("Offline", "red");
             });
         }
 
@@ -237,12 +259,11 @@ service cloud.firestore {
                 }, { merge: true });
             } catch (e) {
                 console.error("Save Error:", e);
-                if (e.code === 'permission-denied') {
-                    setSyncStatus("Locked", "red");
-                    ruleFixInstructions.classList.remove('hidden');
-                }
+                setSyncStatus("Error", "red");
             }
         }
+
+        // --- APP LOGIC ---
 
         window.generateList = async () => {
             const rawText = pastedDataInput.value;
