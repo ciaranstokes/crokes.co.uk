@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receptionist Room Arrival Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .checked-row {
+            background-color: #f0fdf4;
+            text-decoration: line-through;
+            color: #166534;
+            opacity: 0.7;
+        }
+        .room-badge {
+            font-family: monospace;
+        }
+        .loading-overlay {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-900 font-sans">
+
+    <!-- Loading/Error State Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 z-50 flex items-center justify-center loading-overlay">
+        <div class="flex flex-col items-center gap-4 max-w-lg p-8 text-center">
+            <div id="spinner" class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+            
+            <div id="statusContent">
+                <p class="text-slate-600 font-medium">Connecting to Firebase...</p>
+                <p class="text-xs text-slate-400 mt-2">Project ID: web-app-32eea</p>
+            </div>
+            
+            <!-- This section appears specifically when Permissions fail -->
+            <div id="ruleFixInstructions" class="hidden mt-4 text-left bg-white p-6 rounded-2xl border-2 border-red-100 shadow-xl">
+                <div class="flex items-center gap-2 mb-4">
+                    <div class="bg-red-100 p-2 rounded-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m0-6V9m0-6H6.333M12 3h5.667M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-red-800 font-bold text-lg">Permission Denied</h3>
+                </div>
+                
+                <p class="text-sm text-slate-600 mb-4">
+                    Firebase is blocking the app. You <b>must</b> update your Security Rules in the Firebase Console:
+                </p>
+                
+                <ol class="text-xs text-slate-600 list-decimal ml-4 space-y-3 mb-6">
+                    <li>Open your <a href="https://console.firebase.google.com/" target="_blank" class="text-indigo-600 underline font-bold">Firebase Console</a>.</li>
+                    <li>Go to <b>Firestore Database</b> &gt; <b>Rules</b> tab.</li>
+                    <li>Delete everything there and <b>Paste</b> the following exactly:</li>
+                </ol>
+
+                <div class="relative group">
+                    <pre id="ruleCode" class="bg-slate-900 text-indigo-300 p-4 rounded-lg text-[11px] overflow-x-auto font-mono shadow-inner mb-4">rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /artifacts/web-app-32eea/users/{userId}/{allPaths=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}</pre>
+                </div>
+
+                <p class="text-xs text-slate-500 font-medium bg-amber-50 p-2 rounded border border-amber-100">
+                    💡 <b>Tip:</b> Click the "Publish" button in the console, wait 30 seconds, then refresh this page.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-4xl mx-auto p-4 md:p-8">
+        <header class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h1 class="text-3xl font-bold text-indigo-900 flex items-center gap-2">
+                    Arrival Tracker
+                    <span id="syncStatus" class="text-[10px] uppercase tracking-widest px-2 py-1 bg-slate-100 text-slate-500 rounded-full">Starting...</span>
+                </h1>
+                <p class="text-slate-500">Cloud database: web-app-32eea</p>
+            </div>
+            <div id="stats" class="hidden flex items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                <div class="text-center">
+                    <span id="checkedCount" class="text-2xl font-bold text-indigo-600">0</span>
+                    <span class="text-slate-400 text-sm block">Arrived</span>
+                </div>
+                <div class="h-8 w-px bg-slate-200"></div>
+                <div class="text-center">
+                    <span id="totalCount" class="text-2xl font-bold text-slate-700">0</span>
+                    <span class="text-slate-400 text-sm block">Total</span>
+                </div>
+            </div>
+        </header>
+
+        <section id="inputSection" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8">
+            <label for="pastedData" class="block text-sm font-semibold text-slate-700 mb-2">Paste Guest List Data:</label>
+            <textarea id="pastedData" rows="6" 
+                class="w-full p-4 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-sm font-mono"
+                placeholder="Pick 1 | 01_SMALL_DBL (110) | ..."></textarea>
+            
+            <div class="mt-4 flex flex-wrap gap-3">
+                <button onclick="generateList()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-lg font-medium transition-colors shadow-md flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Generate Checklist
+                </button>
+                <button onclick="clearAll()" class="text-slate-500 hover:text-red-600 px-4 py-2 rounded-lg transition-colors text-sm font-medium">
+                    Clear Local Data
+                </button>
+            </div>
+        </section>
+
+        <section id="listSection" class="hidden">
+            <div class="flex items-center justify-between mb-4 px-2">
+                <h2 class="text-xl font-bold text-slate-800">Checklist</h2>
+                <button onclick="resetChecks()" class="text-xs font-bold text-slate-400 hover:text-indigo-600 uppercase tracking-widest">Reset All Ticks</button>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-slate-50 border-b border-slate-100">
+                        <tr>
+                            <th class="p-4 w-16 text-center text-xs uppercase text-slate-400">Arrived</th>
+                            <th class="p-4 font-semibold text-slate-600">Room #</th>
+                            <th class="p-4 font-semibold text-slate-600">Type</th>
+                        </tr>
+                    </thead>
+                    <tbody id="checklistBody"></tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <div id="msgBox" class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-full shadow-xl opacity-0 transition-opacity pointer-events-none z-50"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCBjzKiFv1lRtLAX9FoFU04p2jDPs0DZT8",
+            authDomain: "web-app-32eea.firebaseapp.com",
+            projectId: "web-app-32eea",
+            storageBucket: "web-app-32eea.firebasestorage.app",
+            messagingSenderId: "1017239451298",
+            appId: "1:1017239451298:web:b9fbc8d691e66825cac9fb"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = "web-app-32eea"; // Consistent app ID for rule pathing
+
+        let roomData = [];
+        let unsubscribe = null;
+
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const spinner = document.getElementById('spinner');
+        const statusContent = document.getElementById('statusContent');
+        const ruleFixInstructions = document.getElementById('ruleFixInstructions');
+        
+        const pastedDataInput = document.getElementById('pastedData');
+        const checklistBody = document.getElementById('checklistBody');
+        const listSection = document.getElementById('listSection');
+        const statsSection = document.getElementById('stats');
+        const syncStatus = document.getElementById('syncStatus');
+
+        // Rule 3: Auth Before Queries
+        const startApp = async () => {
+            try {
+                await signInAnonymously(auth);
+            } catch (err) {
+                console.error("Authentication Error:", err);
+                spinner.classList.add('hidden');
+                statusContent.innerHTML = `<p class="text-red-600 font-bold">Authentication Failed</p><p class="text-xs text-slate-500 mt-2">Error: ${err.message}<br><br><b>Fix:</b> Enable "Anonymous" sign-in in the Firebase Authentication console.</p>`;
+            }
+        };
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                setSyncStatus("Authenticated", "indigo");
+                setupSync(user.uid);
+            } else {
+                setSyncStatus("Disconnected", "slate");
+            }
+        });
+
+        startApp();
+
+        function setupSync(uid) {
+            // Rule 1 Pathing: /artifacts/{appId}/users/{userId}/{collectionName}/{docId}
+            const docRef = doc(db, 'artifacts', appId, 'users', uid, 'checklists', 'current');
+            
+            if (unsubscribe) unsubscribe();
+
+            unsubscribe = onSnapshot(docRef, (docSnap) => {
+                loadingOverlay.classList.add('hidden');
+                ruleFixInstructions.classList.add('hidden');
+                
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    roomData = data.roomData || [];
+                    pastedDataInput.value = data.rawText || '';
+                    if (roomData.length > 0) renderUI(); else hideUI();
+                } else {
+                    hideUI();
+                }
+                setSyncStatus("Synced", "green");
+            }, (error) => {
+                console.error("Firestore Error:", error);
+                if (error.code === 'permission-denied') {
+                    spinner.classList.add('hidden');
+                    statusContent.innerHTML = `<p class="text-red-600 font-bold text-lg">Firestore Blocked</p>`;
+                    ruleFixInstructions.classList.remove('hidden');
+                    setSyncStatus("Locked", "red");
+                } else {
+                    showMessage("Sync Error: " + error.code);
+                }
+            });
+        }
+
+        async function save(newData, rawText = null) {
+            const user = auth.currentUser;
+            if (!user) return;
+
+            setSyncStatus("Saving...", "amber");
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'checklists', 'current');
+                await setDoc(docRef, {
+                    roomData: newData,
+                    rawText: rawText !== null ? rawText : pastedDataInput.value,
+                    updatedAt: new Date().toISOString()
+                }, { merge: true });
+            } catch (e) {
+                console.error("Save Error:", e);
+                if (e.code === 'permission-denied') {
+                    setSyncStatus("Locked", "red");
+                    ruleFixInstructions.classList.remove('hidden');
+                }
+            }
+        }
+
+        window.generateList = async () => {
+            const rawText = pastedDataInput.value;
+            if (!rawText.trim()) return showMessage("Nothing to generate.");
+            
+            const extracted = extractRoomInfo(rawText);
+            if (extracted.length === 0) return showMessage("No room numbers found!");
+            
+            roomData = extracted;
+            await save(roomData, rawText);
+        };
+
+        window.toggleCheck = async (index) => {
+            roomData[index].checked = !roomData[index].checked;
+            renderUI(); 
+            await save(roomData);
+        };
+
+        function extractRoomInfo(text) {
+            return text.split('\n')
+                .filter(l => l.includes('('))
+                .map(line => {
+                    const roomMatch = line.match(/\(([^)]+)\)/);
+                    const pipeParts = line.split('|');
+                    let roomType = "Room";
+                    if (pipeParts.length >= 2) {
+                        roomType = pipeParts[1].split('(')[0].trim();
+                    }
+                    return {
+                        roomNumber: roomMatch ? roomMatch[1] : "??",
+                        roomType: roomType,
+                        checked: false
+                    };
+                })
+                .sort((a, b) => a.roomNumber.localeCompare(b.roomNumber, undefined, {numeric: true}));
+        }
+
+        function renderUI() {
+            checklistBody.innerHTML = roomData.map((item, i) => `
+                <tr onclick="toggleCheck(${i})" class="border-b border-slate-50 cursor-pointer transition-all hover:bg-slate-50 group ${item.checked ? 'checked-row' : ''}">
+                    <td class="p-4 text-center">
+                        <div class="inline-flex items-center justify-center w-6 h-6 rounded border-2 ${item.checked ? 'bg-indigo-600 border-indigo-600' : 'border-slate-200 bg-white group-hover:border-indigo-300'} transition-all">
+                            ${item.checked ? '<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>' : ''}
+                        </div>
+                    </td>
+                    <td class="p-4 font-bold text-lg text-slate-700 tracking-tight">${item.roomNumber}</td>
+                    <td class="p-4 text-slate-500 text-sm italic">${item.roomType}</td>
+                </tr>
+            `).join('');
+
+            updateStats();
+            listSection.classList.remove('hidden');
+            statsSection.classList.remove('hidden');
+        }
+
+        function hideUI() {
+            listSection.classList.add('hidden');
+            statsSection.classList.add('hidden');
+        }
+
+        function updateStats() {
+            document.getElementById('checkedCount').textContent = roomData.filter(r => r.checked).length;
+            document.getElementById('totalCount').textContent = roomData.length;
+        }
+
+        window.resetChecks = async () => {
+            if (!confirm("Reset all room arrivals?")) return;
+            roomData.forEach(r => r.checked = false);
+            renderUI();
+            await save(roomData);
+            showMessage("Ticks reset");
+        };
+
+        window.clearAll = async () => {
+            if (!confirm("This will permanently clear the list. Continue?")) return;
+            pastedDataInput.value = '';
+            roomData = [];
+            await save([], '');
+            hideUI();
+        };
+
+        function setSyncStatus(text, color) {
+            syncStatus.textContent = text;
+            syncStatus.className = `text-[10px] uppercase tracking-widest px-2 py-1 rounded-full bg-${color}-100 text-${color}-700 border border-${color}-200`;
+        }
+
+        function showMessage(text) {
+            const box = document.getElementById('msgBox');
+            box.textContent = text;
+            box.style.opacity = '1';
+            setTimeout(() => { box.style.opacity = '0'; }, 2000);
+        }
+    </script>
+</body>
+</html>
