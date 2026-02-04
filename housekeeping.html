@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Housekeeping Departure Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        slate: {
+                            850: '#1e293b', 
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        html { scroll-behavior: smooth; }
+        .tap-highlight-transparent { -webkit-tap-highlight-color: transparent; }
+        /* Simple Spinner */
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 3px solid #3b82f6;
+            width: 24px;
+            height: 24px;
+            -webkit-animation: spin 1s linear infinite; /* Safari */
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 transition-colors duration-200 min-h-screen tap-highlight-transparent">
+
+    <!-- Main Application Container -->
+    <div id="app" class="min-h-screen flex flex-col">
+        <!-- Loading Screen -->
+        <div class="flex-grow flex items-center justify-center">
+            <div class="loader"></div>
+        </div>
+    </div>
+
+    <!-- Firebase & App Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, onSnapshot, writeBatch, deleteDoc, query, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- Configuration ---
+        const STAFF_PIN = "1234"; // Simple client-side protection
+        
+        // --- State ---
+        const state = {
+            rooms: [],
+            inputText: '',
+            view: 'dashboard',
+            filter: 'all',
+            searchQuery: '',
+            darkMode: false,
+            isStaff: false,
+            isLoading: true,
+            user: null,
+            showPinModal: false,
+            pinInput: '',
+            error: null // Added for error handling
+        };
+
+        // --- Firebase Setup ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyC3_sQQrSht41aqVYbxOyCOWDDaXET779w",
+            authDomain: "housekeeping-3478c.firebaseapp.com",
+            projectId: "housekeeping-3478c",
+            storageBucket: "housekeeping-3478c.firebasestorage.app",
+            messagingSenderId: "238866105603",
+            appId: "1:238866105603:web:f61f7ff74eb630ca475536"
+        };
+        
+        // Use the project ID as the app identifier for storage paths
+        const appId = "housekeeping-3478c";
+        
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        // Collection Reference: artifacts/{appId}/public/data/rooms
+        const getRoomCollection = () => collection(db, 'artifacts', appId, 'public', 'data', 'rooms');
+
+        // --- Initialization ---
+        async function init() {
+            // Theme LocalStorage
+            if (localStorage.getItem('housekeeping_theme') === 'dark') {
+                state.darkMode = true;
+                document.documentElement.classList.add('dark');
+            }
+            
+            // Staff LocalStorage
+            if (localStorage.getItem('housekeeping_is_staff') === 'true') {
+                state.isStaff = true;
+            }
+
+            // Auth Flow
+            try {
+                // Direct Anonymous Auth for custom Firebase project
+                await signInAnonymously(auth);
+            } catch (err) {
+                console.error("Auth failed:", err);
+                state.isLoading = false;
+                
+                // Specific error handling for the user's issue
+                if (err.code === 'auth/admin-restricted-operation' || err.code === 'auth/operation-not-allowed') {
+                    state.error = `
+                        <strong>Authentication Disabled</strong><br><br>
+                        1. Go to <a href="https://console.firebase.google.com/project/${firebaseConfig.projectId}/authentication/providers" target="_blank" class="underline text-blue-700">Firebase Console</a><br>
+                        2. Click <strong>Build > Authentication</strong><br>
+                        3. Click <strong>Sign-in method</strong> tab<br>
+                        4. Enable <strong>Anonymous</strong>
+                    `;
+                } else {
+                    state.error = "Connection Failed: " + err.message;
+                }
+                render();
+            }
+
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    state.user = user;
+                    subscribeToData();
+                }
+            });
+        }
+
+        function subscribeToData() {
+            const q = query(getRoomCollection());
+            
+            onSnapshot(q, (snapshot) => {
+                const rooms = [];
+                snapshot.forEach((doc) => {
+                    rooms.push(doc.data());
+                });
+                state.rooms = rooms;
+                state.isLoading = false;
+                
+                // If we have rooms and are in import view, switch to dashboard automatically
+                if (state.rooms.length > 0 && state.view === 'import') {
+                    state.view = 'dashboard';
+                }
+                // If we have no rooms, default to import view
+                if (state.rooms.length === 0 && state.view === 'dashboard') {
+                    state.view = 'import';
+                }
+
+                render();
+            }, (error) => {
+                console.error("Data sync error:", error);
+                
+                // Handle Permission Errors (Common next step issue)
+                if (error.code === 'permission-denied') {
+                    state.error = `
+                        <strong>Database Locked</strong><br><br>
+                        1. Go to <a href="https://console.firebase.google.com/project/${firebaseConfig.projectId}/firestore/rules" target="_blank" class="underline text-blue-700">Firestore Rules</a><br>
+                        2. Change "allow read, write: if false;" to<br>
+                        <code>allow read, write: if request.auth != null;</code><br>
+                        3. Click <strong>Publish</strong>
+                    `;
+                }
+                
+                state.isLoading = false;
+                render();
+            });
+        }
+
+        // --- Actions (Firestore) ---
+
+        window.uploadRooms = async () => {
+            if (!state.isStaff) return alert("Staff access required.");
+            if (!state.inputText.trim()) return;
+
+            const lines = state.inputText.split('\n');
+            const newRooms = [];
+            
+            // Regex strategies
+            const regexPick = /Pick\s+\d+\s+\|\s+(.*?)\s+\((\d+)\)\s+\|/;
+            const regexTable = /(\d{2}\/\d{2}\/\d{4})\s+(\d{2}\/\d{2}\/\d{4})\s+([A-Za-z0-9]+)\s+([A-Z0-9_]+)/;
+            const regexMashed = /(\d{2}\/\d{2}\/\d{4})(\d{2}\/\d{2}\/\d{4})(\d{3})([0-9]{2}_[A-Z_]+)/;
+
+            lines.forEach(line => {
+                let match, roomNumber, roomType;
+                if ((match = line.match(regexPick))) { roomType = match[1].trim(); roomNumber = match[2].trim(); } 
+                else if ((match = line.match(regexTable))) { roomNumber = match[3].trim(); roomType = match[4].trim(); }
+                else if ((match = line.match(regexMashed))) { roomNumber = match[3].trim(); roomType = match[4].trim(); }
+
+                if (roomNumber && roomType && roomNumber.length <= 5) {
+                    const id = `${roomNumber}-${roomType}`;
+                    // Check if already exists in current state to avoid overwriting status
+                    const existing = state.rooms.find(r => r.id === id);
+                    if (!existing && !newRooms.find(r => r.id === id)) {
+                        newRooms.push({
+                            id,
+                            number: roomNumber,
+                            type: roomType,
+                            status: 'pending',
+                            departedAt: null
+                        });
+                    }
+                }
+            });
+
+            if (newRooms.length === 0) {
+                alert("No valid rooms found to add.");
+                return;
+            }
+
+            try {
+                // Batch writes (max 500)
+                const batch = writeBatch(db);
+                newRooms.forEach(room => {
+                    const ref = doc(getRoomCollection(), room.id);
+                    batch.set(ref, room);
+                });
+                await batch.commit();
+                
+                state.inputText = '';
+                state.view = 'dashboard';
+                render();
+                alert(`Synced ${newRooms.length} new rooms.`);
+            } catch (e) {
+                console.error("Upload failed", e);
+                alert("Failed to upload. Check console.");
+            }
+        };
+
+        window.toggleRoomStatus = async (id) => {
+            if (!state.isStaff) {
+                alert("Read Only: Staff Access Required to change status.");
+                return;
+            }
+
+            const room = state.rooms.find(r => r.id === id);
+            if (!room) return;
+
+            const newStatus = room.status === 'pending' ? 'departed' : 'pending';
+            const newTime = newStatus === 'departed' ? new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : null;
+
+            try {
+                await setDoc(doc(getRoomCollection(), id), {
+                    ...room,
+                    status: newStatus,
+                    departedAt: newTime
+                });
+            } catch (e) {
+                console.error("Update failed", e);
+            }
+        };
+
+        window.resetAll = async () => {
+            if (!state.isStaff) return;
+            if (!confirm("Reset all statuses to 'To Do'?")) return;
+
+            const batch = writeBatch(db);
+            state.rooms.forEach(room => {
+                const ref = doc(getRoomCollection(), room.id);
+                batch.update(ref, { status: 'pending', departedAt: null });
+            });
+            await batch.commit();
+        };
+
+        window.clearAll = async () => {
+            if (!state.isStaff) return;
+            if (!confirm("DELETE ALL DATA? This removes the list for everyone.")) return;
+
+            // Getting all docs to delete them
+            const snapshot = await getDocs(getRoomCollection());
+            const batch = writeBatch(db);
+            snapshot.docs.forEach((doc) => {
+                batch.delete(doc.ref);
+            });
+            await batch.commit();
+        };
+
+        // --- Local UI Actions ---
+
+        window.toggleTheme = () => {
+            state.darkMode = !state.darkMode;
+            localStorage.setItem('housekeeping_theme', state.darkMode ? 'dark' : 'light');
+            if (state.darkMode) document.documentElement.classList.add('dark');
+            else document.documentElement.classList.remove('dark');
+            render();
+        };
+
+        window.setView = (view) => {
+            state.view = view;
+            render();
+        };
+
+        window.setFilter = (filter) => {
+            state.filter = filter;
+            render();
+        };
+
+        window.handleSearch = (val) => {
+            state.searchQuery = val;
+            render();
+        };
+
+        window.openPinModal = () => {
+            if (state.isStaff) {
+                // Logout logic
+                state.isStaff = false;
+                localStorage.removeItem('housekeeping_is_staff');
+                render();
+            } else {
+                state.showPinModal = true;
+                state.pinInput = '';
+                render();
+                setTimeout(() => document.getElementById('pinInput')?.focus(), 100);
+            }
+        };
+
+        window.closePinModal = () => {
+            state.showPinModal = false;
+            render();
+        };
+
+        window.submitPin = () => {
+            if (state.pinInput === STAFF_PIN) {
+                state.isStaff = true;
+                localStorage.setItem('housekeeping_is_staff', 'true');
+                state.showPinModal = false;
+                render();
+            } else {
+                alert("Incorrect PIN");
+                state.pinInput = '';
+                render();
+            }
+        };
+
+        window.handlePinInput = (val) => {
+            state.pinInput = val;
+        };
+        
+        window.handleInputText = (val) => {
+            state.inputText = val;
+        };
+
+        // --- Render Engine ---
+
+        function render() {
+            const app = document.getElementById('app');
+            const isDark = state.darkMode;
+            
+            // Apply Theme to Body
+            document.body.className = isDark 
+                ? 'bg-slate-900 text-slate-100 transition-colors duration-200 min-h-screen tap-highlight-transparent' 
+                : 'bg-slate-50 text-slate-900 transition-colors duration-200 min-h-screen tap-highlight-transparent';
+
+            // Error Screen
+            if (state.error) {
+                 app.innerHTML = `
+                    <div class="flex-grow flex flex-col items-center justify-center p-6 text-center space-y-4">
+                        <div class="bg-red-100 p-4 rounded-full text-red-600"><i data-lucide="alert-triangle" class="w-10 h-10"></i></div>
+                        <h2 class="text-xl font-bold">Setup Required</h2>
+                        <p class="text-slate-600 max-w-md bg-white p-4 rounded-lg shadow-sm text-left text-sm border border-slate-200">
+                            ${state.error}
+                        </p>
+                        <button onclick="location.reload()" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">Retry Connection</button>
+                    </div>`;
+                 lucide.createIcons();
+                 return;
+            }
+
+            if (state.isLoading) {
+                app.innerHTML = `
+                    <div class="flex-grow flex flex-col items-center justify-center space-y-4">
+                        <div class="loader"></div>
+                        <p class="text-sm opacity-60">Syncing with Cloud...</p>
+                    </div>`;
+                return;
+            }
+
+            // Calculations
+            const totalRooms = state.rooms.length;
+            const departedRooms = state.rooms.filter(r => r.status === 'departed').length;
+            const progress = totalRooms === 0 ? 0 : Math.round((departedRooms / totalRooms) * 100);
+
+            // Filtering
+            const filteredRooms = state.rooms.filter(room => {
+                const matchesSearch = room.number.includes(state.searchQuery) || room.type.toLowerCase().includes(state.searchQuery.toLowerCase());
+                const matchesFilter = 
+                    state.filter === 'all' ? true :
+                    state.filter === 'pending' ? room.status === 'pending' :
+                    state.filter === 'departed' ? room.status === 'departed' : true;
+                return matchesSearch && matchesFilter;
+            }).sort((a, b) => {
+                // Pending first, then by number
+                if (a.status === b.status) return a.number.localeCompare(b.number, undefined, { numeric: true });
+                return a.status === 'pending' ? -1 : 1;
+            });
+
+            // --- UI Templates ---
+
+            const header = `
+                <header class="sticky top-0 z-10 px-4 py-3 shadow-md ${isDark ? 'bg-slate-800' : 'bg-white'}">
+                    <div class="max-w-3xl mx-auto flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <div class="${state.isStaff ? 'bg-blue-600' : 'bg-slate-500'} p-2 rounded-lg transition-colors">
+                                <i data-lucide="${state.isStaff ? 'clipboard-list' : 'eye'}" class="w-5 h-5 text-white"></i>
+                            </div>
+                            <div>
+                                <h1 class="font-bold text-lg leading-tight">Departure Tracker</h1>
+                                <p class="text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'} flex items-center">
+                                    ${state.isStaff ? '<span class="text-blue-500 font-bold mr-1">STAFF MODE</span>' : 'Observer Mode'}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                             <button onclick="openPinModal()" class="p-2 rounded-full ${isDark ? 'hover:bg-slate-700' : 'hover:bg-slate-100'} ${state.isStaff ? 'text-blue-500' : 'text-slate-400'}">
+                                <i data-lucide="${state.isStaff ? 'unlock' : 'lock'}" class="w-5 h-5"></i>
+                            </button>
+                            <button onclick="toggleTheme()" class="p-2 rounded-full ${isDark ? 'hover:bg-slate-700' : 'hover:bg-slate-100'}">
+                                <i data-lucide="${isDark ? 'sun' : 'moon'}" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    </div>
+                </header>
+            `;
+
+            const pinModal = state.showPinModal ? `
+                <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+                    <div class="w-full max-w-sm p-6 rounded-2xl shadow-2xl ${isDark ? 'bg-slate-800' : 'bg-white'}">
+                        <h2 class="text-xl font-bold mb-4 text-center">Staff Access</h2>
+                        <input id="pinInput" type="password" maxlength="4" placeholder="PIN" 
+                            value="${state.pinInput}"
+                            oninput="handlePinInput(this.value)"
+                            class="w-full text-center text-2xl tracking-widest p-3 rounded-lg border mb-4 outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-slate-900 border-slate-700' : 'bg-slate-50 border-slate-200'}"
+                        />
+                        <div class="flex space-x-3">
+                            <button onclick="closePinModal()" class="flex-1 py-3 rounded-lg font-medium ${isDark ? 'bg-slate-700 hover:bg-slate-600' : 'bg-slate-100 hover:bg-slate-200'}">Cancel</button>
+                            <button onclick="submitPin()" class="flex-1 py-3 rounded-lg font-bold text-white bg-blue-600 hover:bg-blue-700">Unlock</button>
+                        </div>
+                    </div>
+                </div>
+            ` : '';
+
+            let content = '';
+
+            // View: Import
+            if (state.view === 'import' && state.rooms.length === 0) {
+                 content = `
+                    <div class="p-6 rounded-xl shadow-sm text-center ${isDark ? 'bg-slate-800' : 'bg-white'} mt-6 mx-4">
+                        <div class="w-16 h-16 ${state.isStaff ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-400'} rounded-full flex items-center justify-center mx-auto mb-4 transition-colors">
+                            <i data-lucide="${state.isStaff ? 'upload' : 'lock'}" class="w-8 h-8"></i>
+                        </div>
+                        <h2 class="text-xl font-bold mb-2">Upload Departure List</h2>
+                        
+                        ${state.isStaff ? `
+                            <p class="mb-4 text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}">
+                                Paste list below to sync with team.
+                            </p>
+                            <textarea oninput="handleInputText(this.value)" 
+                                placeholder="Paste text here..."
+                                class="w-full h-48 p-3 rounded-lg border text-sm font-mono mb-4 focus:ring-2 focus:ring-blue-500 outline-none ${isDark ? 'bg-slate-900 border-slate-700 text-slate-200' : 'bg-slate-50 border-slate-200 text-slate-800'}"
+                            >${state.inputText}</textarea>
+                            <button onclick="uploadRooms()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-colors">
+                                Sync List
+                            </button>
+                        ` : `
+                            <p class="mb-4 text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}">
+                                Waiting for staff to upload today's list...
+                            </p>
+                            <button onclick="openPinModal()" class="px-6 py-2 rounded-full border border-slate-300 text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                                I am Staff
+                            </button>
+                        `}
+                    </div>
+                `;
+            } 
+            // View: Dashboard
+            else {
+                const progressCard = `
+                    <div class="p-4 rounded-xl shadow-sm mb-4 ${isDark ? 'bg-slate-800' : 'bg-white'}">
+                        <div class="flex justify-between items-end mb-2">
+                            <div>
+                                <span class="text-3xl font-bold text-blue-600">${departedRooms}</span>
+                                <span class="text-sm ml-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}">/ ${totalRooms} Departed</span>
+                            </div>
+                            <span class="text-sm font-medium">${progress}%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                            <div class="bg-blue-600 h-2.5 rounded-full transition-all duration-500" style="width: ${progress}%"></div>
+                        </div>
+                    </div>
+                `;
+
+                const filters = `
+                    <div class="flex space-x-2 overflow-x-auto pb-2 mb-4 scrollbar-hide">
+                        ${[
+                            { id: 'all', label: 'All', count: totalRooms },
+                            { id: 'pending', label: 'To Do', count: totalRooms - departedRooms },
+                            { id: 'departed', label: 'Done', count: departedRooms }
+                        ].map(f => `
+                            <button onclick="setFilter('${f.id}')" 
+                                class="flex items-center px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors border
+                                ${state.filter === f.id 
+                                    ? 'bg-blue-600 text-white border-transparent shadow-md' 
+                                    : (isDark ? 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100') }">
+                                ${f.label}
+                                <span class="ml-2 px-1.5 py-0.5 rounded-full text-xs ${state.filter === f.id ? 'bg-blue-500/30' : (isDark ? 'bg-slate-700' : 'bg-slate-100')}">
+                                    ${f.count}
+                                </span>
+                            </button>
+                        `).join('')}
+                    </div>
+                `;
+
+                 const search = `
+                    <div class="relative mb-6">
+                        <input type="text" 
+                            placeholder="Search room..." 
+                            value="${state.searchQuery}"
+                            oninput="handleSearch(this.value)"
+                            class="w-full pl-10 pr-4 py-2 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 transition-colors border
+                            ${isDark ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-500' : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400'}"
+                        >
+                        <i data-lucide="search" class="absolute left-3 top-2.5 w-5 h-5 ${isDark ? 'text-slate-500' : 'text-slate-400'}"></i>
+                    </div>
+                `;
+
+                const list = `
+                    <div class="space-y-3 pb-24">
+                        ${filteredRooms.length === 0 
+                            ? `<div class="text-center py-10 opacity-50"><p>No rooms found.</p></div>` 
+                            : filteredRooms.map(room => {
+                                const isDeparted = room.status === 'departed';
+                                return `
+                                <div onclick="toggleRoomStatus('${room.id}')" 
+                                    class="relative group p-4 rounded-xl border-2 transition-all cursor-pointer select-none active:scale-[0.98]
+                                    ${isDeparted 
+                                        ? (isDark ? 'bg-slate-800/50 border-emerald-500/50' : 'bg-emerald-50 border-emerald-200') 
+                                        : (isDark ? 'bg-slate-800 border-transparent hover:border-blue-500/50' : 'bg-white border-transparent shadow-sm hover:border-blue-300')}">
+                                    
+                                    <div class="flex justify-between items-center">
+                                        <div class="flex items-center space-x-4">
+                                            <div class="w-12 h-12 rounded-full flex items-center justify-center transition-colors
+                                                ${isDeparted 
+                                                    ? 'bg-emerald-500 text-white' 
+                                                    : (isDark ? 'bg-slate-700 text-slate-400' : 'bg-slate-100 text-slate-400')}">
+                                                <i data-lucide="${isDeparted ? 'check-circle' : 'bed-double'}" class="w-6 h-6"></i>
+                                            </div>
+                                            <div>
+                                                <h3 class="text-2xl font-bold tracking-tight ${isDeparted ? 'opacity-50' : ''}">${room.number}</h3>
+                                                <p class="text-xs font-medium uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}">
+                                                    ${room.type.replace(/_/g, ' ')}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="text-right">
+                                            ${isDeparted ? `
+                                                <div class="text-emerald-600 font-medium text-sm flex flex-col items-end">
+                                                    <span class="flex items-center"><i data-lucide="log-out" class="w-3 h-3 mr-1"></i> Departed</span>
+                                                    <span class="text-xs opacity-75">${room.departedAt}</span>
+                                                </div>
+                                            ` : `
+                                                ${state.isStaff ? `
+                                                    <div class="px-4 py-2 rounded-full text-sm font-semibold transition-colors
+                                                        ${isDark ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-600'}">
+                                                        Mark Departed
+                                                    </div>
+                                                ` : `
+                                                    <div class="opacity-30"><i data-lucide="lock" class="w-4 h-4"></i></div>
+                                                `}
+                                            `}
+                                        </div>
+                                    </div>
+                                </div>
+                                `;
+                            }).join('')
+                        }
+                    </div>
+                `;
+
+                const fab = state.isStaff ? `
+                    <div class="fixed bottom-6 right-6 flex flex-col items-end space-y-2 z-40">
+                        <button onclick="setView('import')" class="p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg transition-transform hover:scale-105" title="Add Rooms">
+                            <i data-lucide="upload" class="w-5 h-5"></i>
+                        </button>
+                        <button onclick="resetAll()" class="p-3 bg-slate-600 hover:bg-slate-700 text-white rounded-full shadow-lg transition-transform hover:scale-105" title="Reset All">
+                            <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
+                        </button>
+                        <button onclick="clearAll()" class="p-3 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg transition-transform hover:scale-105" title="Delete All">
+                            <i data-lucide="trash-2" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                ` : '';
+
+                content = progressCard + filters + search + list + fab;
+            }
+
+            app.innerHTML = `
+                ${header}
+                ${pinModal}
+                <main class="max-w-3xl mx-auto p-4 w-full flex-grow">
+                    ${content}
+                </main>
+            `;
+
+            lucide.createIcons();
+            
+            // Re-focus inputs if they were active
+            if (state.showPinModal) {
+                 setTimeout(() => document.getElementById('pinInput')?.focus(), 0);
+            }
+        }
+
+        // --- Start ---
+        init();
+
+    </script>
+</body>
+</html>
