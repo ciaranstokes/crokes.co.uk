@@ -121,7 +121,7 @@
                 <div class="flex flex-col sm:flex-row gap-4 pt-4 border-t">
                     <button type="button" id="openEmailClientBtn" class="flex-1 bg-blue-600 text-white font-bold py-4 px-6 rounded-lg hover:bg-blue-700 transition shadow-lg flex flex-col items-center justify-center">
                         <span class="text-lg">Open Email Client</span>
-                        <span class="text-[10px] opacity-80 uppercase tracking-wider">Drafts Email + Downloads Calendar</span>
+                        <span class="text-[10px] opacity-80 uppercase tracking-wider">Drafts Email Body</span>
                     </button>
                     <button type="button" id="clearFormBtn" class="bg-slate-100 text-slate-500 font-semibold py-4 px-6 rounded-lg hover:bg-red-50 hover:text-red-500 transition">
                         Reset
@@ -142,10 +142,10 @@
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // CONFIGURATION
-        const TEAM_EMAILS = "reservations@yourrestaurant.com";
+        // CONFIGURATION: Updated Team Emails
+        const TEAM_EMAILS = "bareca.peaks@bikeandboot.com, bookings.peaks@bikeandboot.com";
 
-        // Your provided Firebase Configuration
+        // Firebase Configuration
         const userConfig = {
             apiKey: "AIzaSyBLcirFG0rRW-d9sPOw12kvnWKGS5vtoQo",
             authDomain: "bareca-enquiry-form.firebaseapp.com",
@@ -163,7 +163,7 @@
 
         let currentUser = null;
         let saveTimeout = null;
-        let isRestoring = true; // Block saving while we are downloading data
+        let isRestoring = true;
 
         const form = document.getElementById('reservationForm');
         const saveStatus = document.getElementById('saveStatus');
@@ -173,7 +173,6 @@
         const takenByInput = document.getElementById('takenBy');
         const takenAtInput = document.getElementById('takenAt');
 
-        // UI Handlers
         menuSelect.addEventListener('change', () => {
             otherWrapper.classList.toggle('hidden', menuSelect.value !== 'Other');
         });
@@ -188,7 +187,6 @@
             }
         });
 
-        // Initialize Authentication
         const initAuth = async () => {
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -203,14 +201,12 @@
             }
         };
 
-        // Watch Auth State
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
                 authStatus.textContent = "● Synced Online";
                 authStatus.classList.replace('text-blue-600', 'text-green-600');
                 document.getElementById('userIdDisplay').textContent = `ID: ${user.uid.substring(0, 8)}`;
-                
                 await loadDraft();
                 isRestoring = false; 
                 form.classList.remove('loading-shimmer');
@@ -233,30 +229,22 @@
                     saveStatus.textContent = "New form ready.";
                 }
             } catch (e) {
-                console.error("Load Error:", e);
                 saveStatus.textContent = "Firestore Blocked. Check Rules.";
             }
         };
 
         const saveDraft = async () => {
-            // CRITICAL: Do not save if we haven't authenticated or if we are still restoring old data
             if (!currentUser || isRestoring) return;
-
             saveStatus.textContent = "Syncing...";
-            saveStatus.classList.remove('text-red-600');
-
             const data = Object.fromEntries(new FormData(form).entries());
             data.lastUpdated = new Date().toISOString();
-
             try {
                 const draftRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current_enquiry');
                 await setDoc(draftRef, data);
                 saveStatus.textContent = "Auto-saved to cloud.";
             } catch (e) { 
-                console.error("Save Error:", e);
                 saveStatus.textContent = "Error saving. Check Internet/Permissions."; 
-                saveStatus.classList.add('text-red-600');
-                saveStatus.classList.add('error-shake');
+                saveStatus.classList.add('text-red-600', 'error-shake');
                 setTimeout(() => saveStatus.classList.remove('error-shake'), 500);
             }
         };
@@ -269,34 +257,33 @@
 
         initAuth();
 
-        // ICS & Email Logic
-        const downloadICS = (data) => {
-            if (!data.resDate || !data.resTime) return;
-            const start = `${data.resDate.replace(/-/g, '')}T${data.resTime.replace(/:/g, '')}00`;
-            const totalPax = (parseInt(data.adultCount) || 0) + (parseInt(data.childCount) || 0);
-            const ics = `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:Bareca Res: ${data.customerName} (${totalPax} Pax)\nDTSTART:${start}\nDESCRIPTION:Phone: ${data.customerPhone}\\nEmail: ${data.customerEmail}\\nMenu: ${data.menuArrangement}\nEND:VEVENT\nEND:VCALENDAR`;
-            const blob = new Blob([ics], { type: 'text/calendar' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `Bareca-Res-${data.customerName.replace(/\s+/g, '-')}.ics`;
-            a.click();
-            URL.revokeObjectURL(url);
-        };
-
         document.getElementById('openEmailClientBtn').onclick = () => {
             const data = Object.fromEntries(new FormData(form).entries());
             if (!data.customerName || !data.resDate || !data.resTime) {
                 alert("Please fill in Name, Date, and Time first.");
                 return;
             }
-            downloadICS(data);
+
+            // Parse Name for Subject Line logic
+            const nameParts = data.customerName.trim().split(/\s+/);
+            const firstName = nameParts[0];
+            const surname = nameParts.length > 1 ? nameParts[nameParts.length - 1] : firstName;
+            const firstInitial = firstName.charAt(0).toUpperCase();
+
+            // Format Date for Subject Line (DD/MM/YY)
+            const [year, month, day] = data.resDate.split('-');
+            const formattedDate = `${day}/${month}/${year.slice(-2)}`;
+
             const totalPax = (parseInt(data.adultCount) || 0) + (parseInt(data.childCount) || 0);
             const arrangement = data.menuArrangement === 'Other' ? `Other (${data.menuOtherDetails})` : data.menuArrangement;
-            const subject = encodeURIComponent(`BARECA ENQUIRY: ${data.customerName} - ${data.resDate} (${totalPax} pax)`);
+
+            // Updated Subject Line format: BARECA ENQUIRY: Surname Initial DD/MM/YY (PAX)
+            const subject = encodeURIComponent(`BARECA ENQUIRY: ${surname} ${firstInitial} ${formattedDate} (${totalPax} PAX)`);
+            
             const body = encodeURIComponent(
-                `RESERVATION DETAILS\n------------------\nCustomer Name: ${data.customerName}\nCustomer Email: ${data.customerEmail || 'Not provided'}\nPhone Number: ${data.customerPhone}\n\nDate: ${data.resDate}\nTime: ${data.resTime}\nGuests: ${totalPax} (Adults: ${data.adultCount || 0}, Children: ${data.childCount || 0})\nMenu Arrangement: ${arrangement}\n\nSpecial Requests:\n${data.notes || 'None'}\n\n------------------\nEnquiry Taken By: ${data.takenBy || 'N/A'}\nTaken On: ${data.takenAt || 'N/A'}\n------------------\n\n[Calendar file downloaded - please attach to this email]`
+                `RESERVATION DETAILS\n------------------\nCustomer Name: ${data.customerName}\nCustomer Email: ${data.customerEmail || 'Not provided'}\nPhone Number: ${data.customerPhone}\n\nDate: ${data.resDate}\nTime: ${data.resTime}\nGuests: ${totalPax} (Adults: ${data.adultCount || 0}, Children: ${data.childCount || 0})\nMenu Arrangement: ${arrangement}\n\nSpecial Requests:\n${data.notes || 'None'}\n\n------------------\nEnquiry Taken By: ${data.takenBy || 'N/A'}\nTaken On: ${data.takenAt || 'N/A'}\n------------------`
             );
+
             window.location.href = `mailto:${TEAM_EMAILS}?subject=${subject}&body=${body}`;
         };
 
