@@ -13,6 +13,7 @@
         .save-indicator { font-size: 0.8rem; }
         input:focus, select:focus, textarea:focus { border-color: #2563eb; }
         input[readonly] { background-color: #f8fafc; color: #64748b; cursor: not-allowed; }
+        .loading-shimmer { opacity: 0.5; pointer-events: none; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-800">
@@ -31,7 +32,7 @@
 
         <!-- Form Section -->
         <div class="bg-white p-6 shadow-sm">
-            <form id="reservationForm" class="space-y-6">
+            <form id="reservationForm" class="space-y-6 loading-shimmer">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- Customer Name -->
                     <div>
@@ -125,7 +126,7 @@
 
         <!-- Feedback UI -->
         <div class="bg-white rounded-b-xl border-t p-4 flex justify-between items-center text-slate-400">
-            <span id="saveStatus" class="save-indicator italic text-xs">Ready</span>
+            <span id="saveStatus" class="save-indicator italic text-xs">Waiting for connection...</span>
             <span id="userIdDisplay" class="text-[10px] uppercase tracking-widest font-bold"></span>
         </div>
     </div>
@@ -135,10 +136,10 @@
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // CONFIGURATION: Recipient Email
+        // CONFIGURATION
         const TEAM_EMAILS = "reservations@yourrestaurant.com";
 
-        // Your web app's Firebase configuration (User Provided)
+        // Your provided config
         const userConfig = {
             apiKey: "AIzaSyBLcirFG0rRW-d9sPOw12kvnWKGS5vtoQo",
             authDomain: "bareca-enquiry-form.firebaseapp.com",
@@ -148,7 +149,6 @@
             appId: "1:124741472331:web:28ab8255a2f4c549173dce"
         };
 
-        // Environment Fallback Logic
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : userConfig;
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -157,6 +157,7 @@
 
         let currentUser = null;
         let saveTimeout = null;
+        let isRestoring = true; // Prevents saving while we are loading data
 
         const form = document.getElementById('reservationForm');
         const saveStatus = document.getElementById('saveStatus');
@@ -166,32 +167,23 @@
         const takenByInput = document.getElementById('takenBy');
         const takenAtInput = document.getElementById('takenAt');
 
-        // Logic for "Other" field visibility
+        // Toggle "Other" menu input
         menuSelect.addEventListener('change', () => {
-            if (menuSelect.value === 'Other') {
-                otherWrapper.classList.remove('hidden');
-            } else {
-                otherWrapper.classList.add('hidden');
-            }
+            otherWrapper.classList.toggle('hidden', menuSelect.value !== 'Other');
         });
 
-        // Logic for auto-filling the date/time when name is entered
+        // Auto-timestamp for "Taken By"
         takenByInput.addEventListener('input', () => {
             if (takenByInput.value.trim() !== "" && !takenAtInput.value) {
-                const now = new Date();
-                const formatted = now.toLocaleString('en-GB', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
+                takenAtInput.value = new Date().toLocaleString('en-GB', {
+                    day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
                 });
-                takenAtInput.value = formatted;
             } else if (takenByInput.value.trim() === "") {
                 takenAtInput.value = "";
             }
         });
 
+        // Authentication Init
         const initAuth = async () => {
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -200,54 +192,71 @@
                     await signInAnonymously(auth);
                 }
             } catch (err) {
-                console.error("Auth error", err);
-                authStatus.textContent = "Offline Mode";
+                console.error("Auth Error:", err);
+                authStatus.textContent = "Error: Enable Anonymous Auth in Firebase Console";
+                authStatus.classList.replace('text-blue-600', 'text-red-600');
             }
         };
 
-        onAuthStateChanged(auth, (user) => {
+        // Listen for Auth Changes
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
                 authStatus.textContent = "● Synced with Cloud";
                 authStatus.classList.replace('text-blue-600', 'text-green-600');
                 document.getElementById('userIdDisplay').textContent = `ID: ${user.uid.substring(0, 8)}`;
-                loadDraft();
+                
+                await loadDraft();
+                isRestoring = false; // Allow saving now that loading is done
+                form.classList.remove('loading-shimmer');
             }
         });
 
-        initAuth();
+        const loadDraft = async () => {
+            if (!currentUser) return;
+            try {
+                const draftRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current_enquiry');
+                const snap = await getDoc(draftRef);
+                if (snap.exists()) {
+                    const data = snap.data();
+                    Object.keys(data).forEach(key => { 
+                        if (form.elements[key]) form.elements[key].value = data[key]; 
+                    });
+                    menuSelect.dispatchEvent(new Event('change'));
+                    saveStatus.textContent = "Previous draft restored successfully.";
+                } else {
+                    saveStatus.textContent = "Ready for new enquiry.";
+                }
+            } catch (e) {
+                console.error("Load Error:", e);
+                saveStatus.textContent = "Connection error. Check Firestore Rules.";
+            }
+        };
 
         const saveDraft = async () => {
-            if (!currentUser) return;
-            saveStatus.textContent = "Saving...";
+            if (!currentUser || isRestoring) return;
+            saveStatus.textContent = "Syncing...";
             const data = Object.fromEntries(new FormData(form).entries());
             data.lastUpdated = new Date().toISOString();
             try {
                 const draftRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current_enquiry');
                 await setDoc(draftRef, data);
-                saveStatus.textContent = "Draft saved";
-            } catch (e) { saveStatus.textContent = "Save Error"; }
-        };
-
-        const loadDraft = async () => {
-            if (!currentUser) return;
-            const draftRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current_enquiry');
-            const snap = await getDoc(draftRef);
-            if (snap.exists()) {
-                const data = snap.data();
-                Object.keys(data).forEach(key => { 
-                    if (form.elements[key]) form.elements[key].value = data[key]; 
-                });
-                menuSelect.dispatchEvent(new Event('change'));
-                saveStatus.textContent = "Draft restored";
+                saveStatus.textContent = "Changes saved to cloud.";
+            } catch (e) { 
+                console.error("Save Error:", e);
+                saveStatus.textContent = "Error saving. Check Internet/Permissions."; 
             }
         };
 
         form.addEventListener('input', () => {
+            if (isRestoring) return;
             clearTimeout(saveTimeout);
             saveTimeout = setTimeout(saveDraft, 1000);
         });
 
+        initAuth();
+
+        // Export Actions
         const downloadICS = (data) => {
             if (!data.resDate || !data.resTime) return;
             const start = `${data.resDate.replace(/-/g, '')}T${data.resTime.replace(/:/g, '')}00`;
@@ -264,48 +273,29 @@
 
         document.getElementById('openEmailClientBtn').onclick = () => {
             const data = Object.fromEntries(new FormData(form).entries());
-            
             if (!data.customerName || !data.resDate || !data.resTime) {
                 alert("Please fill in Name, Date, and Time first.");
                 return;
             }
-
             downloadICS(data);
-
             const totalPax = (parseInt(data.adultCount) || 0) + (parseInt(data.childCount) || 0);
             const arrangement = data.menuArrangement === 'Other' ? `Other (${data.menuOtherDetails})` : data.menuArrangement;
-
             const subject = encodeURIComponent(`BARECA ENQUIRY: ${data.customerName} - ${data.resDate} (${totalPax} pax)`);
             const body = encodeURIComponent(
-                `RESERVATION DETAILS\n` +
-                `------------------\n` +
-                `Customer Name: ${data.customerName}\n` +
-                `Customer Email: ${data.customerEmail || 'Not provided'}\n` +
-                `Phone Number: ${data.customerPhone}\n\n` +
-                `Date: ${data.resDate}\n` +
-                `Time: ${data.resTime}\n` +
-                `Guests: ${totalPax} (Adults: ${data.adultCount || 0}, Children: ${data.childCount || 0})\n` +
-                `Menu Arrangement: ${arrangement}\n\n` +
-                `Special Requests:\n${data.notes || 'None'}\n\n` +
-                `------------------\n` +
-                `Enquiry Taken By: ${data.takenBy || 'N/A'}\n` +
-                `Taken On: ${data.takenAt || 'N/A'}\n` +
-                `------------------\n\n` +
-                `[Calendar file downloaded - please attach to this email]`
+                `RESERVATION DETAILS\n------------------\nCustomer Name: ${data.customerName}\nCustomer Email: ${data.customerEmail || 'Not provided'}\nPhone Number: ${data.customerPhone}\n\nDate: ${data.resDate}\nTime: ${data.resTime}\nGuests: ${totalPax} (Adults: ${data.adultCount || 0}, Children: ${data.childCount || 0})\nMenu Arrangement: ${arrangement}\n\nSpecial Requests:\n${data.notes || 'None'}\n\n------------------\nEnquiry Taken By: ${data.takenBy || 'N/A'}\nTaken On: ${data.takenAt || 'N/A'}\n------------------\n\n[Calendar file downloaded - please attach to this email]`
             );
-
             window.location.href = `mailto:${TEAM_EMAILS}?subject=${subject}&body=${body}`;
         };
 
         document.getElementById('clearFormBtn').onclick = async () => {
-            if (confirm("Reset form? This will delete your current draft.")) {
+            if (confirm("Reset form? This will delete your current cloud draft.")) {
                 form.reset();
                 otherWrapper.classList.add('hidden');
                 if (currentUser) {
                     const draftRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current_enquiry');
-                    await deleteDoc(draftRef);
+                    await deleteDoc(draftRef).catch(() => {});
                 }
-                saveStatus.textContent = "Cleared";
+                saveStatus.textContent = "Form cleared.";
             }
         };
     </script>
