@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bareca at Bike and Boot Enquiry</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js" type="module"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js" type="module"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js" type="module"></script>
+    <style>
+        .save-indicator { font-size: 0.8rem; }
+        input:focus, select:focus, textarea:focus { border-color: #2563eb; }
+        input[readonly] { background-color: #f8fafc; color: #64748b; cursor: not-allowed; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800">
+
+    <div class="max-w-3xl mx-auto py-8 px-4">
+        <!-- Header -->
+        <div class="bg-white rounded-t-xl shadow-sm border-b p-6">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h1 class="text-2xl font-bold text-slate-900">Bareca at Bike and Boot</h1>
+                    <p class="text-slate-500 text-sm">Enquiry Form</p>
+                </div>
+                <div id="authStatus" class="text-xs font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded-full">Connecting...</div>
+            </div>
+        </div>
+
+        <!-- Form Section -->
+        <div class="bg-white p-6 shadow-sm">
+            <form id="reservationForm" class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Customer Name -->
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">Customer Name</label>
+                        <input type="text" name="customerName" placeholder="Full Name" required class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
+                    </div>
+
+                    <!-- Customer Email -->
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">Customer Email</label>
+                        <input type="email" name="customerEmail" placeholder="email@example.com" class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
+                    </div>
+
+                    <!-- Phone Number (+44) -->
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">Phone Number</label>
+                        <input type="tel" name="customerPhone" placeholder="+44 7..." class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
+                    </div>
+
+                    <!-- Reservation Date -->
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">Reservation Date</label>
+                        <input type="date" name="resDate" required class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
+                    </div>
+
+                    <!-- Reservation Time -->
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">Reservation Time</label>
+                        <input type="time" name="resTime" required class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
+                    </div>
+
+                    <!-- Menu Arrangements -->
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">Menu Arrangements</label>
+                        <select id="menuArrangement" name="menuArrangement" class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
+                            <option value="Sharing Menu">Sharing Menu</option>
+                            <option value="Choose on the Day">Choose on the Day</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <!-- Guest Split: Adults -->
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">Adults</label>
+                        <input type="number" name="adultCount" min="1" placeholder="Number of Adults" class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
+                    </div>
+
+                    <!-- Guest Split: Children -->
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">Children</label>
+                        <input type="number" name="childCount" min="0" placeholder="Number of Children" class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
+                    </div>
+                </div>
+
+                <!-- Conditional "Other" details -->
+                <div id="otherDetailsWrapper" class="hidden">
+                    <label class="block text-sm font-semibold mb-1 text-blue-600">Please Specify Other Arrangement</label>
+                    <input type="text" name="menuOtherDetails" placeholder="Details..." class="w-full p-3 rounded-lg border border-blue-200 focus:ring-2 focus:ring-blue-500 outline-none transition bg-blue-50/30">
+                </div>
+
+                <!-- Special Requests -->
+                <div>
+                    <label class="block text-sm font-semibold mb-1">Special Requests / Allergies</label>
+                    <textarea name="notes" rows="3" class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition"></textarea>
+                </div>
+
+                <!-- Logger Section: Taken By -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t bg-slate-50/50 p-4 rounded-lg">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Enquiry Taken By</label>
+                        <input type="text" id="takenBy" name="takenBy" placeholder="Staff Name" class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition bg-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Taken On (Auto)</label>
+                        <input type="text" id="takenAt" name="takenAt" readonly placeholder="Auto-filled on entry" class="w-full p-3 rounded-lg border border-slate-200 outline-none transition">
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row gap-4 pt-4 border-t">
+                    <button type="button" id="openEmailClientBtn" class="flex-1 bg-blue-600 text-white font-bold py-4 px-6 rounded-lg hover:bg-blue-700 transition shadow-lg flex flex-col items-center justify-center">
+                        <span class="text-lg">Open Email Client</span>
+                        <span class="text-[10px] opacity-80 uppercase tracking-wider">Drafts Email + Downloads Calendar</span>
+                    </button>
+                    <button type="button" id="clearFormBtn" class="bg-slate-100 text-slate-500 font-semibold py-4 px-6 rounded-lg hover:bg-red-50 hover:text-red-500 transition">
+                        Reset
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Feedback UI -->
+        <div class="bg-white rounded-b-xl border-t p-4 flex justify-between items-center text-slate-400">
+            <span id="saveStatus" class="save-indicator italic text-xs">Ready</span>
+            <span id="userIdDisplay" class="text-[10px] uppercase tracking-widest font-bold"></span>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // CONFIGURATION: Recipient Email
+        const TEAM_EMAILS = "reservations@yourrestaurant.com";
+
+        // Your web app's Firebase configuration (User Provided)
+        const userConfig = {
+            apiKey: "AIzaSyBLcirFG0rRW-d9sPOw12kvnWKGS5vtoQo",
+            authDomain: "bareca-enquiry-form.firebaseapp.com",
+            projectId: "bareca-enquiry-form",
+            storageBucket: "bareca-enquiry-form.firebasestorage.app",
+            messagingSenderId: "124741472331",
+            appId: "1:124741472331:web:28ab8255a2f4c549173dce"
+        };
+
+        // Environment Fallback Logic
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : userConfig;
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'bareca-enquiry-v1';
+
+        let currentUser = null;
+        let saveTimeout = null;
+
+        const form = document.getElementById('reservationForm');
+        const saveStatus = document.getElementById('saveStatus');
+        const authStatus = document.getElementById('authStatus');
+        const menuSelect = document.getElementById('menuArrangement');
+        const otherWrapper = document.getElementById('otherDetailsWrapper');
+        const takenByInput = document.getElementById('takenBy');
+        const takenAtInput = document.getElementById('takenAt');
+
+        // Logic for "Other" field visibility
+        menuSelect.addEventListener('change', () => {
+            if (menuSelect.value === 'Other') {
+                otherWrapper.classList.remove('hidden');
+            } else {
+                otherWrapper.classList.add('hidden');
+            }
+        });
+
+        // Logic for auto-filling the date/time when name is entered
+        takenByInput.addEventListener('input', () => {
+            if (takenByInput.value.trim() !== "" && !takenAtInput.value) {
+                const now = new Date();
+                const formatted = now.toLocaleString('en-GB', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                takenAtInput.value = formatted;
+            } else if (takenByInput.value.trim() === "") {
+                takenAtInput.value = "";
+            }
+        });
+
+        const initAuth = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (err) {
+                console.error("Auth error", err);
+                authStatus.textContent = "Offline Mode";
+            }
+        };
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                authStatus.textContent = "● Synced with Cloud";
+                authStatus.classList.replace('text-blue-600', 'text-green-600');
+                document.getElementById('userIdDisplay').textContent = `ID: ${user.uid.substring(0, 8)}`;
+                loadDraft();
+            }
+        });
+
+        initAuth();
+
+        const saveDraft = async () => {
+            if (!currentUser) return;
+            saveStatus.textContent = "Saving...";
+            const data = Object.fromEntries(new FormData(form).entries());
+            data.lastUpdated = new Date().toISOString();
+            try {
+                const draftRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current_enquiry');
+                await setDoc(draftRef, data);
+                saveStatus.textContent = "Draft saved";
+            } catch (e) { saveStatus.textContent = "Save Error"; }
+        };
+
+        const loadDraft = async () => {
+            if (!currentUser) return;
+            const draftRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current_enquiry');
+            const snap = await getDoc(draftRef);
+            if (snap.exists()) {
+                const data = snap.data();
+                Object.keys(data).forEach(key => { 
+                    if (form.elements[key]) form.elements[key].value = data[key]; 
+                });
+                menuSelect.dispatchEvent(new Event('change'));
+                saveStatus.textContent = "Draft restored";
+            }
+        };
+
+        form.addEventListener('input', () => {
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(saveDraft, 1000);
+        });
+
+        const downloadICS = (data) => {
+            if (!data.resDate || !data.resTime) return;
+            const start = `${data.resDate.replace(/-/g, '')}T${data.resTime.replace(/:/g, '')}00`;
+            const totalPax = (parseInt(data.adultCount) || 0) + (parseInt(data.childCount) || 0);
+            const ics = `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:Bareca Res: ${data.customerName} (${totalPax} Pax)\nDTSTART:${start}\nDESCRIPTION:Phone: ${data.customerPhone}\\nEmail: ${data.customerEmail}\\nMenu: ${data.menuArrangement}\nEND:VEVENT\nEND:VCALENDAR`;
+            const blob = new Blob([ics], { type: 'text/calendar' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Bareca-Res-${data.customerName.replace(/\s+/g, '-')}.ics`;
+            a.click();
+            URL.revokeObjectURL(url);
+        };
+
+        document.getElementById('openEmailClientBtn').onclick = () => {
+            const data = Object.fromEntries(new FormData(form).entries());
+            
+            if (!data.customerName || !data.resDate || !data.resTime) {
+                alert("Please fill in Name, Date, and Time first.");
+                return;
+            }
+
+            downloadICS(data);
+
+            const totalPax = (parseInt(data.adultCount) || 0) + (parseInt(data.childCount) || 0);
+            const arrangement = data.menuArrangement === 'Other' ? `Other (${data.menuOtherDetails})` : data.menuArrangement;
+
+            const subject = encodeURIComponent(`BARECA ENQUIRY: ${data.customerName} - ${data.resDate} (${totalPax} pax)`);
+            const body = encodeURIComponent(
+                `RESERVATION DETAILS\n` +
+                `------------------\n` +
+                `Customer Name: ${data.customerName}\n` +
+                `Customer Email: ${data.customerEmail || 'Not provided'}\n` +
+                `Phone Number: ${data.customerPhone}\n\n` +
+                `Date: ${data.resDate}\n` +
+                `Time: ${data.resTime}\n` +
+                `Guests: ${totalPax} (Adults: ${data.adultCount || 0}, Children: ${data.childCount || 0})\n` +
+                `Menu Arrangement: ${arrangement}\n\n` +
+                `Special Requests:\n${data.notes || 'None'}\n\n` +
+                `------------------\n` +
+                `Enquiry Taken By: ${data.takenBy || 'N/A'}\n` +
+                `Taken On: ${data.takenAt || 'N/A'}\n` +
+                `------------------\n\n` +
+                `[Calendar file downloaded - please attach to this email]`
+            );
+
+            window.location.href = `mailto:${TEAM_EMAILS}?subject=${subject}&body=${body}`;
+        };
+
+        document.getElementById('clearFormBtn').onclick = async () => {
+            if (confirm("Reset form? This will delete your current draft.")) {
+                form.reset();
+                otherWrapper.classList.add('hidden');
+                if (currentUser) {
+                    const draftRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current_enquiry');
+                    await deleteDoc(draftRef);
+                }
+                saveStatus.textContent = "Cleared";
+            }
+        };
+    </script>
+</body>
+</html>
