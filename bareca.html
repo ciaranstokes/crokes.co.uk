@@ -14,6 +14,12 @@
         input:focus, select:focus, textarea:focus { border-color: #2563eb; }
         input[readonly] { background-color: #f8fafc; color: #64748b; cursor: not-allowed; }
         .loading-shimmer { opacity: 0.5; pointer-events: none; }
+        .error-shake { animation: shake 0.5s; }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-800">
@@ -26,7 +32,7 @@
                     <h1 class="text-2xl font-bold text-slate-900">Bareca at Bike and Boot</h1>
                     <p class="text-slate-500 text-sm">Enquiry Form</p>
                 </div>
-                <div id="authStatus" class="text-xs font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded-full">Connecting...</div>
+                <div id="authStatus" class="text-xs font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded-full italic">Initialising...</div>
             </div>
         </div>
 
@@ -126,7 +132,7 @@
 
         <!-- Feedback UI -->
         <div class="bg-white rounded-b-xl border-t p-4 flex justify-between items-center text-slate-400">
-            <span id="saveStatus" class="save-indicator italic text-xs">Waiting for connection...</span>
+            <span id="saveStatus" class="save-indicator italic text-xs">Awaiting connection...</span>
             <span id="userIdDisplay" class="text-[10px] uppercase tracking-widest font-bold"></span>
         </div>
     </div>
@@ -139,7 +145,7 @@
         // CONFIGURATION
         const TEAM_EMAILS = "reservations@yourrestaurant.com";
 
-        // Your provided config
+        // Your provided Firebase Configuration
         const userConfig = {
             apiKey: "AIzaSyBLcirFG0rRW-d9sPOw12kvnWKGS5vtoQo",
             authDomain: "bareca-enquiry-form.firebaseapp.com",
@@ -157,7 +163,7 @@
 
         let currentUser = null;
         let saveTimeout = null;
-        let isRestoring = true; // Prevents saving while we are loading data
+        let isRestoring = true; // Block saving while we are downloading data
 
         const form = document.getElementById('reservationForm');
         const saveStatus = document.getElementById('saveStatus');
@@ -167,12 +173,11 @@
         const takenByInput = document.getElementById('takenBy');
         const takenAtInput = document.getElementById('takenAt');
 
-        // Toggle "Other" menu input
+        // UI Handlers
         menuSelect.addEventListener('change', () => {
             otherWrapper.classList.toggle('hidden', menuSelect.value !== 'Other');
         });
 
-        // Auto-timestamp for "Taken By"
         takenByInput.addEventListener('input', () => {
             if (takenByInput.value.trim() !== "" && !takenAtInput.value) {
                 takenAtInput.value = new Date().toLocaleString('en-GB', {
@@ -183,7 +188,7 @@
             }
         });
 
-        // Authentication Init
+        // Initialize Authentication
         const initAuth = async () => {
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -193,21 +198,21 @@
                 }
             } catch (err) {
                 console.error("Auth Error:", err);
-                authStatus.textContent = "Error: Enable Anonymous Auth in Firebase Console";
+                authStatus.textContent = "Error: Check Console";
                 authStatus.classList.replace('text-blue-600', 'text-red-600');
             }
         };
 
-        // Listen for Auth Changes
+        // Watch Auth State
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
-                authStatus.textContent = "● Synced with Cloud";
+                authStatus.textContent = "● Synced Online";
                 authStatus.classList.replace('text-blue-600', 'text-green-600');
                 document.getElementById('userIdDisplay').textContent = `ID: ${user.uid.substring(0, 8)}`;
                 
                 await loadDraft();
-                isRestoring = false; // Allow saving now that loading is done
+                isRestoring = false; 
                 form.classList.remove('loading-shimmer');
             }
         });
@@ -225,26 +230,34 @@
                     menuSelect.dispatchEvent(new Event('change'));
                     saveStatus.textContent = "Previous draft restored successfully.";
                 } else {
-                    saveStatus.textContent = "Ready for new enquiry.";
+                    saveStatus.textContent = "New form ready.";
                 }
             } catch (e) {
                 console.error("Load Error:", e);
-                saveStatus.textContent = "Connection error. Check Firestore Rules.";
+                saveStatus.textContent = "Firestore Blocked. Check Rules.";
             }
         };
 
         const saveDraft = async () => {
+            // CRITICAL: Do not save if we haven't authenticated or if we are still restoring old data
             if (!currentUser || isRestoring) return;
+
             saveStatus.textContent = "Syncing...";
+            saveStatus.classList.remove('text-red-600');
+
             const data = Object.fromEntries(new FormData(form).entries());
             data.lastUpdated = new Date().toISOString();
+
             try {
                 const draftRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current_enquiry');
                 await setDoc(draftRef, data);
-                saveStatus.textContent = "Changes saved to cloud.";
+                saveStatus.textContent = "Auto-saved to cloud.";
             } catch (e) { 
                 console.error("Save Error:", e);
                 saveStatus.textContent = "Error saving. Check Internet/Permissions."; 
+                saveStatus.classList.add('text-red-600');
+                saveStatus.classList.add('error-shake');
+                setTimeout(() => saveStatus.classList.remove('error-shake'), 500);
             }
         };
 
@@ -256,7 +269,7 @@
 
         initAuth();
 
-        // Export Actions
+        // ICS & Email Logic
         const downloadICS = (data) => {
             if (!data.resDate || !data.resTime) return;
             const start = `${data.resDate.replace(/-/g, '')}T${data.resTime.replace(/:/g, '')}00`;
@@ -288,7 +301,7 @@
         };
 
         document.getElementById('clearFormBtn').onclick = async () => {
-            if (confirm("Reset form? This will delete your current cloud draft.")) {
+            if (confirm("Reset form? This will permanently delete your cloud draft.")) {
                 form.reset();
                 otherWrapper.classList.add('hidden');
                 if (currentUser) {
