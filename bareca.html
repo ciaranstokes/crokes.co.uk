@@ -91,6 +91,7 @@
                     <div>
                         <label class="block text-sm font-semibold mb-1">Menu Arrangements</label>
                         <select id="menuArrangement" name="menuArrangement" class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
+                            <option value="Unknown" selected>Unknown</option>
                             <option value="Sharing Menu">Sharing Menu</option>
                             <option value="Choose on the Day">Choose on the Day</option>
                             <option value="Other">Other</option>
@@ -112,7 +113,7 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-semibold mb-1">Special Requests / Allergies</label>
+                    <label class="block text-sm font-semibold mb-1">Special Requests / Dietary Requirements</label>
                     <textarea name="notes" rows="3" class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition"></textarea>
                 </div>
 
@@ -196,7 +197,7 @@
                     <p id="modalEmail" class="text-slate-700"></p>
                 </div>
                 <div id="modalNotesWrapper" class="border-t pt-4">
-                    <p class="text-slate-400 font-bold uppercase text-[10px]">Special Requests</p>
+                    <p class="text-slate-400 font-bold uppercase text-[10px]">Special Requests / Dietary</p>
                     <p id="modalNotes" class="text-slate-700 italic mt-1"></p>
                 </div>
             </div>
@@ -399,7 +400,7 @@
             return {
                 raw: data,
                 subject: `BARECA ENQUIRY: ${data.customerName.split(' ').pop()} ${data.customerName[0]} ${d}/${m}/${y.slice(-2)} (${pax} PAX)`,
-                body: `SECURE RESERVATION INTAKE\n------------------\nCUSTOMER: ${data.customerName}\nPHONE: ${data.customerPhone}\nDATE: ${d}-${m}-${y}\nTIME: ${data.resTime}\nPAX: ${pax}\nMENU: ${data.menuArrangement}\nNOTES: ${data.notes}\n\nTAKEN BY: ${data.takenBy}`
+                body: `SECURE RESERVATION INTAKE\n------------------\nCUSTOMER: ${data.customerName}\nPHONE: ${data.customerPhone}\nDATE: ${d}-${m}-${y}\nTIME: ${data.resTime}\nPAX: ${pax}\nMENU: ${data.menuArrangement}\nSPECIAL REQUESTS / DIETARY REQUIREMENTS: ${data.notes}\n\nTAKEN BY: ${data.takenBy}`
             };
         };
 
@@ -422,7 +423,7 @@
             finally { btn.disabled = false; btn.classList.remove('syncing-pulse'); }
         };
 
-        // Existing Auth, Draft, and UI listeners
+        // Auth, Draft, and UI listeners
         loginForm.onsubmit = async (e) => {
             e.preventDefault();
             const btn = document.getElementById('loginBtn');
