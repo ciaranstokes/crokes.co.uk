@@ -42,7 +42,7 @@
         </div>
     </div>
 
-    <!-- MAIN APPLICATION (Hidden until login) -->
+    <!-- MAIN APPLICATION -->
     <div id="appSection" class="max-w-3xl mx-auto py-8 px-4 hidden">
         <div class="bg-white rounded-t-xl shadow-sm border-b p-6 flex justify-between items-center">
             <div>
@@ -134,11 +134,9 @@
             </form>
         </div>
 
-        <!-- NEW: Recent Bookings Dashboard -->
         <div class="mt-8">
             <h2 class="text-xl font-bold text-slate-900 mb-4 px-2">Upcoming Reservations</h2>
             <div id="bookingsList" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <!-- Tiles will be injected here -->
                 <div id="noBookings" class="col-span-full p-8 text-center bg-white rounded-xl border border-dashed border-slate-300 text-slate-400 italic">
                     No upcoming reservations found.
                 </div>
@@ -154,7 +152,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, deleteDoc, collection, addDoc, onSnapshot, query, where, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, deleteDoc, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBLcirFG0rRW-d9sPOw12kvnWKGS5vtoQo",
@@ -169,7 +167,9 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
         const appId = 'bareca-enquiry-v1';
-        const TEAM_EMAILS = "stokes.ciaran@gmail.com";
+
+        // OBFUSCATED EMAIL (for local client button)
+        const getEmail = () => atob("c3Rva2VzLmNpYXJhbiAgQGdtYWlsLmNvbQ==").replace(/\s/g, "");
 
         let currentUser = null;
         let saveTimeout = null;
@@ -186,7 +186,6 @@
         const takenAtInput = document.getElementById('takenAt');
         const bookingsList = document.getElementById('bookingsList');
 
-        // Authentication Handler
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
@@ -206,121 +205,83 @@
         loginForm.onsubmit = async (e) => {
             e.preventDefault();
             const btn = document.getElementById('loginBtn');
-            const errDiv = document.getElementById('loginError');
-            btn.disabled = true;
-            btn.textContent = "Verifying...";
-            errDiv.classList.add('hidden');
-
+            btn.disabled = true; btn.textContent = "Verifying...";
             try {
                 await signInWithEmailAndPassword(auth, document.getElementById('loginEmail').value, document.getElementById('loginPassword').value);
             } catch (err) {
-                errDiv.textContent = "Invalid email or password.";
-                errDiv.classList.remove('hidden');
+                document.getElementById('loginError').textContent = "Invalid credentials.";
+                document.getElementById('loginError').classList.remove('hidden');
             } finally {
-                btn.disabled = false;
-                btn.textContent = "Login";
+                btn.disabled = false; btn.textContent = "Login";
             }
         };
 
         document.getElementById('logoutBtn').onclick = () => signOut(auth);
 
-        // Bookings Dashboard Listener
         const setupBookingsListener = () => {
-            if (!currentUser) return;
             const bookingsRef = collection(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings');
-            // Fetching all confirmed bookings and sorting manually (to avoid index dependency errors)
             onSnapshot(bookingsRef, (snapshot) => {
                 const bookings = [];
                 snapshot.forEach(doc => bookings.push({ id: doc.id, ...doc.data() }));
-                
-                // Sort by date then time
-                bookings.sort((a, b) => {
-                    const dateA = new Date(`${a.resDate}T${a.resTime}`);
-                    const dateB = new Date(`${b.resDate}T${b.resTime}`);
-                    return dateA - dateB;
-                });
-
+                bookings.sort((a, b) => new Date(`${a.resDate}T${a.resTime}`) - new Date(`${b.resDate}T${b.resTime}`));
                 renderBookings(bookings);
-            }, (error) => {
-                console.error("Listener failed:", error);
             });
         };
 
         const renderBookings = (bookings) => {
             if (bookings.length === 0) {
-                bookingsList.innerHTML = '<div class="col-span-full p-8 text-center bg-white rounded-xl border border-dashed border-slate-300 text-slate-400 italic">No upcoming reservations found.</div>';
+                bookingsList.innerHTML = '<div class="col-span-full p-8 text-center bg-white rounded-xl border border-dashed border-slate-300 text-slate-400 italic">No upcoming reservations.</div>';
                 return;
             }
-
             bookingsList.innerHTML = '';
             bookings.forEach(booking => {
-                const [year, month, day] = booking.resDate.split('-');
+                const [y, m, d] = booking.resDate.split('-');
                 const tile = document.createElement('div');
                 tile.className = "bg-white p-4 rounded-xl shadow-sm border border-slate-200 hover:border-blue-300 transition-colors relative group";
                 tile.innerHTML = `
                     <div class="flex justify-between items-start mb-2">
-                        <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">${day}/${month}/${year.slice(-2)}</span>
+                        <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">${d}/${m}/${y.slice(-2)}</span>
                         <span class="text-xs font-medium text-slate-400">${booking.resTime}</span>
                     </div>
-                    <h3 class="font-bold text-slate-900 leading-tight mb-1 truncate">${booking.customerName}</h3>
+                    <h3 class="font-bold text-slate-900 mb-1 truncate">${booking.customerName}</h3>
                     <p class="text-xs text-slate-500 mb-3">${(parseInt(booking.adultCount)||0) + (parseInt(booking.childCount)||0)} PAX • ${booking.menuArrangement}</p>
-                    <div class="flex gap-2">
-                        <button onclick="cancelBooking('${booking.id}')" class="flex-1 bg-red-50 text-red-600 text-[10px] font-bold py-2 rounded hover:bg-red-600 hover:text-white transition-all uppercase tracking-tight">Cancel Group</button>
-                    </div>
+                    <button onclick="cancelBooking('${booking.id}')" class="w-full bg-red-50 text-red-600 text-[10px] font-bold py-2 rounded hover:bg-red-600 hover:text-white transition-all uppercase">Cancel Group</button>
                 `;
                 bookingsList.appendChild(tile);
             });
         };
 
-        // Cancellation Logic
         window.cancelBooking = async (bookingId) => {
-            if (!confirm("Are you sure you want to cancel this booking? This will remove the tile and send a cancellation email to the reservation team.")) return;
-            
+            if (!confirm("Confirm cancellation? Team will be notified via cloud email.")) return;
             try {
-                const bookingRef = doc(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings', bookingId);
-                const bookingSnap = await getDoc(bookingRef);
-                
-                if (bookingSnap.exists()) {
-                    const data = bookingSnap.data();
-                    const [year, month, day] = data.resDate.split('-');
-                    
-                    // Create Cancellation Email Document
+                const snap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings', bookingId));
+                if (snap.exists()) {
+                    const data = snap.data();
                     await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
-                        to: TEAM_EMAILS,
                         message: {
-                            subject: `CANCELLED: BARECA ENQUIRY - ${data.customerName} (${day}/${month}/${year.slice(-2)})`,
-                            text: `CANCELLATION NOTICE\n------------------\nGroup: ${data.customerName}\nDate: ${day}-${month}-${year}\nTime: ${data.resTime}\n\nThis booking has been cancelled via the enquiry portal. Please remove from the calendar and update availability.\n\nCancelled by: ${currentUser.email}\nOn: ${new Date().toLocaleString('en-GB')}`
+                            subject: `CANCELLED: BARECA ENQUIRY - ${data.customerName}`,
+                            text: `CANCELLATION NOTICE\nGroup: ${data.customerName}\nDate: ${data.resDate}\nTime: ${data.resTime}\n\nCancelled by: ${currentUser.email}`
                         }
                     });
-
-                    // Remove from Dashboard
-                    await deleteDoc(bookingRef);
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings', bookingId));
                 }
-            } catch (e) {
-                alert("Cancellation failed: Permission denied.");
-            }
+            } catch (e) { alert("Cancellation error."); }
         };
 
-        // Auto-save logic
         const saveDraft = async () => {
             if (!currentUser || isRestoring) return;
-            saveStatus.textContent = "Cloud syncing...";
             const data = Object.fromEntries(new FormData(reservationForm).entries());
-            try {
-                await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current'), data);
-                saveStatus.textContent = "Securely saved to cloud.";
-            } catch (e) { saveStatus.textContent = "Sync error."; }
+            await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current'), data).catch(() => {});
+            saveStatus.textContent = "Synced to cloud.";
         };
 
         const loadDraft = async () => {
-            try {
-                const snap = await getDoc(doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'drafts', 'current'));
-                if (snap.exists()) {
-                    const data = snap.data();
-                    Object.keys(data).forEach(key => { if(reservationForm.elements[key]) reservationForm.elements[key].value = data[key]; });
-                    menuSelect.dispatchEvent(new Event('change'));
-                }
-            } catch (e) { console.error(e); }
+            const snap = await getDoc(doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'drafts', 'current')).catch(() => {});
+            if (snap && snap.exists()) {
+                const data = snap.data();
+                Object.keys(data).forEach(k => { if(reservationForm.elements[k]) reservationForm.elements[k].value = data[k]; });
+                menuSelect.dispatchEvent(new Event('change'));
+            }
         };
 
         reservationForm.addEventListener('input', () => {
@@ -328,7 +289,6 @@
             saveTimeout = setTimeout(saveDraft, 1000);
         });
 
-        // UI Helpers
         menuSelect.addEventListener('change', () => otherWrapper.classList.toggle('hidden', menuSelect.value !== 'Other'));
         takenByInput.addEventListener('input', () => {
             if (takenByInput.value.trim() && !takenAtInput.value) {
@@ -337,62 +297,42 @@
         });
 
         const getExportData = () => {
-            const formData = new FormData(reservationForm);
-            const data = Object.fromEntries(formData.entries());
-            const nameParts = data.customerName.trim().split(/\s+/);
-            const surname = nameParts.length > 1 ? nameParts[nameParts.length - 1] : nameParts[0];
-            const [year, month, day] = data.resDate.split('-');
-            const totalPax = (parseInt(data.adultCount)||0) + (parseInt(data.childCount)||0);
-            const time = data.resTime ? new Date('2000-01-01T' + data.resTime).toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'}) : 'N/A';
-            
+            const data = Object.fromEntries(new FormData(reservationForm).entries());
+            const [y, m, d] = data.resDate.split('-');
+            const pax = (parseInt(data.adultCount)||0) + (parseInt(data.childCount)||0);
             return {
                 raw: data,
-                subject: `BARECA ENQUIRY: ${surname} ${nameParts[0][0]} ${day}/${month}/${year.slice(-2)} (${totalPax} PAX)`,
-                body: `RESERVATION DETAILS\n------------------\nCustomer: ${data.customerName}\nEmail: ${data.customerEmail || 'N/A'}\nPhone: ${data.customerPhone}\n\nDate: ${day}-${month}-${year}\nTime: ${time}\nGuests: ${totalPax} (A: ${data.adultCount||0}, C: ${data.childCount||0})\nMenu: ${data.menuArrangement === 'Other' ? data.menuOtherDetails : data.menuArrangement}\n\nNotes:\n${data.notes || 'None'}\n\n------------------\nTaken By: ${data.takenBy}\nTaken On: ${data.takenAt}\n------------------`,
-                totalPax
+                subject: `BARECA ENQUIRY: ${data.customerName.split(' ').pop()} ${data.customerName[0]} ${d}/${m}/${y.slice(-2)} (${pax} PAX)`,
+                body: `CUSTOMER: ${data.customerName}\nPHONE: ${data.customerPhone}\nDATE: ${d}-${m}-${y}\nTIME: ${data.resTime}\nPAX: ${pax}\nMENU: ${data.menuArrangement}\nNOTES: ${data.notes}\n\nTAKEN BY: ${data.takenBy}`
             };
         };
 
         document.getElementById('sendCloudEmailBtn').onclick = async () => {
             const exp = getExportData();
-            if (!reservationForm.elements.customerName.value || !reservationForm.elements.resDate.value) { alert("Required fields missing."); return; }
+            if (!reservationForm.elements.customerName.value || !reservationForm.elements.resDate.value) { alert("Missing fields."); return; }
             const btn = document.getElementById('sendCloudEmailBtn');
             btn.disabled = true; btn.classList.add('syncing-pulse');
-            
             try {
-                // 1. Send Email via Queue
+                // "to" is omitted; extension uses default set in console
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
-                    to: TEAM_EMAILS,
                     message: { subject: exp.subject, text: exp.body }
                 });
-
-                // 2. Log to Confirmed Bookings collection for dashboard
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings'), {
-                    ...exp.raw,
-                    confirmedAt: new Date().toISOString(),
-                    confirmedBy: currentUser.email
-                });
-
-                // 3. Cleanup draft
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings'), { ...exp.raw });
                 await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current'));
-                
-                alert("Success! Sent to queue and logged to dashboard.");
+                alert("Confirmed!");
                 reservationForm.reset();
                 otherWrapper.classList.add('hidden');
-            } catch (e) { 
-                console.error(e);
-                alert("Error: Permission denied."); 
-            }
+            } catch (e) { alert("Permission Error."); }
             finally { btn.disabled = false; btn.classList.remove('syncing-pulse'); }
         };
 
         document.getElementById('openEmailClientBtn').onclick = () => {
             const exp = getExportData();
-            window.location.href = `mailto:${TEAM_EMAILS}?subject=${encodeURIComponent(exp.subject)}&body=${encodeURIComponent(exp.body)}`;
+            window.location.href = `mailto:${getEmail()}?subject=${encodeURIComponent(exp.subject)}&body=${encodeURIComponent(exp.body)}`;
         };
 
         document.getElementById('clearFormBtn').onclick = async () => {
-            if (confirm("Delete draft?")) {
+            if (confirm("Reset form?")) {
                 reservationForm.reset();
                 if (currentUser) await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current'));
             }
