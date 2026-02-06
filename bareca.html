@@ -5,15 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Secure Enquiry Portal - Bareca</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js" type="module"></script>
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js" type="module"></script>
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js" type="module"></script>
+    <!-- FullCalendar Library -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
     <style>
         .loading-shimmer { opacity: 0.5; pointer-events: none; }
-        .hidden { display: none; }
+        .hidden { display: none !important; }
         input:focus, select:focus, textarea:focus { border-color: #2563eb; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
         .syncing-pulse { animation: pulse 1.5s infinite; }
+        
+        /* Calendar Custom Styles */
+        #calendar { background: white; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; }
+        .fc-event { cursor: pointer; border: none !important; padding: 2px 5px; }
+        .fc-toolbar-title { font-size: 1.1rem !important; font-weight: 700 !important; color: #0f172a; }
+        .fc-button-primary { background-color: #0f172a !important; border-color: #0f172a !important; }
+        .fc-button-primary:hover { background-color: #1e293b !important; }
     </style>
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800 font-sans">
@@ -43,7 +53,7 @@
     </div>
 
     <!-- MAIN APPLICATION -->
-    <div id="appSection" class="max-w-3xl mx-auto py-8 px-4 hidden">
+    <div id="appSection" class="max-w-4xl mx-auto py-8 px-4 hidden">
         <div class="bg-white rounded-t-xl shadow-sm border-b p-6 flex justify-between items-center">
             <div>
                 <h1 class="text-2xl font-bold text-slate-900">Bareca at Bike and Boot</h1>
@@ -55,7 +65,7 @@
             </div>
         </div>
 
-        <div class="bg-white p-6 shadow-sm">
+        <div class="bg-white p-6 shadow-sm mb-8">
             <form id="reservationForm" class="space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -129,19 +139,71 @@
             </form>
         </div>
 
-        <!-- Reservations Dashboard -->
-        <div class="mt-8">
-            <h2 class="text-xl font-bold text-slate-900 mb-4 px-2">Upcoming Reservations</h2>
-            <div id="bookingsList" class="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-12">
+        <!-- DASHBOARD SECTION -->
+        <div class="mt-8 mb-20">
+            <div class="flex flex-col sm:flex-row justify-between items-end sm:items-center mb-6 px-2 gap-4">
+                <h2 class="text-2xl font-bold text-slate-900">Live Schedule</h2>
+                <div class="inline-flex rounded-md shadow-sm" role="group">
+                    <button id="showCalendarBtn" class="px-4 py-2 text-sm font-medium text-white bg-slate-900 border border-slate-900 rounded-l-lg hover:bg-slate-800">
+                        Calendar View
+                    </button>
+                    <button id="showListBtn" class="px-4 py-2 text-sm font-medium text-slate-900 bg-white border border-slate-200 rounded-r-lg hover:bg-slate-100">
+                        List View
+                    </button>
+                </div>
+            </div>
+
+            <!-- Calendar View Container -->
+            <div id="calendarContainer">
+                <div id="calendar"></div>
+            </div>
+
+            <!-- List View Container (Hidden by default) -->
+            <div id="listContainer" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div id="noBookings" class="col-span-full p-12 text-center bg-white rounded-xl border border-dashed border-slate-300 text-slate-400 italic">
-                    No confirmed reservations in dashboard.
+                    No confirmed reservations.
                 </div>
             </div>
         </div>
 
-        <div class="bg-white mt-auto rounded-xl border p-4 flex justify-between items-center text-slate-400">
-            <span id="saveStatus" class="save-indicator italic text-xs">Waiting for sync...</span>
-            <span id="userIdDisplay" class="text-[10px] uppercase tracking-widest font-bold"></span>
+        <div class="bg-white rounded-xl border p-4 flex justify-between items-center text-slate-400 text-[10px]">
+            <span id="saveStatus" class="italic">Waiting for sync...</span>
+            <span id="userIdDisplay" class="uppercase tracking-widest font-bold"></span>
+        </div>
+    </div>
+
+    <!-- Reservation Detail Modal (Custom Modal) -->
+    <div id="detailModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div id="modalHeader" class="bg-slate-900 text-white p-6">
+                <h3 id="modalTitle" class="text-xl font-bold">Reservation</h3>
+                <p id="modalSubtitle" class="text-slate-400 text-sm mt-1 uppercase tracking-wider font-semibold"></p>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <p class="text-slate-400 font-bold uppercase text-[10px]">Guests</p>
+                        <p id="modalPax" class="font-bold text-slate-900"></p>
+                    </div>
+                    <div>
+                        <p class="text-slate-400 font-bold uppercase text-[10px]">Menu</p>
+                        <p id="modalMenu" class="font-bold text-slate-900"></p>
+                    </div>
+                </div>
+                <div class="border-t pt-4">
+                    <p class="text-slate-400 font-bold uppercase text-[10px]">Contact Info</p>
+                    <p id="modalPhone" class="text-slate-700 mt-1"></p>
+                    <p id="modalEmail" class="text-slate-700"></p>
+                </div>
+                <div id="modalNotesWrapper" class="border-t pt-4">
+                    <p class="text-slate-400 font-bold uppercase text-[10px]">Special Requests</p>
+                    <p id="modalNotes" class="text-slate-700 italic mt-1"></p>
+                </div>
+            </div>
+            <div class="bg-slate-50 p-4 flex gap-3">
+                <button id="modalClose" class="flex-1 py-3 font-bold text-slate-600 hover:bg-slate-200 rounded-lg transition">Close</button>
+                <button id="modalCancelBtn" class="flex-1 py-3 font-bold text-red-600 hover:bg-red-50 rounded-lg border border-red-200 transition">Cancel Group</button>
+            </div>
         </div>
     </div>
 
@@ -168,6 +230,8 @@
         let currentUser = null;
         let saveTimeout = null;
         let isRestoring = true;
+        let calendar = null;
+        let currentViewingBookingId = null;
 
         const loginSection = document.getElementById('loginSection');
         const appSection = document.getElementById('appSection');
@@ -178,15 +242,20 @@
         const otherWrapper = document.getElementById('otherDetailsWrapper');
         const takenByInput = document.getElementById('takenBy');
         const takenAtInput = document.getElementById('takenAt');
-        const bookingsList = document.getElementById('bookingsList');
+        const listContainer = document.getElementById('listContainer');
+        const calendarContainer = document.getElementById('calendarContainer');
 
-        // Authentication Observer
+        // Modal Elements
+        const detailModal = document.getElementById('detailModal');
+
+        // Auth Listener
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
                 loginSection.classList.add('hidden');
                 appSection.classList.remove('hidden');
                 document.getElementById('userIdDisplay').textContent = `Staff ID: ${user.uid.substring(0, 8)}`;
+                initCalendar();
                 await loadDraft();
                 setupBookingsListener();
                 isRestoring = false;
@@ -194,45 +263,98 @@
                 currentUser = null;
                 appSection.classList.add('hidden');
                 loginSection.classList.remove('hidden');
-                isRestoring = true;
             }
         });
 
-        // Login Handler
-        loginForm.onsubmit = async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('loginBtn');
-            const errDiv = document.getElementById('loginError');
-            btn.disabled = true; btn.textContent = "Verifying...";
-            errDiv.classList.add('hidden');
-            try {
-                await signInWithEmailAndPassword(auth, document.getElementById('loginEmail').value, document.getElementById('loginPassword').value);
-            } catch (err) {
-                errDiv.classList.remove('hidden');
-            } finally {
-                btn.disabled = false; btn.textContent = "Sign In";
+        // Initialize Calendar
+        const initCalendar = () => {
+            const calendarEl = document.getElementById('calendar');
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek' },
+                themeSystem: 'standard',
+                eventClick: (info) => showBookingDetails(info.event.id, info.event.extendedProps)
+            });
+            calendar.render();
+        };
+
+        // Modal Logic
+        const showBookingDetails = (id, props) => {
+            currentViewingBookingId = id;
+            document.getElementById('modalTitle').textContent = props.customerName;
+            document.getElementById('modalSubtitle').textContent = `${props.resDate} @ ${props.resTime}`;
+            document.getElementById('modalPax').textContent = `${(parseInt(props.adultCount)||0) + (parseInt(props.childCount)||0)} Adults/Children`;
+            document.getElementById('modalMenu').textContent = props.menuArrangement === 'Other' ? props.menuOtherDetails : props.menuArrangement;
+            document.getElementById('modalPhone').textContent = props.customerPhone || 'N/A';
+            document.getElementById('modalEmail').textContent = props.customerEmail || 'N/A';
+            document.getElementById('modalNotes').textContent = props.notes || 'None provided.';
+            detailModal.classList.remove('hidden');
+        };
+
+        document.getElementById('modalClose').onclick = () => detailModal.classList.add('hidden');
+        document.getElementById('modalCancelBtn').onclick = () => {
+            if (currentViewingBookingId) {
+                detailModal.classList.add('hidden');
+                cancelBooking(currentViewingBookingId);
             }
         };
 
-        document.getElementById('logoutBtn').onclick = () => signOut(auth);
+        // Tab Switching
+        document.getElementById('showCalendarBtn').onclick = () => {
+            listContainer.classList.add('hidden');
+            calendarContainer.classList.remove('hidden');
+            document.getElementById('showCalendarBtn').classList.replace('bg-white', 'bg-slate-900');
+            document.getElementById('showCalendarBtn').classList.replace('text-slate-900', 'text-white');
+            document.getElementById('showListBtn').classList.replace('bg-slate-900', 'bg-white');
+            document.getElementById('showListBtn').classList.replace('text-white', 'text-slate-900');
+            setTimeout(() => calendar.updateSize(), 50);
+        };
+
+        document.getElementById('showListBtn').onclick = () => {
+            calendarContainer.classList.add('hidden');
+            listContainer.classList.remove('hidden');
+            document.getElementById('showListBtn').classList.replace('bg-white', 'bg-slate-900');
+            document.getElementById('showListBtn').classList.replace('text-slate-900', 'text-white');
+            document.getElementById('showCalendarBtn').classList.replace('bg-slate-900', 'bg-white');
+            document.getElementById('showCalendarBtn').classList.replace('text-white', 'text-slate-900');
+        };
 
         // Dashboard Listener
         const setupBookingsListener = () => {
             const bookingsRef = collection(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings');
             onSnapshot(bookingsRef, (snapshot) => {
                 const bookings = [];
-                snapshot.forEach(doc => bookings.push({ id: doc.id, ...doc.data() }));
-                bookings.sort((a, b) => new Date(`${a.resDate}T${a.resTime}`) - new Date(`${b.resDate}T${b.resTime}`));
-                renderBookings(bookings);
+                const events = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    bookings.push({ id: doc.id, ...data });
+                    events.push({
+                        id: doc.id,
+                        title: `${data.customerName} (${(parseInt(data.adultCount)||0) + (parseInt(data.childCount)||0)})`,
+                        start: `${data.resDate}T${data.resTime}`,
+                        backgroundColor: '#2563eb',
+                        extendedProps: { ...data }
+                    });
+                });
+                
+                // Update List View
+                renderListView(bookings);
+                
+                // Update Calendar View
+                if (calendar) {
+                    calendar.removeAllEvents();
+                    calendar.addEventSource(events);
+                }
             });
         };
 
-        const renderBookings = (bookings) => {
+        const renderListView = (bookings) => {
             if (bookings.length === 0) {
-                bookingsList.innerHTML = '<div class="col-span-full p-12 text-center bg-white rounded-xl border border-dashed border-slate-300 text-slate-400 italic">No confirmed reservations.</div>';
+                listContainer.innerHTML = '<div class="col-span-full p-12 text-center bg-white rounded-xl border border-dashed border-slate-300 text-slate-400 italic">No confirmed reservations.</div>';
                 return;
             }
-            bookingsList.innerHTML = '';
+            bookings.sort((a, b) => new Date(`${a.resDate}T${a.resTime}`) - new Date(`${b.resDate}T${b.resTime}`));
+            listContainer.innerHTML = '';
             bookings.forEach(booking => {
                 const [y, m, d] = booking.resDate.split('-');
                 const tile = document.createElement('div');
@@ -244,39 +366,78 @@
                     </div>
                     <h3 class="font-bold text-slate-900 mb-1 truncate">${booking.customerName}</h3>
                     <p class="text-xs text-slate-500 mb-4">${(parseInt(booking.adultCount)||0) + (parseInt(booking.childCount)||0)} PAX • ${booking.menuArrangement}</p>
-                    <button onclick="cancelBooking('${booking.id}')" class="w-full bg-red-50 text-red-600 text-[10px] font-bold py-2 rounded hover:bg-red-600 hover:text-white transition-all uppercase tracking-tight">Cancel Booking</button>
+                    <button onclick="cancelBooking('${booking.id}')" class="w-full bg-red-50 text-red-600 text-[10px] font-bold py-2 rounded hover:bg-red-600 hover:text-white transition-all uppercase tracking-tight">Cancel Group</button>
                 `;
-                bookingsList.appendChild(tile);
+                listContainer.appendChild(tile);
             });
         };
 
-        // Cancellation with toUids
         window.cancelBooking = async (bookingId) => {
-            if (!confirm("Remove this booking and notify team via email?")) return;
+            if (!confirm("Confirm cancellation? This will notify the team and remove it from the shared calendar.")) return;
             try {
-                const snap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings', bookingId));
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings', bookingId);
+                const snap = await getDoc(docRef);
                 if (snap.exists()) {
                     const data = snap.data();
-                    // HIDDEN RECIPIENT: Using toUids instead of email address
                     await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
                         toUids: ['reservation_team'],
                         message: {
                             subject: `CANCELLED: BARECA ENQUIRY - ${data.customerName}`,
-                            text: `CANCELLATION NOTICE\n------------------\nCustomer: ${data.customerName}\nDate: ${data.resDate}\nTime: ${data.resTime}\n\nThis booking was cancelled via the portal by ${currentUser.email}.`
+                            text: `CANCELLATION NOTICE\n------------------\nCustomer: ${data.customerName}\nDate: ${data.resDate}\nTime: ${data.resTime}\n\nThis booking was cancelled and removed from the shared calendar by ${currentUser.email}.`
                         }
                     });
-                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings', bookingId));
+                    await deleteDoc(docRef);
                 }
-            } catch (e) { alert("Action restricted: Check security rules."); }
+            } catch (e) { alert("Error updating dashboard."); }
         };
 
-        // Sync / Draft management
-        const saveDraft = async () => {
-            if (!currentUser || isRestoring) return;
-            saveStatus.textContent = "Syncing...";
+        // Form Logic
+        const getExportData = () => {
             const data = Object.fromEntries(new FormData(reservationForm).entries());
-            await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current'), data).catch(() => {});
-            saveStatus.textContent = "Draft synced.";
+            const [y, m, d] = data.resDate.split('-');
+            const pax = (parseInt(data.adultCount)||0) + (parseInt(data.childCount)||0);
+            return {
+                raw: data,
+                subject: `BARECA ENQUIRY: ${data.customerName.split(' ').pop()} ${data.customerName[0]} ${d}/${m}/${y.slice(-2)} (${pax} PAX)`,
+                body: `SECURE RESERVATION INTAKE\n------------------\nCUSTOMER: ${data.customerName}\nPHONE: ${data.customerPhone}\nDATE: ${d}-${m}-${y}\nTIME: ${data.resTime}\nPAX: ${pax}\nMENU: ${data.menuArrangement}\nNOTES: ${data.notes}\n\nTAKEN BY: ${data.takenBy}`
+            };
+        };
+
+        document.getElementById('sendCloudEmailBtn').onclick = async () => {
+            const exp = getExportData();
+            if (!reservationForm.elements.customerName.value || !reservationForm.elements.resDate.value) { alert("Missing required fields."); return; }
+            const btn = document.getElementById('sendCloudEmailBtn');
+            btn.disabled = true; btn.classList.add('syncing-pulse');
+            try {
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
+                    toUids: ['reservation_team'],
+                    message: { subject: exp.subject, text: exp.body }
+                });
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings'), { ...exp.raw, createdAt: new Date().toISOString() });
+                await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current'));
+                alert("Booking Confirmed!");
+                reservationForm.reset();
+                otherWrapper.classList.add('hidden');
+            } catch (e) { alert("Permission Error."); }
+            finally { btn.disabled = false; btn.classList.remove('syncing-pulse'); }
+        };
+
+        // Existing Auth, Draft, and UI listeners
+        loginForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('loginBtn');
+            btn.disabled = true; btn.textContent = "Verifying...";
+            try { await signInWithEmailAndPassword(auth, document.getElementById('loginEmail').value, document.getElementById('loginPassword').value); }
+            catch (err) { document.getElementById('loginError').classList.remove('hidden'); }
+            finally { btn.disabled = false; btn.textContent = "Sign In"; }
+        };
+
+        document.getElementById('logoutBtn').onclick = () => signOut(auth);
+        document.getElementById('clearFormBtn').onclick = async () => {
+            if (confirm("Reset form?")) {
+                reservationForm.reset();
+                if (currentUser) await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current'));
+            }
         };
 
         const loadDraft = async () => {
@@ -289,57 +450,18 @@
         };
 
         reservationForm.addEventListener('input', () => {
-            clearTimeout(saveTimeout);
-            saveTimeout = setTimeout(saveDraft, 1000);
+            if (!currentUser || isRestoring) return;
+            const data = Object.fromEntries(new FormData(reservationForm).entries());
+            setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current'), data).catch(() => {});
+            saveStatus.textContent = "Synced.";
         });
 
-        // UI Listeners
         menuSelect.addEventListener('change', () => otherWrapper.classList.toggle('hidden', menuSelect.value !== 'Other'));
         takenByInput.addEventListener('input', () => {
             if (takenByInput.value.trim() && !takenAtInput.value) {
                 takenAtInput.value = new Date().toLocaleString('en-GB', {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'});
             }
         });
-
-        const getExportData = () => {
-            const data = Object.fromEntries(new FormData(reservationForm).entries());
-            const [y, m, d] = data.resDate.split('-');
-            const pax = (parseInt(data.adultCount)||0) + (parseInt(data.childCount)||0);
-            return {
-                raw: data,
-                subject: `BARECA ENQUIRY: ${data.customerName.split(' ').pop()} ${data.customerName[0]} ${d}/${m}/${y.slice(-2)} (${pax} PAX)`,
-                body: `SECURE RESERVATION INTAKE\n------------------\nCUSTOMER: ${data.customerName}\nPHONE: ${data.customerPhone}\nEMAIL: ${data.customerEmail || 'Not provided'}\n\nDATE: ${d}-${m}-${y}\nTIME: ${data.resTime}\nPAX: ${pax}\nMENU: ${data.menuArrangement}\nNOTES: ${data.notes}\n\nTAKEN BY: ${data.takenBy}\nTAKEN ON: ${data.takenAt}`
-            };
-        };
-
-        // Confirmation with toUids
-        document.getElementById('sendCloudEmailBtn').onclick = async () => {
-            const exp = getExportData();
-            if (!reservationForm.elements.customerName.value || !reservationForm.elements.resDate.value) { alert("Customer Name and Date are required."); return; }
-            const btn = document.getElementById('sendCloudEmailBtn');
-            btn.disabled = true; btn.classList.add('syncing-pulse');
-            try {
-                // HIDDEN RECIPIENT: Using toUids instead of email address
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
-                    toUids: ['reservation_team'],
-                    message: { subject: exp.subject, text: exp.body }
-                });
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings'), { ...exp.raw, createdAt: new Date().toISOString() });
-                await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current'));
-                alert("Booking confirmed and sent to team!");
-                reservationForm.reset();
-                otherWrapper.classList.add('hidden');
-            } catch (e) { alert("Sync Error: Verify Firestore Rules for 'mail' collection."); }
-            finally { btn.disabled = false; btn.classList.remove('syncing-pulse'); }
-        };
-
-        document.getElementById('clearFormBtn').onclick = async () => {
-            if (confirm("Reset current form? This deletes the cloud draft.")) {
-                reservationForm.reset();
-                if (currentUser) await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current'));
-                saveStatus.textContent = "Draft cleared.";
-            }
-        };
     </script>
 </body>
 </html>
