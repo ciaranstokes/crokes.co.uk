@@ -142,7 +142,7 @@
         </div>
 
         <div class="bg-white rounded-b-xl border-t p-4 flex justify-between items-center text-slate-400">
-            <span id="saveStatus" class="save-indicator italic text-xs">Initialising...</span>
+            <span id="saveStatus" class="save-indicator italic text-xs">Initialising connection...</span>
             <span id="userIdDisplay" class="text-[10px] uppercase tracking-widest font-bold"></span>
         </div>
     </div>
@@ -152,7 +152,6 @@
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, deleteDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // CONFIGURATION: Set to your email
         const TEAM_EMAILS = "stokes.ciaran@gmail.com";
 
         const firebaseConfig = {
@@ -197,13 +196,10 @@
 
         const initAuth = async () => {
             try {
-                // Primary authentication flow
-                // Handle possible mismatch between environment token and user project config
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     try {
                         await signInWithCustomToken(auth, __initial_auth_token);
                     } catch (tokenErr) {
-                        console.warn("Custom token failed, falling back to anonymous:", tokenErr);
                         await signInAnonymously(auth);
                     }
                 } else {
@@ -211,7 +207,7 @@
                 }
             } catch (err) {
                 console.error("Auth Error:", err);
-                authStatus.textContent = "Offline Mode - Check Firebase Console Auth settings";
+                authStatus.textContent = "Auth Required - check Authorized Domains";
             }
         };
 
@@ -238,12 +234,12 @@
                         if (form.elements[key]) form.elements[key].value = data[key]; 
                     });
                     menuSelect.dispatchEvent(new Event('change'));
-                    saveStatus.textContent = "Draft loaded.";
+                    saveStatus.textContent = "Draft restored.";
                 } else {
                     saveStatus.textContent = "Ready.";
                 }
             } catch (e) {
-                saveStatus.textContent = "Initialisation error. Check Firestore Rules.";
+                saveStatus.textContent = "Check Firestore Rules.";
             }
         };
 
@@ -257,7 +253,7 @@
                 await setDoc(draftRef, data);
                 saveStatus.textContent = "Saved.";
             } catch (e) { 
-                saveStatus.textContent = "Error saving draft."; 
+                saveStatus.textContent = "Save Error."; 
             }
         };
 
@@ -316,11 +312,15 @@
             };
         };
 
-        // INTEGRATION: Write to the "mail" collection configured in your Extension
         document.getElementById('sendCloudEmailBtn').onclick = async () => {
+            if (!currentUser) {
+                alert("Login required to send. Refresh page.");
+                return;
+            }
+
             const exp = getExportData();
             if (!exp.data.customerName || !exp.data.resDate) {
-                alert("Please fill in at least Name and Date.");
+                alert("Please fill in Name and Date.");
                 return;
             }
 
@@ -332,7 +332,6 @@
             const icsBase64 = icsText ? btoa(icsText) : null;
 
             try {
-                // This writes to the path monitored by the Trigger Email extension
                 const mailRef = collection(db, 'artifacts', appId, 'public', 'data', 'mail');
                 await addDoc(mailRef, {
                     to: TEAM_EMAILS,
@@ -348,10 +347,10 @@
                     }
                 });
 
-                alert("Success! The enquiry has been sent to the queue for the cloud email extension.");
+                alert("Success! The enquiry has been sent to the queue.");
             } catch (e) {
                 console.error("Cloud send error:", e);
-                alert("Error writing to email queue: " + (e.code || e.message) + "\nVerify Firestore rules for the 'mail' collection.");
+                alert(`Error writing to email queue: ${e.code}\n\nMake sure to update Firestore Rules in Firebase Console for the 'mail' collection path.`);
             } finally {
                 btn.disabled = false;
                 btn.classList.remove('syncing-pulse');
@@ -384,7 +383,7 @@
         };
 
         document.getElementById('clearFormBtn').onclick = async () => {
-            if (confirm("Reset form? This will permanently delete your current cloud draft.")) {
+            if (confirm("Reset form? This will permanently delete your cloud draft.")) {
                 form.reset();
                 otherWrapper.classList.add('hidden');
                 if (currentUser) {
