@@ -3,73 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bareca at Bike and Boot Enquiry</title>
+    <title>Secure Enquiry Portal - Bareca</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js" type="module"></script>
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js" type="module"></script>
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js" type="module"></script>
     <style>
-        .save-indicator { font-size: 0.8rem; }
-        input:focus, select:focus, textarea:focus { border-color: #2563eb; }
-        input[readonly] { background-color: #f8fafc; color: #64748b; cursor: not-allowed; }
         .loading-shimmer { opacity: 0.5; pointer-events: none; }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
+        .hidden { display: none; }
+        input:focus, select:focus, textarea:focus { border-color: #2563eb; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
         .syncing-pulse { animation: pulse 1.5s infinite; }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen text-slate-800">
+<body class="bg-slate-100 min-h-screen text-slate-800 font-sans">
 
-    <div class="max-w-3xl mx-auto py-8 px-4">
-        <!-- Header -->
-        <div class="bg-white rounded-t-xl shadow-sm border-b p-6">
-            <div class="flex justify-between items-start">
+    <!-- LOGIN SCREEN -->
+    <div id="loginSection" class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-200">
+            <div class="text-center mb-8">
+                <h1 class="text-2xl font-bold text-slate-900">Bareca Portal</h1>
+                <p class="text-slate-500">Sign in to access enquiry form</p>
+            </div>
+            <form id="loginForm" class="space-y-4">
                 <div>
-                    <h1 class="text-2xl font-bold text-slate-900">Bareca at Bike and Boot</h1>
-                    <p class="text-slate-500 text-sm">Enquiry Form</p>
+                    <label class="block text-sm font-semibold mb-1">Email</label>
+                    <input type="email" id="loginEmail" required class="w-full p-3 rounded-lg border border-slate-200 outline-none">
                 </div>
-                <div id="authStatus" class="text-xs font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded-full italic">Initialising...</div>
+                <div>
+                    <label class="block text-sm font-semibold mb-1">Password</label>
+                    <input type="password" id="loginPassword" required class="w-full p-3 rounded-lg border border-slate-200 outline-none">
+                </div>
+                <button type="submit" id="loginBtn" class="w-full bg-slate-900 text-white font-bold py-3 rounded-lg hover:bg-slate-800 transition shadow-lg">
+                    Login
+                </button>
+                <div id="loginError" class="text-red-500 text-xs text-center mt-2 hidden"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN APPLICATION (Hidden until login) -->
+    <div id="appSection" class="max-w-3xl mx-auto py-8 px-4 hidden">
+        <div class="bg-white rounded-t-xl shadow-sm border-b p-6 flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold text-slate-900">Bareca at Bike and Boot</h1>
+                <p class="text-slate-500 text-sm">Enquiry Form</p>
+            </div>
+            <div class="flex flex-col items-end">
+                <button id="logoutBtn" class="text-xs text-slate-400 hover:text-red-500 font-bold uppercase tracking-wider mb-2">Logout</button>
+                <div id="authStatus" class="text-[10px] font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full uppercase tracking-widest">● Securely Connected</div>
             </div>
         </div>
 
-        <!-- Form Section -->
         <div class="bg-white p-6 shadow-sm">
-            <form id="reservationForm" class="space-y-6 loading-shimmer">
+            <form id="reservationForm" class="space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Customer Name -->
                     <div>
                         <label class="block text-sm font-semibold mb-1">Customer Name</label>
                         <input type="text" name="customerName" placeholder="Full Name" required class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
                     </div>
-
-                    <!-- Customer Email -->
                     <div>
                         <label class="block text-sm font-semibold mb-1">Customer Email</label>
                         <input type="email" name="customerEmail" placeholder="email@example.com" class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
                     </div>
-
-                    <!-- Phone Number (+44) -->
                     <div>
                         <label class="block text-sm font-semibold mb-1">Phone Number</label>
                         <input type="tel" name="customerPhone" placeholder="+44 7..." class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
                     </div>
-
-                    <!-- Reservation Date -->
                     <div>
                         <label class="block text-sm font-semibold mb-1">Reservation Date</label>
                         <input type="date" name="resDate" required class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
                     </div>
-
-                    <!-- Reservation Time -->
                     <div>
                         <label class="block text-sm font-semibold mb-1">Reservation Time</label>
                         <input type="time" name="resTime" required class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
                     </div>
-
-                    <!-- Menu Arrangements -->
                     <div>
                         <label class="block text-sm font-semibold mb-1">Menu Arrangements</label>
                         <select id="menuArrangement" name="menuArrangement" class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
@@ -78,33 +86,26 @@
                             <option value="Other">Other</option>
                         </select>
                     </div>
-
-                    <!-- Guest Split: Adults -->
                     <div>
                         <label class="block text-sm font-semibold mb-1">Adults</label>
-                        <input type="number" name="adultCount" min="1" placeholder="Number of Adults" class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
+                        <input type="number" name="adultCount" min="1" placeholder="0" class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
                     </div>
-
-                    <!-- Guest Split: Children -->
                     <div>
                         <label class="block text-sm font-semibold mb-1">Children</label>
-                        <input type="number" name="childCount" min="0" placeholder="Number of Children" class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
+                        <input type="number" name="childCount" min="0" placeholder="0" class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
                     </div>
                 </div>
 
-                <!-- Conditional "Other" details -->
                 <div id="otherDetailsWrapper" class="hidden">
                     <label class="block text-sm font-semibold mb-1 text-blue-600">Please Specify Other Arrangement</label>
-                    <input type="text" name="menuOtherDetails" placeholder="Details..." class="w-full p-3 rounded-lg border border-blue-200 focus:ring-2 focus:ring-blue-500 outline-none transition bg-blue-50/30">
+                    <input type="text" name="menuOtherDetails" placeholder="Details..." class="w-full p-3 rounded-lg border border-blue-200 outline-none transition bg-blue-50/30">
                 </div>
 
-                <!-- Special Requests -->
                 <div>
                     <label class="block text-sm font-semibold mb-1">Special Requests / Allergies</label>
                     <textarea name="notes" rows="3" class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition"></textarea>
                 </div>
 
-                <!-- Logger Section: Taken By -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t bg-slate-50/50 p-4 rounded-lg">
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Enquiry Taken By</label>
@@ -112,47 +113,36 @@
                     </div>
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Taken On (Auto)</label>
-                        <input type="text" id="takenAt" name="takenAt" readonly placeholder="Auto-filled on entry" class="w-full p-3 rounded-lg border border-slate-200 outline-none transition">
+                        <input type="text" id="takenAt" name="takenAt" readonly placeholder="Auto-filled on entry" class="w-full p-3 rounded-lg border border-slate-200 outline-none transition bg-slate-100">
                     </div>
                 </div>
 
-                <!-- Action Buttons -->
                 <div class="flex flex-col gap-3 pt-4 border-t">
                     <button type="button" id="sendCloudEmailBtn" class="w-full bg-emerald-600 text-white font-bold py-4 px-6 rounded-lg hover:bg-emerald-700 transition shadow-lg flex items-center justify-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
-                        </svg>
-                        Send to Reservation Team (Cloud Email)
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
+                        Send to Reservation Team (Cloud)
                     </button>
-                    
                     <div class="flex flex-col sm:flex-row gap-3">
-                        <button type="button" id="openEmailClientBtn" class="flex-1 bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition flex items-center justify-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                            </svg>
+                        <button type="button" id="openEmailClientBtn" class="flex-1 bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition flex items-center justify-center gap-2 text-sm">
                             Open Local Client
                         </button>
-                        <button type="button" id="clearFormBtn" class="bg-slate-100 text-slate-500 font-semibold py-3 px-6 rounded-lg hover:bg-red-50 hover:text-red-500 transition">
+                        <button type="button" id="clearFormBtn" class="bg-slate-100 text-slate-500 font-semibold py-3 px-6 rounded-lg hover:bg-red-50 hover:text-red-500 transition text-sm">
                             Reset Form
                         </button>
                     </div>
                 </div>
             </form>
         </div>
-
         <div class="bg-white rounded-b-xl border-t p-4 flex justify-between items-center text-slate-400">
-            <span id="saveStatus" class="save-indicator italic text-xs">Initialising connection...</span>
+            <span id="saveStatus" class="save-indicator italic text-xs">Waiting for sync...</span>
             <span id="userIdDisplay" class="text-[10px] uppercase tracking-widest font-bold"></span>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, deleteDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        const TEAM_EMAILS = "stokes.ciaran@gmail.com";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBLcirFG0rRW-d9sPOw12kvnWKGS5vtoQo",
@@ -167,230 +157,136 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
         const appId = 'bareca-enquiry-v1';
+        const TEAM_EMAILS = "stokes.ciaran@gmail.com";
 
         let currentUser = null;
         let saveTimeout = null;
         let isRestoring = true;
 
-        const form = document.getElementById('reservationForm');
+        const loginSection = document.getElementById('loginSection');
+        const appSection = document.getElementById('appSection');
+        const loginForm = document.getElementById('loginForm');
+        const reservationForm = document.getElementById('reservationForm');
         const saveStatus = document.getElementById('saveStatus');
-        const authStatus = document.getElementById('authStatus');
         const menuSelect = document.getElementById('menuArrangement');
         const otherWrapper = document.getElementById('otherDetailsWrapper');
         const takenByInput = document.getElementById('takenBy');
         const takenAtInput = document.getElementById('takenAt');
 
-        takenByInput.addEventListener('input', () => {
-            if (takenByInput.value.trim() !== "" && !takenAtInput.value) {
-                takenAtInput.value = new Date().toLocaleString('en-GB', {
-                    day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
-                });
-            } else if (takenByInput.value.trim() === "") {
-                takenAtInput.value = "";
-            }
-        });
-
-        menuSelect.addEventListener('change', () => {
-            otherWrapper.classList.toggle('hidden', menuSelect.value !== 'Other');
-        });
-
-        const initAuth = async () => {
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    try {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } catch (tokenErr) {
-                        await signInAnonymously(auth);
-                    }
-                } else {
-                    await signInAnonymously(auth);
-                }
-            } catch (err) {
-                console.error("Auth Error:", err);
-                authStatus.textContent = "Auth Required - check Authorized Domains";
-            }
-        };
-
+        // Authentication Handler
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
-                authStatus.textContent = "● Connected";
-                authStatus.classList.replace('text-blue-600', 'text-green-600');
-                document.getElementById('userIdDisplay').textContent = `ID: ${user.uid.substring(0, 8)}`;
+                loginSection.classList.add('hidden');
+                appSection.classList.remove('hidden');
+                document.getElementById('userIdDisplay').textContent = `Staff ID: ${user.uid.substring(0, 8)}`;
                 await loadDraft();
-                isRestoring = false; 
-                form.classList.remove('loading-shimmer');
+                isRestoring = false;
+            } else {
+                currentUser = null;
+                appSection.classList.add('hidden');
+                loginSection.classList.remove('hidden');
             }
         });
 
-        const loadDraft = async () => {
-            if (!currentUser) return;
+        loginForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('loginBtn');
+            const errDiv = document.getElementById('loginError');
+            btn.disabled = true;
+            btn.textContent = "Verifying...";
+            errDiv.classList.add('hidden');
+
             try {
-                const draftRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current_enquiry');
-                const snap = await getDoc(draftRef);
-                if (snap.exists()) {
-                    const data = snap.data();
-                    Object.keys(data).forEach(key => { 
-                        if (form.elements[key]) form.elements[key].value = data[key]; 
-                    });
-                    menuSelect.dispatchEvent(new Event('change'));
-                    saveStatus.textContent = "Draft restored.";
-                } else {
-                    saveStatus.textContent = "Ready.";
-                }
-            } catch (e) {
-                saveStatus.textContent = "Check Firestore Rules.";
+                await signInWithEmailAndPassword(auth, document.getElementById('loginEmail').value, document.getElementById('loginPassword').value);
+            } catch (err) {
+                errDiv.textContent = "Invalid email or password.";
+                errDiv.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Login";
             }
         };
 
+        document.getElementById('logoutBtn').onclick = () => signOut(auth);
+
+        // Auto-save logic
         const saveDraft = async () => {
             if (!currentUser || isRestoring) return;
-            saveStatus.textContent = "Saving...";
-            const data = Object.fromEntries(new FormData(form).entries());
-            data.lastUpdated = new Date().toISOString();
+            saveStatus.textContent = "Cloud syncing...";
+            const data = Object.fromEntries(new FormData(reservationForm).entries());
             try {
-                const draftRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current_enquiry');
-                await setDoc(draftRef, data);
-                saveStatus.textContent = "Saved.";
-            } catch (e) { 
-                saveStatus.textContent = "Save Error."; 
-            }
+                await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current'), data);
+                saveStatus.textContent = "Securely saved to cloud.";
+            } catch (e) { saveStatus.textContent = "Sync error."; }
         };
 
-        form.addEventListener('input', () => {
-            if (isRestoring) return;
+        const loadDraft = async () => {
+            try {
+                const snap = await getDoc(doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'drafts', 'current'));
+                if (snap.exists()) {
+                    const data = snap.data();
+                    Object.keys(data).forEach(key => { if(reservationForm.elements[key]) reservationForm.elements[key].value = data[key]; });
+                    menuSelect.dispatchEvent(new Event('change'));
+                }
+            } catch (e) { console.error(e); }
+        };
+
+        reservationForm.addEventListener('input', () => {
             clearTimeout(saveTimeout);
             saveTimeout = setTimeout(saveDraft, 1000);
         });
 
-        initAuth();
-
-        const formatTime12hr = (timeStr) => {
-            if (!timeStr) return 'N/A';
-            const [hours, minutes] = timeStr.split(':');
-            let h = parseInt(hours);
-            const ampm = h >= 12 ? 'PM' : 'AM';
-            h = h % 12 || 12;
-            return `${h.toString().padStart(2, '0')}:${minutes} ${ampm}`;
-        };
-
-        const generateICSContent = (data) => {
-            if (!data.resDate || !data.resTime) return null;
-            const start = `${data.resDate.replace(/-/g, '')}T${data.resTime.replace(/:/g, '')}00`;
-            const totalPax = (parseInt(data.adultCount) || 0) + (parseInt(data.childCount) || 0);
-            return [
-                'BEGIN:VCALENDAR',
-                'VERSION:2.0',
-                'PRODID:-//Bareca//BikeAndBoot//EN',
-                'BEGIN:VEVENT',
-                `SUMMARY:Bareca Reservation: ${data.customerName} (${totalPax} Pax)`,
-                `DTSTART:${start}`,
-                `DTEND:${start}`,
-                `DESCRIPTION:Phone: ${data.customerPhone}\\nEmail: ${data.customerEmail}\\nMenu: ${data.menuArrangement}`,
-                'END:VEVENT',
-                'END:VCALENDAR'
-            ].join('\r\n');
-        };
+        // UI Helpers
+        menuSelect.addEventListener('change', () => otherWrapper.classList.toggle('hidden', menuSelect.value !== 'Other'));
+        takenByInput.addEventListener('input', () => {
+            if (takenByInput.value.trim() && !takenAtInput.value) {
+                takenAtInput.value = new Date().toLocaleString('en-GB', {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'});
+            }
+        });
 
         const getExportData = () => {
-            const data = Object.fromEntries(new FormData(form).entries());
+            const data = Object.fromEntries(new FormData(reservationForm).entries());
             const nameParts = data.customerName.trim().split(/\s+/);
-            const firstName = nameParts[0];
-            const surname = nameParts.length > 1 ? nameParts[nameParts.length - 1] : firstName;
-            const firstInitial = firstName.charAt(0).toUpperCase();
+            const surname = nameParts.length > 1 ? nameParts[nameParts.length - 1] : nameParts[0];
             const [year, month, day] = data.resDate.split('-');
-            
-            const totalPax = (parseInt(data.adultCount) || 0) + (parseInt(data.childCount) || 0);
-            const arrangement = data.menuArrangement === 'Other' ? `Other (${data.menuOtherDetails})` : data.menuArrangement;
-            const bodyTime = formatTime12hr(data.resTime);
+            const totalPax = (parseInt(data.adultCount)||0) + (parseInt(data.childCount)||0);
+            const time = data.resTime ? new Date('2000-01-01T' + data.resTime).toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'}) : 'N/A';
             
             return {
-                data, surname, firstInitial,
-                subjectDate: `${day}/${month}/${year.slice(-2)}`,
-                bodyDate: `${day}-${month}-${year}`,
-                totalPax, arrangement, bodyTime
+                subject: `BARECA ENQUIRY: ${surname} ${nameParts[0][0]} ${day}/${month}/${year.slice(-2)} (${totalPax} PAX)`,
+                body: `RESERVATION DETAILS\n------------------\nCustomer: ${data.customerName}\nEmail: ${data.customerEmail || 'N/A'}\nPhone: ${data.customerPhone}\n\nDate: ${day}-${month}-${year}\nTime: ${time}\nGuests: ${totalPax} (A: ${data.adultCount||0}, C: ${data.childCount||0})\nMenu: ${data.menuArrangement === 'Other' ? data.menuOtherDetails : data.menuArrangement}\n\nNotes:\n${data.notes || 'None'}\n\n------------------\nTaken By: ${data.takenBy}\nTaken On: ${data.takenAt}\n------------------`,
+                totalPax
             };
         };
 
         document.getElementById('sendCloudEmailBtn').onclick = async () => {
-            if (!currentUser) {
-                alert("Login required to send. Refresh page.");
-                return;
-            }
-
             const exp = getExportData();
-            if (!exp.data.customerName || !exp.data.resDate) {
-                alert("Please fill in Name and Date.");
-                return;
-            }
-
+            if (!reservationForm.elements.customerName.value || !reservationForm.elements.resDate.value) { alert("Required fields missing."); return; }
             const btn = document.getElementById('sendCloudEmailBtn');
-            btn.disabled = true;
-            btn.classList.add('syncing-pulse');
-
-            const icsText = generateICSContent(exp.data);
-            const icsBase64 = icsText ? btoa(icsText) : null;
-
+            btn.disabled = true; btn.classList.add('syncing-pulse');
             try {
-                const mailRef = collection(db, 'artifacts', appId, 'public', 'data', 'mail');
-                await addDoc(mailRef, {
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
                     to: TEAM_EMAILS,
-                    message: {
-                        subject: `BARECA ENQUIRY: ${exp.surname} ${exp.firstInitial} ${exp.subjectDate} (${exp.totalPax} PAX)`,
-                        text: `RESERVATION DETAILS\n------------------\nCustomer Name: ${exp.data.customerName}\nCustomer Email: ${exp.data.customerEmail}\nPhone Number: ${exp.data.customerPhone}\n\nDate: ${exp.bodyDate}\nTime: ${exp.bodyTime}\nGuests: ${exp.totalPax} (Adults: ${exp.data.adultCount || 0}, Children: ${exp.data.childCount || 0})\nMenu Arrangement: ${exp.arrangement}\n\nSpecial Requests:\n${exp.data.notes || 'None'}\n\n------------------\nEnquiry Taken By: ${exp.data.takenBy}\nTaken On: ${exp.data.takenAt}\n------------------`,
-                        attachments: icsBase64 ? [{
-                            filename: `Reservation-${exp.surname}.ics`,
-                            content: icsBase64,
-                            encoding: 'base64',
-                            contentType: 'text/calendar'
-                        }] : []
-                    }
+                    message: { subject: exp.subject, text: exp.body }
                 });
-
-                alert("Success! The enquiry has been sent to the queue.");
-            } catch (e) {
-                console.error("Cloud send error:", e);
-                alert(`Error writing to email queue: ${e.code}\n\nMake sure to update Firestore Rules in Firebase Console for the 'mail' collection path.`);
-            } finally {
-                btn.disabled = false;
-                btn.classList.remove('syncing-pulse');
-            }
+                await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current'));
+                alert("Success! Sent to queue.");
+                reservationForm.reset();
+                otherWrapper.classList.add('hidden');
+            } catch (e) { alert("Error: Permission denied."); }
+            finally { btn.disabled = false; btn.classList.remove('syncing-pulse'); }
         };
 
         document.getElementById('openEmailClientBtn').onclick = () => {
             const exp = getExportData();
-            if (!exp.data.customerName || !exp.data.resDate) {
-                alert("Name and Date are required.");
-                return;
-            }
-
-            const ics = generateICSContent(exp.data);
-            if (ics) {
-                const blob = new Blob([ics], { type: 'text/calendar' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `Reservation-${exp.surname}.ics`;
-                a.click();
-            }
-
-            const subject = encodeURIComponent(`BARECA ENQUIRY: ${exp.surname} ${exp.firstInitial} ${exp.subjectDate} (${exp.totalPax} PAX)`);
-            const body = encodeURIComponent(
-                `RESERVATION DETAILS\n------------------\nCustomer Name: ${exp.data.customerName}\nCustomer Email: ${exp.data.customerEmail || 'Not provided'}\nPhone Number: ${exp.data.customerPhone}\n\nDate: ${exp.bodyDate}\nTime: ${exp.bodyTime}\nGuests: ${exp.totalPax} (Adults: ${exp.data.adultCount || 0}, Children: ${exp.data.childCount || 0})\nMenu Arrangement: ${exp.arrangement}\n\nSpecial Requests:\n${exp.data.notes || 'None'}\n\n------------------\nEnquiry Taken By: ${exp.data.takenBy || 'N/A'}\nTaken On: ${exp.data.takenAt || 'N/A'}\n------------------`
-            );
-
-            window.location.href = `mailto:${TEAM_EMAILS}?subject=${subject}&body=${body}`;
+            window.location.href = `mailto:${TEAM_EMAILS}?subject=${encodeURIComponent(exp.subject)}&body=${encodeURIComponent(exp.body)}`;
         };
 
         document.getElementById('clearFormBtn').onclick = async () => {
-            if (confirm("Reset form? This will permanently delete your cloud draft.")) {
-                form.reset();
-                otherWrapper.classList.add('hidden');
-                if (currentUser) {
-                    const draftRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current_enquiry');
-                    await deleteDoc(draftRef).catch(() => {});
-                }
-                saveStatus.textContent = "Form cleared.";
+            if (confirm("Delete draft?")) {
+                reservationForm.reset();
+                if (currentUser) await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current'));
             }
         };
     </script>
