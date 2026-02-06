@@ -14,12 +14,11 @@
         input:focus, select:focus, textarea:focus { border-color: #2563eb; }
         input[readonly] { background-color: #f8fafc; color: #64748b; cursor: not-allowed; }
         .loading-shimmer { opacity: 0.5; pointer-events: none; }
-        .error-shake { animation: shake 0.5s; }
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
+        .syncing-pulse { animation: pulse 1.5s infinite; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-800">
@@ -40,37 +39,31 @@
         <div class="bg-white p-6 shadow-sm">
             <form id="reservationForm" class="space-y-6 loading-shimmer">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Customer Name -->
                     <div>
                         <label class="block text-sm font-semibold mb-1">Customer Name</label>
                         <input type="text" name="customerName" placeholder="Full Name" required class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
                     </div>
 
-                    <!-- Customer Email -->
                     <div>
                         <label class="block text-sm font-semibold mb-1">Customer Email</label>
                         <input type="email" name="customerEmail" placeholder="email@example.com" class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
                     </div>
 
-                    <!-- Phone Number (+44) -->
                     <div>
                         <label class="block text-sm font-semibold mb-1">Phone Number</label>
                         <input type="tel" name="customerPhone" placeholder="+44 7..." class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
                     </div>
 
-                    <!-- Reservation Date -->
                     <div>
                         <label class="block text-sm font-semibold mb-1">Reservation Date</label>
                         <input type="date" name="resDate" required class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
                     </div>
 
-                    <!-- Reservation Time -->
                     <div>
                         <label class="block text-sm font-semibold mb-1">Reservation Time</label>
                         <input type="time" name="resTime" required class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
                     </div>
 
-                    <!-- Menu Arrangements -->
                     <div>
                         <label class="block text-sm font-semibold mb-1">Menu Arrangements</label>
                         <select id="menuArrangement" name="menuArrangement" class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
@@ -80,32 +73,27 @@
                         </select>
                     </div>
 
-                    <!-- Guest Split: Adults -->
                     <div>
                         <label class="block text-sm font-semibold mb-1">Adults</label>
                         <input type="number" name="adultCount" min="1" placeholder="Number of Adults" class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
                     </div>
 
-                    <!-- Guest Split: Children -->
                     <div>
                         <label class="block text-sm font-semibold mb-1">Children</label>
                         <input type="number" name="childCount" min="0" placeholder="Number of Children" class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
                     </div>
                 </div>
 
-                <!-- Conditional "Other" details -->
                 <div id="otherDetailsWrapper" class="hidden">
                     <label class="block text-sm font-semibold mb-1 text-blue-600">Please Specify Other Arrangement</label>
                     <input type="text" name="menuOtherDetails" placeholder="Details..." class="w-full p-3 rounded-lg border border-blue-200 focus:ring-2 focus:ring-blue-500 outline-none transition bg-blue-50/30">
                 </div>
 
-                <!-- Special Requests -->
                 <div>
                     <label class="block text-sm font-semibold mb-1">Special Requests / Allergies</label>
                     <textarea name="notes" rows="3" class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition"></textarea>
                 </div>
 
-                <!-- Logger Section: Taken By -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t bg-slate-50/50 p-4 rounded-lg">
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Enquiry Taken By</label>
@@ -118,21 +106,32 @@
                 </div>
 
                 <!-- Action Buttons -->
-                <div class="flex flex-col sm:flex-row gap-4 pt-4 border-t">
-                    <button type="button" id="openEmailClientBtn" class="flex-1 bg-blue-600 text-white font-bold py-4 px-6 rounded-lg hover:bg-blue-700 transition shadow-lg flex flex-col items-center justify-center">
-                        <span class="text-lg">Open Email Client</span>
-                        <span class="text-[10px] opacity-80 uppercase tracking-wider">Drafts Email Body</span>
+                <div class="flex flex-col gap-3 pt-4 border-t">
+                    <button type="button" id="sendCloudEmailBtn" class="w-full bg-emerald-600 text-white font-bold py-4 px-6 rounded-lg hover:bg-emerald-700 transition shadow-lg flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+                        </svg>
+                        Send to Reservation Team (Cloud Email)
                     </button>
-                    <button type="button" id="clearFormBtn" class="bg-slate-100 text-slate-500 font-semibold py-4 px-6 rounded-lg hover:bg-red-50 hover:text-red-500 transition">
-                        Reset
-                    </button>
+                    
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <button type="button" id="openEmailClientBtn" class="flex-1 bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition flex items-center justify-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                            </svg>
+                            Open Local Client
+                        </button>
+                        <button type="button" id="clearFormBtn" class="bg-slate-100 text-slate-500 font-semibold py-3 px-6 rounded-lg hover:bg-red-50 hover:text-red-500 transition">
+                            Reset Form
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
 
-        <!-- Feedback UI -->
         <div class="bg-white rounded-b-xl border-t p-4 flex justify-between items-center text-slate-400">
-            <span id="saveStatus" class="save-indicator italic text-xs">Awaiting connection...</span>
+            <span id="saveStatus" class="save-indicator italic text-xs">Initialising connection...</span>
             <span id="userIdDisplay" class="text-[10px] uppercase tracking-widest font-bold"></span>
         </div>
     </div>
@@ -140,12 +139,11 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, deleteDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // CONFIGURATION: Updated Team Emails
-        const TEAM_EMAILS = "bareca.peaks@bikeandboot.com, bookings.peaks@bikeandboot.com";
+        // CONFIGURATION: Set to your email
+        const TEAM_EMAILS = "stokes.ciaran@gmail.com";
 
-        // Firebase Configuration
         const userConfig = {
             apiKey: "AIzaSyBLcirFG0rRW-d9sPOw12kvnWKGS5vtoQo",
             authDomain: "bareca-enquiry-form.firebaseapp.com",
@@ -173,10 +171,6 @@
         const takenByInput = document.getElementById('takenBy');
         const takenAtInput = document.getElementById('takenAt');
 
-        menuSelect.addEventListener('change', () => {
-            otherWrapper.classList.toggle('hidden', menuSelect.value !== 'Other');
-        });
-
         takenByInput.addEventListener('input', () => {
             if (takenByInput.value.trim() !== "" && !takenAtInput.value) {
                 takenAtInput.value = new Date().toLocaleString('en-GB', {
@@ -187,6 +181,10 @@
             }
         });
 
+        menuSelect.addEventListener('change', () => {
+            otherWrapper.classList.toggle('hidden', menuSelect.value !== 'Other');
+        });
+
         const initAuth = async () => {
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -195,9 +193,7 @@
                     await signInAnonymously(auth);
                 }
             } catch (err) {
-                console.error("Auth Error:", err);
-                authStatus.textContent = "Error: Check Console";
-                authStatus.classList.replace('text-blue-600', 'text-red-600');
+                authStatus.textContent = "Offline Mode";
             }
         };
 
@@ -224,12 +220,12 @@
                         if (form.elements[key]) form.elements[key].value = data[key]; 
                     });
                     menuSelect.dispatchEvent(new Event('change'));
-                    saveStatus.textContent = "Previous draft restored successfully.";
+                    saveStatus.textContent = "Draft restored.";
                 } else {
-                    saveStatus.textContent = "New form ready.";
+                    saveStatus.textContent = "Ready.";
                 }
             } catch (e) {
-                saveStatus.textContent = "Firestore Blocked. Check Rules.";
+                saveStatus.textContent = "Firestore Rules Error.";
             }
         };
 
@@ -241,11 +237,9 @@
             try {
                 const draftRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current_enquiry');
                 await setDoc(draftRef, data);
-                saveStatus.textContent = "Auto-saved to cloud.";
+                saveStatus.textContent = "Auto-saved.";
             } catch (e) { 
-                saveStatus.textContent = "Error saving. Check Internet/Permissions."; 
-                saveStatus.classList.add('text-red-600', 'error-shake');
-                setTimeout(() => saveStatus.classList.remove('error-shake'), 500);
+                saveStatus.textContent = "Error saving."; 
             }
         };
 
@@ -257,31 +251,113 @@
 
         initAuth();
 
-        document.getElementById('openEmailClientBtn').onclick = () => {
-            const data = Object.fromEntries(new FormData(form).entries());
-            if (!data.customerName || !data.resDate || !data.resTime) {
-                alert("Please fill in Name, Date, and Time first.");
-                return;
-            }
+        const formatTime12hr = (timeStr) => {
+            if (!timeStr) return 'N/A';
+            const [hours, minutes] = timeStr.split(':');
+            let h = parseInt(hours);
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            h = h % 12 || 12;
+            return `${h.toString().padStart(2, '0')}:${minutes} ${ampm}`;
+        };
 
-            // Parse Name for Subject Line logic
+        const generateICSContent = (data) => {
+            if (!data.resDate || !data.resTime) return null;
+            const start = `${data.resDate.replace(/-/g, '')}T${data.resTime.replace(/:/g, '')}00`;
+            const totalPax = (parseInt(data.adultCount) || 0) + (parseInt(data.childCount) || 0);
+            return [
+                'BEGIN:VCALENDAR',
+                'VERSION:2.0',
+                'PRODID:-//Bareca//BikeAndBoot//EN',
+                'BEGIN:VEVENT',
+                `SUMMARY:Bareca Reservation: ${data.customerName} (${totalPax} Pax)`,
+                `DTSTART:${start}`,
+                `DTEND:${start}`,
+                `DESCRIPTION:Phone: ${data.customerPhone}\\nEmail: ${data.customerEmail}\\nMenu: ${data.menuArrangement}`,
+                'END:VEVENT',
+                'END:VCALENDAR'
+            ].join('\r\n');
+        };
+
+        const getExportData = () => {
+            const data = Object.fromEntries(new FormData(form).entries());
             const nameParts = data.customerName.trim().split(/\s+/);
             const firstName = nameParts[0];
             const surname = nameParts.length > 1 ? nameParts[nameParts.length - 1] : firstName;
             const firstInitial = firstName.charAt(0).toUpperCase();
-
-            // Format Date for Subject Line (DD/MM/YY)
             const [year, month, day] = data.resDate.split('-');
-            const formattedDate = `${day}/${month}/${year.slice(-2)}`;
-
+            
             const totalPax = (parseInt(data.adultCount) || 0) + (parseInt(data.childCount) || 0);
             const arrangement = data.menuArrangement === 'Other' ? `Other (${data.menuOtherDetails})` : data.menuArrangement;
-
-            // Updated Subject Line format: BARECA ENQUIRY: Surname Initial DD/MM/YY (PAX)
-            const subject = encodeURIComponent(`BARECA ENQUIRY: ${surname} ${firstInitial} ${formattedDate} (${totalPax} PAX)`);
+            const bodyTime = formatTime12hr(data.resTime);
             
+            return {
+                data, surname, firstInitial,
+                subjectDate: `${day}/${month}/${year.slice(-2)}`,
+                bodyDate: `${day}-${month}-${year}`,
+                totalPax, arrangement, bodyTime
+            };
+        };
+
+        document.getElementById('sendCloudEmailBtn').onclick = async () => {
+            const exp = getExportData();
+            if (!exp.data.customerName || !exp.data.resDate) {
+                alert("Name and Date are required.");
+                return;
+            }
+
+            const btn = document.getElementById('sendCloudEmailBtn');
+            btn.disabled = true;
+            btn.classList.add('syncing-pulse');
+
+            const icsText = generateICSContent(exp.data);
+            const icsBase64 = icsText ? btoa(icsText) : null;
+
+            try {
+                const mailRef = collection(db, 'artifacts', appId, 'public', 'data', 'mail');
+                await addDoc(mailRef, {
+                    to: TEAM_EMAILS,
+                    message: {
+                        subject: `BARECA ENQUIRY: ${exp.surname} ${exp.firstInitial} ${exp.subjectDate} (${exp.totalPax} PAX)`,
+                        text: `RESERVATION DETAILS\n------------------\nCustomer Name: ${exp.data.customerName}\nCustomer Email: ${exp.data.customerEmail}\nPhone Number: ${exp.data.customerPhone}\n\nDate: ${exp.bodyDate}\nTime: ${exp.bodyTime}\nGuests: ${exp.totalPax} (Adults: ${exp.data.adultCount || 0}, Children: ${exp.data.childCount || 0})\nMenu Arrangement: ${exp.arrangement}\n\nSpecial Requests:\n${exp.data.notes || 'None'}\n\n------------------\nEnquiry Taken By: ${exp.data.takenBy}\nTaken On: ${exp.data.takenAt}\n------------------`,
+                        attachments: icsBase64 ? [{
+                            filename: `Reservation-${exp.surname}.ics`,
+                            content: icsBase64,
+                            encoding: 'base64',
+                            contentType: 'text/calendar'
+                        }] : []
+                    }
+                });
+
+                alert("Success! Cloud enquiry sent.");
+            } catch (e) {
+                console.error(e);
+                alert("Error sending. Please check your IAM roles for Eventarc Service Agent in Google Cloud.");
+            } finally {
+                btn.disabled = false;
+                btn.classList.remove('syncing-pulse');
+            }
+        };
+
+        document.getElementById('openEmailClientBtn').onclick = () => {
+            const exp = getExportData();
+            if (!exp.data.customerName || !exp.data.resDate) {
+                alert("Name and Date are required.");
+                return;
+            }
+
+            const ics = generateICSContent(exp.data);
+            if (ics) {
+                const blob = new Blob([ics], { type: 'text/calendar' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Reservation-${exp.surname}.ics`;
+                a.click();
+            }
+
+            const subject = encodeURIComponent(`BARECA ENQUIRY: ${exp.surname} ${exp.firstInitial} ${exp.subjectDate} (${exp.totalPax} PAX)`);
             const body = encodeURIComponent(
-                `RESERVATION DETAILS\n------------------\nCustomer Name: ${data.customerName}\nCustomer Email: ${data.customerEmail || 'Not provided'}\nPhone Number: ${data.customerPhone}\n\nDate: ${data.resDate}\nTime: ${data.resTime}\nGuests: ${totalPax} (Adults: ${data.adultCount || 0}, Children: ${data.childCount || 0})\nMenu Arrangement: ${arrangement}\n\nSpecial Requests:\n${data.notes || 'None'}\n\n------------------\nEnquiry Taken By: ${data.takenBy || 'N/A'}\nTaken On: ${data.takenAt || 'N/A'}\n------------------`
+                `RESERVATION DETAILS\n------------------\nCustomer Name: ${exp.data.customerName}\nCustomer Email: ${exp.data.customerEmail || 'Not provided'}\nPhone Number: ${exp.data.customerPhone}\n\nDate: ${exp.bodyDate}\nTime: ${exp.bodyTime}\nGuests: ${exp.totalPax} (Adults: ${exp.data.adultCount || 0}, Children: ${exp.data.childCount || 0})\nMenu Arrangement: ${exp.arrangement}\n\nSpecial Requests:\n${exp.data.notes || 'None'}\n\n------------------\nEnquiry Taken By: ${exp.data.takenBy || 'N/A'}\nTaken On: ${exp.data.takenAt || 'N/A'}\n------------------`
             );
 
             window.location.href = `mailto:${TEAM_EMAILS}?subject=${subject}&body=${body}`;
