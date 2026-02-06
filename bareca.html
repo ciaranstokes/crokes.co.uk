@@ -23,21 +23,21 @@
         <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-200">
             <div class="text-center mb-8">
                 <h1 class="text-2xl font-bold text-slate-900">Bareca Portal</h1>
-                <p class="text-slate-500">Sign in to access enquiry form</p>
+                <p class="text-slate-500 font-medium">Internal Secure Access Only</p>
             </div>
             <form id="loginForm" class="space-y-4">
                 <div>
-                    <label class="block text-sm font-semibold mb-1">Email</label>
-                    <input type="email" id="loginEmail" required class="w-full p-3 rounded-lg border border-slate-200 outline-none">
+                    <label class="block text-sm font-semibold mb-1">Staff Email</label>
+                    <input type="email" id="loginEmail" required class="w-full p-3 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-slate-900 transition">
                 </div>
                 <div>
                     <label class="block text-sm font-semibold mb-1">Password</label>
-                    <input type="password" id="loginPassword" required class="w-full p-3 rounded-lg border border-slate-200 outline-none">
+                    <input type="password" id="loginPassword" required class="w-full p-3 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-slate-900 transition">
                 </div>
                 <button type="submit" id="loginBtn" class="w-full bg-slate-900 text-white font-bold py-3 rounded-lg hover:bg-slate-800 transition shadow-lg">
-                    Login
+                    Sign In
                 </button>
-                <div id="loginError" class="text-red-500 text-xs text-center mt-2 hidden"></div>
+                <div id="loginError" class="text-red-500 text-xs text-center mt-2 hidden font-bold">Invalid credentials.</div>
             </form>
         </div>
     </div>
@@ -47,7 +47,7 @@
         <div class="bg-white rounded-t-xl shadow-sm border-b p-6 flex justify-between items-center">
             <div>
                 <h1 class="text-2xl font-bold text-slate-900">Bareca at Bike and Boot</h1>
-                <p class="text-slate-500 text-sm">Enquiry Form</p>
+                <p class="text-slate-500 text-sm">Secure Reservation Intake</p>
             </div>
             <div class="flex flex-col items-end">
                 <button id="logoutBtn" class="text-xs text-slate-400 hover:text-red-500 font-bold uppercase tracking-wider mb-2">Logout</button>
@@ -97,8 +97,8 @@
                 </div>
 
                 <div id="otherDetailsWrapper" class="hidden">
-                    <label class="block text-sm font-semibold mb-1 text-blue-600">Please Specify Other Arrangement</label>
-                    <input type="text" name="menuOtherDetails" placeholder="Details..." class="w-full p-3 rounded-lg border border-blue-200 outline-none transition bg-blue-50/30">
+                    <label class="block text-sm font-semibold mb-1 text-blue-600 font-bold italic">Specify Other Arrangement</label>
+                    <input type="text" name="menuOtherDetails" placeholder="Provide details..." class="w-full p-3 rounded-lg border border-blue-200 outline-none transition bg-blue-50/30">
                 </div>
 
                 <div>
@@ -113,38 +113,33 @@
                     </div>
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Taken On (Auto)</label>
-                        <input type="text" id="takenAt" name="takenAt" readonly placeholder="Auto-filled on entry" class="w-full p-3 rounded-lg border border-slate-200 outline-none transition bg-slate-100">
+                        <input type="text" id="takenAt" name="takenAt" readonly class="w-full p-3 rounded-lg border border-slate-200 outline-none transition bg-slate-100">
                     </div>
                 </div>
 
                 <div class="flex flex-col gap-3 pt-4 border-t">
                     <button type="button" id="sendCloudEmailBtn" class="w-full bg-emerald-600 text-white font-bold py-4 px-6 rounded-lg hover:bg-emerald-700 transition shadow-lg flex items-center justify-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
-                        Send to Reservation Team (Cloud)
+                        Send Reservation Request
                     </button>
-                    <div class="flex flex-col sm:flex-row gap-3">
-                        <button type="button" id="openEmailClientBtn" class="flex-1 bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition flex items-center justify-center gap-2 text-sm">
-                            Open Local Client
-                        </button>
-                        <button type="button" id="clearFormBtn" class="bg-slate-100 text-slate-500 font-semibold py-3 px-6 rounded-lg hover:bg-red-50 hover:text-red-500 transition text-sm">
-                            Reset Form
-                        </button>
-                    </div>
+                    <button type="button" id="clearFormBtn" class="w-full bg-slate-100 text-slate-500 font-semibold py-3 px-6 rounded-lg hover:bg-red-50 hover:text-red-500 transition text-sm">
+                        Reset Form
+                    </button>
                 </div>
             </form>
         </div>
 
-        <!-- Recent Bookings Dashboard -->
+        <!-- Reservations Dashboard -->
         <div class="mt-8">
             <h2 class="text-xl font-bold text-slate-900 mb-4 px-2">Upcoming Reservations</h2>
-            <div id="bookingsList" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div id="noBookings" class="col-span-full p-8 text-center bg-white rounded-xl border border-dashed border-slate-300 text-slate-400 italic">
-                    No upcoming reservations found.
+            <div id="bookingsList" class="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-12">
+                <div id="noBookings" class="col-span-full p-12 text-center bg-white rounded-xl border border-dashed border-slate-300 text-slate-400 italic">
+                    No confirmed reservations in dashboard.
                 </div>
             </div>
         </div>
 
-        <div class="bg-white mt-8 rounded-xl border-t p-4 flex justify-between items-center text-slate-400">
+        <div class="bg-white mt-auto rounded-xl border p-4 flex justify-between items-center text-slate-400">
             <span id="saveStatus" class="save-indicator italic text-xs">Waiting for sync...</span>
             <span id="userIdDisplay" class="text-[10px] uppercase tracking-widest font-bold"></span>
         </div>
@@ -155,6 +150,7 @@
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, deleteDoc, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        // APP CONFIG
         const firebaseConfig = {
             apiKey: "AIzaSyBLcirFG0rRW-d9sPOw12kvnWKGS5vtoQo",
             authDomain: "bareca-enquiry-form.firebaseapp.com",
@@ -168,7 +164,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
         const appId = 'bareca-enquiry-v1';
-        const TEAM_EMAILS = "stokes.ciaran@gmail.com";
 
         let currentUser = null;
         let saveTimeout = null;
@@ -185,6 +180,7 @@
         const takenAtInput = document.getElementById('takenAt');
         const bookingsList = document.getElementById('bookingsList');
 
+        // Authentication Observer
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
@@ -198,25 +194,29 @@
                 currentUser = null;
                 appSection.classList.add('hidden');
                 loginSection.classList.remove('hidden');
+                isRestoring = true;
             }
         });
 
+        // Login Handler
         loginForm.onsubmit = async (e) => {
             e.preventDefault();
             const btn = document.getElementById('loginBtn');
+            const errDiv = document.getElementById('loginError');
             btn.disabled = true; btn.textContent = "Verifying...";
+            errDiv.classList.add('hidden');
             try {
                 await signInWithEmailAndPassword(auth, document.getElementById('loginEmail').value, document.getElementById('loginPassword').value);
             } catch (err) {
-                document.getElementById('loginError').textContent = "Invalid credentials.";
-                document.getElementById('loginError').classList.remove('hidden');
+                errDiv.classList.remove('hidden');
             } finally {
-                btn.disabled = false; btn.textContent = "Login";
+                btn.disabled = false; btn.textContent = "Sign In";
             }
         };
 
         document.getElementById('logoutBtn').onclick = () => signOut(auth);
 
+        // Dashboard Listener
         const setupBookingsListener = () => {
             const bookingsRef = collection(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings');
             onSnapshot(bookingsRef, (snapshot) => {
@@ -229,50 +229,54 @@
 
         const renderBookings = (bookings) => {
             if (bookings.length === 0) {
-                bookingsList.innerHTML = '<div class="col-span-full p-8 text-center bg-white rounded-xl border border-dashed border-slate-300 text-slate-400 italic">No upcoming reservations.</div>';
+                bookingsList.innerHTML = '<div class="col-span-full p-12 text-center bg-white rounded-xl border border-dashed border-slate-300 text-slate-400 italic">No confirmed reservations.</div>';
                 return;
             }
             bookingsList.innerHTML = '';
             bookings.forEach(booking => {
                 const [y, m, d] = booking.resDate.split('-');
                 const tile = document.createElement('div');
-                tile.className = "bg-white p-4 rounded-xl shadow-sm border border-slate-200 hover:border-blue-300 transition-colors relative group";
+                tile.className = "bg-white p-4 rounded-xl shadow-sm border border-slate-200 hover:border-blue-300 transition-colors relative";
                 tile.innerHTML = `
                     <div class="flex justify-between items-start mb-2">
                         <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">${d}/${m}/${y.slice(-2)}</span>
                         <span class="text-xs font-medium text-slate-400">${booking.resTime}</span>
                     </div>
                     <h3 class="font-bold text-slate-900 mb-1 truncate">${booking.customerName}</h3>
-                    <p class="text-xs text-slate-500 mb-3">${(parseInt(booking.adultCount)||0) + (parseInt(booking.childCount)||0)} PAX • ${booking.menuArrangement}</p>
-                    <button onclick="cancelBooking('${booking.id}')" class="w-full bg-red-50 text-red-600 text-[10px] font-bold py-2 rounded hover:bg-red-600 hover:text-white transition-all uppercase">Cancel Group</button>
+                    <p class="text-xs text-slate-500 mb-4">${(parseInt(booking.adultCount)||0) + (parseInt(booking.childCount)||0)} PAX • ${booking.menuArrangement}</p>
+                    <button onclick="cancelBooking('${booking.id}')" class="w-full bg-red-50 text-red-600 text-[10px] font-bold py-2 rounded hover:bg-red-600 hover:text-white transition-all uppercase tracking-tight">Cancel Booking</button>
                 `;
                 bookingsList.appendChild(tile);
             });
         };
 
+        // Cancellation with toUids
         window.cancelBooking = async (bookingId) => {
-            if (!confirm("Confirm cancellation? Team will be notified via cloud email.")) return;
+            if (!confirm("Remove this booking and notify team via email?")) return;
             try {
                 const snap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings', bookingId));
                 if (snap.exists()) {
                     const data = snap.data();
+                    // HIDDEN RECIPIENT: Using toUids instead of email address
                     await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
-                        to: TEAM_EMAILS,
+                        toUids: ['reservation_team'],
                         message: {
                             subject: `CANCELLED: BARECA ENQUIRY - ${data.customerName}`,
-                            text: `CANCELLATION NOTICE\nGroup: ${data.customerName}\nDate: ${data.resDate}\nTime: ${data.resTime}\n\nCancelled by: ${currentUser.email}`
+                            text: `CANCELLATION NOTICE\n------------------\nCustomer: ${data.customerName}\nDate: ${data.resDate}\nTime: ${data.resTime}\n\nThis booking was cancelled via the portal by ${currentUser.email}.`
                         }
                     });
                     await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings', bookingId));
                 }
-            } catch (e) { alert("Cancellation error."); }
+            } catch (e) { alert("Action restricted: Check security rules."); }
         };
 
+        // Sync / Draft management
         const saveDraft = async () => {
             if (!currentUser || isRestoring) return;
+            saveStatus.textContent = "Syncing...";
             const data = Object.fromEntries(new FormData(reservationForm).entries());
             await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current'), data).catch(() => {});
-            saveStatus.textContent = "Synced to cloud.";
+            saveStatus.textContent = "Draft synced.";
         };
 
         const loadDraft = async () => {
@@ -289,6 +293,7 @@
             saveTimeout = setTimeout(saveDraft, 1000);
         });
 
+        // UI Listeners
         menuSelect.addEventListener('change', () => otherWrapper.classList.toggle('hidden', menuSelect.value !== 'Other'));
         takenByInput.addEventListener('input', () => {
             if (takenByInput.value.trim() && !takenAtInput.value) {
@@ -303,38 +308,36 @@
             return {
                 raw: data,
                 subject: `BARECA ENQUIRY: ${data.customerName.split(' ').pop()} ${data.customerName[0]} ${d}/${m}/${y.slice(-2)} (${pax} PAX)`,
-                body: `CUSTOMER: ${data.customerName}\nPHONE: ${data.customerPhone}\nDATE: ${d}-${m}-${y}\nTIME: ${data.resTime}\nPAX: ${pax}\nMENU: ${data.menuArrangement}\nNOTES: ${data.notes}\n\nTAKEN BY: ${data.takenBy}`
+                body: `SECURE RESERVATION INTAKE\n------------------\nCUSTOMER: ${data.customerName}\nPHONE: ${data.customerPhone}\nEMAIL: ${data.customerEmail || 'Not provided'}\n\nDATE: ${d}-${m}-${y}\nTIME: ${data.resTime}\nPAX: ${pax}\nMENU: ${data.menuArrangement}\nNOTES: ${data.notes}\n\nTAKEN BY: ${data.takenBy}\nTAKEN ON: ${data.takenAt}`
             };
         };
 
+        // Confirmation with toUids
         document.getElementById('sendCloudEmailBtn').onclick = async () => {
             const exp = getExportData();
-            if (!reservationForm.elements.customerName.value || !reservationForm.elements.resDate.value) { alert("Missing fields."); return; }
+            if (!reservationForm.elements.customerName.value || !reservationForm.elements.resDate.value) { alert("Customer Name and Date are required."); return; }
             const btn = document.getElementById('sendCloudEmailBtn');
             btn.disabled = true; btn.classList.add('syncing-pulse');
             try {
+                // HIDDEN RECIPIENT: Using toUids instead of email address
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
-                    to: TEAM_EMAILS,
+                    toUids: ['reservation_team'],
                     message: { subject: exp.subject, text: exp.body }
                 });
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings'), { ...exp.raw });
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings'), { ...exp.raw, createdAt: new Date().toISOString() });
                 await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current'));
-                alert("Confirmed!");
+                alert("Booking confirmed and sent to team!");
                 reservationForm.reset();
                 otherWrapper.classList.add('hidden');
-            } catch (e) { alert("Permission Error."); }
+            } catch (e) { alert("Sync Error: Verify Firestore Rules for 'mail' collection."); }
             finally { btn.disabled = false; btn.classList.remove('syncing-pulse'); }
         };
 
-        document.getElementById('openEmailClientBtn').onclick = () => {
-            const exp = getExportData();
-            window.location.href = `mailto:${TEAM_EMAILS}?subject=${encodeURIComponent(exp.subject)}&body=${encodeURIComponent(exp.body)}`;
-        };
-
         document.getElementById('clearFormBtn').onclick = async () => {
-            if (confirm("Reset form?")) {
+            if (confirm("Reset current form? This deletes the cloud draft.")) {
                 reservationForm.reset();
                 if (currentUser) await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current'));
+                saveStatus.textContent = "Draft cleared.";
             }
         };
     </script>
