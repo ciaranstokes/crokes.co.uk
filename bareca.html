@@ -134,6 +134,7 @@
             </form>
         </div>
 
+        <!-- Recent Bookings Dashboard -->
         <div class="mt-8">
             <h2 class="text-xl font-bold text-slate-900 mb-4 px-2">Upcoming Reservations</h2>
             <div id="bookingsList" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -167,9 +168,7 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
         const appId = 'bareca-enquiry-v1';
-
-        // OBFUSCATED EMAIL (for local client button)
-        const getEmail = () => atob("c3Rva2VzLmNpYXJhbiAgQGdtYWlsLmNvbQ==").replace(/\s/g, "");
+        const TEAM_EMAILS = "stokes.ciaran@gmail.com";
 
         let currentUser = null;
         let saveTimeout = null;
@@ -258,6 +257,7 @@
                 if (snap.exists()) {
                     const data = snap.data();
                     await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
+                        to: TEAM_EMAILS,
                         message: {
                             subject: `CANCELLED: BARECA ENQUIRY - ${data.customerName}`,
                             text: `CANCELLATION NOTICE\nGroup: ${data.customerName}\nDate: ${data.resDate}\nTime: ${data.resTime}\n\nCancelled by: ${currentUser.email}`
@@ -313,8 +313,8 @@
             const btn = document.getElementById('sendCloudEmailBtn');
             btn.disabled = true; btn.classList.add('syncing-pulse');
             try {
-                // "to" is omitted; extension uses default set in console
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
+                    to: TEAM_EMAILS,
                     message: { subject: exp.subject, text: exp.body }
                 });
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings'), { ...exp.raw });
@@ -328,7 +328,7 @@
 
         document.getElementById('openEmailClientBtn').onclick = () => {
             const exp = getExportData();
-            window.location.href = `mailto:${getEmail()}?subject=${encodeURIComponent(exp.subject)}&body=${encodeURIComponent(exp.body)}`;
+            window.location.href = `mailto:${TEAM_EMAILS}?subject=${encodeURIComponent(exp.subject)}&body=${encodeURIComponent(exp.body)}`;
         };
 
         document.getElementById('clearFormBtn').onclick = async () => {
