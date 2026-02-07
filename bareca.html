@@ -261,7 +261,7 @@
         let currentViewingBooking = null; 
         let isRestoringDraft = true;
 
-        // Optimized DOM Lookup
+        // Element Lookup
         const getEl = (id) => document.getElementById(id);
         const dom = {
             loginSection: getEl('loginSection'),
@@ -278,69 +278,91 @@
             residentToggle: getEl('isResident'),
             nonResidentFields: getEl('nonResidentFields'),
             nraPreview: getEl('nraFormatPreview'),
-            saveStatus: getEl('saveStatus')
+            saveStatus: getEl('saveStatus'),
+            takenBy: getEl('takenBy'),
+            takenAt: getEl('takenAt'),
+            sendCloudEmailBtn: getEl('sendCloudEmailBtn'),
+            calendarContainer: getEl('calendarContainer')
         };
 
         /**
-         * REDUNDANCY-PROOF CANCELLATION LOGIC
+         * Enhanced Cancellation Logic with Status-aware Subject and ICS Cancellation
          */
         const handleBookingCancellation = async () => {
-            // 1. Diagnostics
-            if (!currentUser) { alert("Diagnostic Error: No staff user logged in."); return; }
-            if (!currentViewingBooking || !currentViewingBooking.id) { 
-                alert("Diagnostic Error: No booking ID selected. Try closing and re-opening this tile."); 
-                return; 
+            if (!currentUser || !currentViewingBooking?.id) {
+                alert("Diagnostic Error: No record selected. Please try again.");
+                return;
             }
 
             const bId = currentViewingBooking.id;
             const bName = currentViewingBooking.customerName || "this booking";
+            const isBooking = currentViewingBooking.status === 'finalized';
+            const subjectType = isBooking ? 'BOOKING' : 'ENQUIRY';
 
-            // 2. User Confirmation
-            if (!confirm(`Are you sure you want to cancel the booking for ${bName}? This will notify the team and PERMANENTLY remove the record.`)) return;
+            if (!confirm(`Are you sure you want to cancel the ${subjectType.toLowerCase()} for ${bName}? This will notify the team and permanently remove the record.`)) return;
 
-            // 3. UI State
             dom.modalCancelBtn.disabled = true;
             dom.modalCancelBtn.textContent = "Cancelling...";
             dom.modalCancelBtn.classList.add('syncing-pulse');
 
             try {
-                // 4. Firestore Document Reference
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings', bId);
+                const snap = await getDoc(docRef);
                 
-                // 5. Verify document exists first (Safe check)
-                const checkSnap = await getDoc(docRef);
-                if (!checkSnap.exists()) {
-                    alert("Step 1 Failed: Record no longer exists in database. Refreshing dashboard...");
+                if (!snap.exists()) {
+                    alert("Step 1 Failed: Record no longer exists in database.");
                     dom.detailModal.classList.add('hidden');
                     return;
                 }
 
-                const data = checkSnap.data();
+                const data = snap.data();
+                const [y, m, d] = (data.resDate || "2000-01-01").split('-');
+                const seq = (data.sequence || 0) + 1; // Increment sequence for cancellation update
 
-                // 6. Queue Cancellation Email
+                // Generate Cancellation ICS
+                const icsCancel = [
+                    'BEGIN:VCALENDAR',
+                    'VERSION:2.0',
+                    'METHOD:CANCEL', // Critical for calendar clients to process cancellation
+                    'BEGIN:VEVENT',
+                    `UID:${bId}@bareca.portal`,
+                    `SEQUENCE:${seq}`,
+                    'STATUS:CANCELLED', // Specifically sets event to cancelled
+                    `SUMMARY:CANCELLED: ${bName}`,
+                    `DTSTART:${y}${m}${d}T${(data.resTime || "12:00").replace(':','')}00`,
+                    `DESCRIPTION:RESERVATION CANCELLED\\nGroup: ${bName}\\nType: ${subjectType}\\nActioned by: ${currentUser.email}`,
+                    'END:VEVENT',
+                    'END:VCALENDAR'
+                ].join('\r\n');
+
+                // 1. Queue Cancellation Email
                 try {
                     await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
                         toUids: ['reservation_team'],
                         message: {
-                            subject: `CANCELLED: BARECA ENQUIRY - ${bName}`,
-                            text: `CANCELLATION NOTICE\n------------------\nCustomer: ${bName}\nReservation Date: ${data.resDate}\nReservation Time: ${data.resTime}\n\nActioned by: ${currentUser.email}\nTimestamp: ${new Date().toLocaleString('en-GB')}`
+                            subject: `CANCELLED: BARECA ${subjectType} - ${bName}`,
+                            text: `CANCELLATION NOTICE\n------------------\nGroup: ${bName}\nRecord Type: ${subjectType}\nOriginal Date: ${data.resDate}\nOriginal Time: ${data.resTime}\n\nThis record has been officially removed from the portal by staff: ${currentUser.email}.\nTimestamp: ${new Date().toLocaleString('en-GB')}`,
+                            attachments: isBooking ? [{
+                                filename: `CANCELLED_Reservation_${bId}.ics`,
+                                content: btoa(icsCancel),
+                                encoding: 'base64',
+                                contentType: 'text/calendar'
+                            }] : [] // Only send ICS if it was an actual booking
                         }
                     });
-                    console.log("Cancellation email queued successfully.");
                 } catch (emailErr) {
-                    console.warn("Step 2 (Email) Warning: Could not queue email, but continuing with deletion.", emailErr);
+                    console.warn("Email queue failed, but proceeding with deletion:", emailErr);
                 }
 
-                // 7. Execute Delete
+                // 2. Execute Delete
                 await deleteDoc(docRef);
                 
-                // 8. Success Feedback
                 dom.detailModal.classList.add('hidden');
-                alert(`Success: The reservation for ${bName} has been removed.`);
+                alert(`Success: The ${subjectType.toLowerCase()} for ${bName} has been cancelled and removed.`);
 
             } catch (err) {
-                console.error("Step 3 (Delete) Error:", err);
-                alert(`Cancellation Failed: ${err.code || err.message}\n\nMake sure your Firestore Security Rules allow 'delete' on the 'confirmed_bookings' collection.`);
+                console.error("Firestore Delete Failed:", err);
+                alert(`Cancellation Failed: ${err.code || err.message}\nCheck Firestore rules for deletion permission.`);
             } finally {
                 dom.modalCancelBtn.disabled = false;
                 dom.modalCancelBtn.textContent = "Cancel Group";
@@ -348,10 +370,9 @@
             }
         };
 
-        // Explicitly bind the click listener
         dom.modalCancelBtn.addEventListener('click', handleBookingCancellation);
 
-        // --- Auth & Sync Logic ---
+        // --- Main App Logic ---
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
@@ -436,7 +457,6 @@
             f.nraSetup.checked = !!d.nraSetup;
             dom.nonResidentFields.classList.toggle('hidden', f.isResident.checked);
             
-            // Format Preview logic: Surname Initial xPAX dd.mm.yy
             const parts = d.customerName.trim().split(/\s+/);
             const sur = parts.length > 1 ? parts[parts.length-1] : parts[0];
             const ini = parts[0][0].toUpperCase();
@@ -504,7 +524,7 @@
             });
         };
 
-        // Form Logic
+        // Sync & Form Handling
         dom.resForm.addEventListener('input', () => {
             if (!currentUser || isRestoringDraft) return;
             const data = Object.fromEntries(new FormData(dom.resForm).entries());
@@ -520,10 +540,7 @@
                 const [y, m, day] = data.resDate.split('-');
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
                     toUids: ['reservation_team'],
-                    message: { 
-                        subject: `BARECA ENQUIRY: ${data.customerName} ${day}/${m}/${y}`, 
-                        text: `NEW ENQUIRY\n------------------\nCustomer: ${data.customerName}\nDate: ${day}-${m}-${y}\nTime: ${data.resTime}\nMenu: ${data.menuArrangement}\nDietary: ${data.notes}\n\nTaken by: ${data.takenBy}` 
-                    }
+                    message: { subject: `BARECA ENQUIRY: ${data.customerName} ${day}/${m}/${y}`, text: `NEW ENQUIRY\n------------------\nCustomer: ${data.customerName}\nDate: ${day}-${m}-${y}\nTime: ${data.resTime}\nMenu: ${data.menuArrangement}\nDietary: ${data.notes}\n\nTaken by: ${data.takenBy}` }
                 });
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings'), { ...data, status: 'enquiry', sequence: 0 });
                 await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current'));
@@ -533,8 +550,8 @@
         };
 
         dom.menuSelect.addEventListener('change', () => dom.otherWrapper.classList.toggle('hidden', dom.menuSelect.value !== 'Other'));
-        getEl('takenBy').addEventListener('input', (e) => {
-            if (e.target.value.trim() && !getEl('takenAt').value) getEl('takenAt').value = new Date().toLocaleString('en-GB');
+        dom.takenBy.addEventListener('input', (e) => {
+            if (e.target.value.trim() && !dom.takenAt.value) dom.takenAt.value = new Date().toLocaleString('en-GB');
         });
         
         const loadDraft = async () => {
@@ -553,8 +570,8 @@
         getEl('logoutBtn').onclick = () => signOut(auth);
         getEl('modalClose').onclick = () => dom.detailModal.classList.add('hidden');
         getEl('confirmFormCancel').onclick = () => dom.confirmModal.classList.add('hidden');
-        getEl('showCalendarBtn').onclick = () => { dom.list.classList.add('hidden'); getEl('calendarContainer').classList.remove('hidden'); setTimeout(() => calendar.updateSize(), 50); };
-        getEl('showListBtn').onclick = () => { getEl('calendarContainer').classList.add('hidden'); dom.list.classList.remove('hidden'); };
+        getEl('showCalendarBtn').onclick = () => { dom.list.classList.add('hidden'); dom.calendarContainer.classList.remove('hidden'); setTimeout(() => calendar.updateSize(), 50); };
+        getEl('showListBtn').onclick = () => { dom.calendarContainer.classList.add('hidden'); dom.list.classList.remove('hidden'); };
     </script>
 </body>
 </html>
