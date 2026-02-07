@@ -17,13 +17,12 @@
         input:focus, select:focus, textarea:focus { border-color: #2563eb; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
         .syncing-pulse { animation: pulse 1.5s infinite; }
-        
-        /* Calendar Custom Styles */
         #calendar { background: white; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; }
         .fc-event { cursor: pointer; border: none !important; padding: 2px 5px; }
         .fc-toolbar-title { font-size: 1.1rem !important; font-weight: 700 !important; color: #0f172a; }
         .fc-button-primary { background-color: #0f172a !important; border-color: #0f172a !important; }
-        .fc-button-primary:hover { background-color: #1e293b !important; }
+        .status-finalized { background-color: #d1fae5 !important; border-color: #10b981 !important; color: #065f46 !important; }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
     </style>
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800 font-sans">
@@ -109,12 +108,12 @@
 
                 <div id="otherDetailsWrapper" class="hidden">
                     <label class="block text-sm font-semibold mb-1 text-blue-600 font-bold italic">Specify Other Arrangement</label>
-                    <input type="text" name="menuOtherDetails" placeholder="Provide details..." class="w-full p-3 rounded-lg border border-blue-200 outline-none transition bg-blue-50/30">
+                    <input type="text" id="menuOtherDetails" name="menuOtherDetails" placeholder="Provide details..." class="w-full p-3 rounded-lg border border-blue-200 outline-none transition bg-blue-50/30">
                 </div>
 
                 <div>
                     <label class="block text-sm font-semibold mb-1">Special Requests / Dietary Requirements</label>
-                    <textarea name="notes" rows="3" class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition"></textarea>
+                    <textarea id="notes" name="notes" rows="3" class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition"></textarea>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t bg-slate-50/50 p-4 rounded-lg">
@@ -145,26 +144,16 @@
             <div class="flex flex-col sm:flex-row justify-between items-end sm:items-center mb-6 px-2 gap-4">
                 <h2 class="text-2xl font-bold text-slate-900">Live Schedule</h2>
                 <div class="inline-flex rounded-md shadow-sm" role="group">
-                    <button id="showCalendarBtn" class="px-4 py-2 text-sm font-medium text-white bg-slate-900 border border-slate-900 rounded-l-lg hover:bg-slate-800">
+                    <button id="showCalendarBtn" class="px-4 py-2 text-sm font-medium text-white bg-slate-900 border border-slate-900 rounded-l-lg hover:bg-slate-800 transition">
                         Calendar View
                     </button>
-                    <button id="showListBtn" class="px-4 py-2 text-sm font-medium text-slate-900 bg-white border border-slate-200 rounded-r-lg hover:bg-slate-100">
+                    <button id="showListBtn" class="px-4 py-2 text-sm font-medium text-slate-900 bg-white border border-slate-200 rounded-r-lg hover:bg-slate-100 transition">
                         List View
                     </button>
                 </div>
             </div>
-
-            <!-- Calendar View Container -->
-            <div id="calendarContainer">
-                <div id="calendar"></div>
-            </div>
-
-            <!-- List View Container (Hidden by default) -->
-            <div id="listContainer" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div id="noBookings" class="col-span-full p-12 text-center bg-white rounded-xl border border-dashed border-slate-300 text-slate-400 italic">
-                    No confirmed reservations.
-                </div>
-            </div>
+            <div id="calendarContainer"><div id="calendar"></div></div>
+            <div id="listContainer" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
         </div>
 
         <div class="bg-white rounded-xl border p-4 flex justify-between items-center text-slate-400 text-[10px]">
@@ -173,38 +162,77 @@
         </div>
     </div>
 
-    <!-- Reservation Detail Modal (Custom Modal) -->
+    <!-- Enquiry Details Modal -->
     <div id="detailModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
             <div id="modalHeader" class="bg-slate-900 text-white p-6">
                 <h3 id="modalTitle" class="text-xl font-bold">Reservation</h3>
                 <p id="modalSubtitle" class="text-slate-400 text-sm mt-1 uppercase tracking-wider font-semibold"></p>
             </div>
             <div class="p-6 space-y-4">
+                <div id="finalizedBadge" class="hidden bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest text-center">Confirmed Booking</div>
                 <div class="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                        <p class="text-slate-400 font-bold uppercase text-[10px]">Guests</p>
-                        <p id="modalPax" class="font-bold text-slate-900"></p>
-                    </div>
-                    <div>
-                        <p class="text-slate-400 font-bold uppercase text-[10px]">Menu</p>
-                        <p id="modalMenu" class="font-bold text-slate-900"></p>
-                    </div>
+                    <div><p class="text-slate-400 font-bold uppercase text-[10px]">Guests</p><p id="modalPax" class="font-bold text-slate-900"></p></div>
+                    <div><p class="text-slate-400 font-bold uppercase text-[10px]">Menu</p><p id="modalMenu" class="font-bold text-slate-900"></p></div>
                 </div>
                 <div class="border-t pt-4">
                     <p class="text-slate-400 font-bold uppercase text-[10px]">Contact Info</p>
                     <p id="modalPhone" class="text-slate-700 mt-1"></p>
                     <p id="modalEmail" class="text-slate-700"></p>
                 </div>
-                <div id="modalNotesWrapper" class="border-t pt-4">
+                <div class="border-t pt-4">
                     <p class="text-slate-400 font-bold uppercase text-[10px]">Special Requests / Dietary</p>
                     <p id="modalNotes" class="text-slate-700 italic mt-1"></p>
                 </div>
+                <div id="modalConfirmedNotesWrapper" class="hidden border-t border-emerald-100 bg-emerald-50/30 p-3 rounded-lg mt-2">
+                    <p class="text-emerald-600 font-bold uppercase text-[10px]">Kitchen Updates / Extra Details</p>
+                    <p id="modalConfirmedNotes" class="text-emerald-800 text-sm italic mt-1"></p>
+                </div>
             </div>
-            <div class="bg-slate-50 p-4 flex gap-3">
-                <button id="modalClose" class="flex-1 py-3 font-bold text-slate-600 hover:bg-slate-200 rounded-lg transition">Close</button>
-                <button id="modalCancelBtn" class="flex-1 py-3 font-bold text-red-600 hover:bg-red-50 rounded-lg border border-red-200 transition">Cancel Group</button>
+            <div class="bg-slate-50 p-4 flex flex-col gap-3">
+                <button id="modalConfirmTrigger" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-lg hover:bg-emerald-700 transition">Confirm Reservation</button>
+                <button id="modalKitchenBtn" class="hidden w-full bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold py-3 rounded-lg hover:bg-emerald-200 transition flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /></svg>
+                    Send to Kitchen Diary
+                </button>
+                <div class="flex gap-2">
+                    <button id="modalClose" class="flex-1 py-3 font-bold text-slate-600 hover:bg-slate-200 rounded-lg transition">Close</button>
+                    <button id="modalCancelBtn" class="flex-1 py-3 font-bold text-red-600 hover:bg-red-50 rounded-lg border border-red-200 transition">Cancel Group</button>
+                </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Confirm Form Modal -->
+    <div id="confirmFormModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[60] hidden">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
+            <div class="bg-emerald-600 text-white p-6"><h3 id="confirmFormTitle" class="text-xl font-bold">Finalise Reservation</h3></div>
+            <form id="finalConfirmForm" class="p-6 space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="block text-xs font-bold text-slate-400 uppercase">Confirmed Date</label><input type="date" name="resDate" required class="w-full p-2 border rounded mt-1"></div>
+                    <div><label class="block text-xs font-bold text-slate-400 uppercase">Confirmed Time</label><input type="time" name="resTime" required class="w-full p-2 border rounded mt-1"></div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="block text-xs font-bold text-slate-400 uppercase">Adults</label><input type="number" name="adultCount" min="1" class="w-full p-2 border rounded mt-1"></div>
+                    <div><label class="block text-xs font-bold text-slate-400 uppercase">Children</label><input type="number" name="childCount" min="0" class="w-full p-2 border rounded mt-1"></div>
+                </div>
+                <div><label class="block text-xs font-bold text-slate-400 uppercase">Confirmed Menu Choice</label><select name="menuArrangement" class="w-full p-2 border rounded mt-1"><option value="Sharing Menu">Sharing Menu</option><option value="Choose on the Day">Choose on the Day</option><option value="Other">Other (Special)</option></select></div>
+                <div><label class="block text-xs font-bold text-slate-400 uppercase">Kitchen Update Notes</label><textarea name="confirmedNotes" rows="2" class="w-full p-2 border rounded mt-1 text-sm"></textarea></div>
+                <div class="border-t pt-4 space-y-3">
+                    <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" id="isResident" name="isResident" class="w-5 h-5 rounded border-slate-300"><span class="text-sm font-semibold">Are they a Resident?</span></label>
+                    <div id="nonResidentFields" class="space-y-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                        <div><label class="block text-xs font-bold text-slate-400 uppercase mb-1">Deposit Amount (£)</label><input type="number" name="depositAmount" step="0.01" min="0" class="w-full p-2 border rounded"></div>
+                        <div class="space-y-2">
+                            <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" name="nraSetup" class="w-4 h-4 rounded border-slate-300"><span class="text-sm">Has an NRA been setup?</span></label>
+                            <div class="bg-blue-50 p-2 rounded border border-blue-100"><p class="text-[10px] text-blue-600 font-bold uppercase">Required NRA Label Format:</p><p id="nraFormatPreview" class="text-xs font-mono text-blue-800 font-bold mt-1 italic"></p></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex gap-3 pt-4 border-t">
+                    <button type="button" id="confirmFormCancel" class="flex-1 py-3 text-slate-500 font-bold hover:bg-slate-100 rounded-lg transition">Back</button>
+                    <button type="submit" class="flex-1 py-3 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 shadow-md transition">Save & Confirm</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -213,7 +241,6 @@
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, deleteDoc, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // APP CONFIG
         const firebaseConfig = {
             apiKey: "AIzaSyBLcirFG0rRW-d9sPOw12kvnWKGS5vtoQo",
             authDomain: "bareca-enquiry-form.firebaseapp.com",
@@ -228,241 +255,306 @@
         const db = getFirestore(app);
         const appId = 'bareca-enquiry-v1';
 
+        // Internal State
         let currentUser = null;
-        let saveTimeout = null;
-        let isRestoring = true;
         let calendar = null;
-        let currentViewingBookingId = null;
+        let currentViewingBooking = null; 
+        let isRestoringDraft = true;
 
-        const loginSection = document.getElementById('loginSection');
-        const appSection = document.getElementById('appSection');
-        const loginForm = document.getElementById('loginForm');
-        const reservationForm = document.getElementById('reservationForm');
-        const saveStatus = document.getElementById('saveStatus');
-        const menuSelect = document.getElementById('menuArrangement');
-        const otherWrapper = document.getElementById('otherDetailsWrapper');
-        const takenByInput = document.getElementById('takenBy');
-        const takenAtInput = document.getElementById('takenAt');
-        const listContainer = document.getElementById('listContainer');
-        const calendarContainer = document.getElementById('calendarContainer');
+        // Optimized DOM Lookup
+        const getEl = (id) => document.getElementById(id);
+        const dom = {
+            loginSection: getEl('loginSection'),
+            appSection: getEl('appSection'),
+            loginForm: getEl('loginForm'),
+            loginError: getEl('loginError'),
+            resForm: getEl('reservationForm'),
+            menuSelect: getEl('menuArrangement'),
+            otherWrapper: getEl('otherDetailsWrapper'),
+            list: getEl('listContainer'),
+            detailModal: getEl('detailModal'),
+            modalCancelBtn: getEl('modalCancelBtn'),
+            confirmModal: getEl('confirmFormModal'),
+            residentToggle: getEl('isResident'),
+            nonResidentFields: getEl('nonResidentFields'),
+            nraPreview: getEl('nraFormatPreview'),
+            saveStatus: getEl('saveStatus')
+        };
 
-        // Modal Elements
-        const detailModal = document.getElementById('detailModal');
+        /**
+         * REDUNDANCY-PROOF CANCELLATION LOGIC
+         */
+        const handleBookingCancellation = async () => {
+            // 1. Diagnostics
+            if (!currentUser) { alert("Diagnostic Error: No staff user logged in."); return; }
+            if (!currentViewingBooking || !currentViewingBooking.id) { 
+                alert("Diagnostic Error: No booking ID selected. Try closing and re-opening this tile."); 
+                return; 
+            }
 
-        // Auth Listener
+            const bId = currentViewingBooking.id;
+            const bName = currentViewingBooking.customerName || "this booking";
+
+            // 2. User Confirmation
+            if (!confirm(`Are you sure you want to cancel the booking for ${bName}? This will notify the team and PERMANENTLY remove the record.`)) return;
+
+            // 3. UI State
+            dom.modalCancelBtn.disabled = true;
+            dom.modalCancelBtn.textContent = "Cancelling...";
+            dom.modalCancelBtn.classList.add('syncing-pulse');
+
+            try {
+                // 4. Firestore Document Reference
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings', bId);
+                
+                // 5. Verify document exists first (Safe check)
+                const checkSnap = await getDoc(docRef);
+                if (!checkSnap.exists()) {
+                    alert("Step 1 Failed: Record no longer exists in database. Refreshing dashboard...");
+                    dom.detailModal.classList.add('hidden');
+                    return;
+                }
+
+                const data = checkSnap.data();
+
+                // 6. Queue Cancellation Email
+                try {
+                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
+                        toUids: ['reservation_team'],
+                        message: {
+                            subject: `CANCELLED: BARECA ENQUIRY - ${bName}`,
+                            text: `CANCELLATION NOTICE\n------------------\nCustomer: ${bName}\nReservation Date: ${data.resDate}\nReservation Time: ${data.resTime}\n\nActioned by: ${currentUser.email}\nTimestamp: ${new Date().toLocaleString('en-GB')}`
+                        }
+                    });
+                    console.log("Cancellation email queued successfully.");
+                } catch (emailErr) {
+                    console.warn("Step 2 (Email) Warning: Could not queue email, but continuing with deletion.", emailErr);
+                }
+
+                // 7. Execute Delete
+                await deleteDoc(docRef);
+                
+                // 8. Success Feedback
+                dom.detailModal.classList.add('hidden');
+                alert(`Success: The reservation for ${bName} has been removed.`);
+
+            } catch (err) {
+                console.error("Step 3 (Delete) Error:", err);
+                alert(`Cancellation Failed: ${err.code || err.message}\n\nMake sure your Firestore Security Rules allow 'delete' on the 'confirmed_bookings' collection.`);
+            } finally {
+                dom.modalCancelBtn.disabled = false;
+                dom.modalCancelBtn.textContent = "Cancel Group";
+                dom.modalCancelBtn.classList.remove('syncing-pulse');
+            }
+        };
+
+        // Explicitly bind the click listener
+        dom.modalCancelBtn.addEventListener('click', handleBookingCancellation);
+
+        // --- Auth & Sync Logic ---
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
-                loginSection.classList.add('hidden');
-                appSection.classList.remove('hidden');
-                document.getElementById('userIdDisplay').textContent = `Staff ID: ${user.uid.substring(0, 8)}`;
+                dom.loginSection.classList.add('hidden');
+                dom.appSection.classList.remove('hidden');
+                getEl('userIdDisplay').textContent = `Staff ID: ${user.uid.substring(0, 8)}`;
                 initCalendar();
+                startDataSync();
                 await loadDraft();
-                setupBookingsListener();
-                isRestoring = false;
+                isRestoringDraft = false;
             } else {
-                currentUser = null;
-                appSection.classList.add('hidden');
-                loginSection.classList.remove('hidden');
+                dom.appSection.classList.add('hidden');
+                dom.loginSection.classList.remove('hidden');
             }
         });
 
-        // Initialize Calendar
         const initCalendar = () => {
-            const calendarEl = document.getElementById('calendar');
-            calendar = new FullCalendar.Calendar(calendarEl, {
+            calendar = new FullCalendar.Calendar(getEl('calendar'), {
                 initialView: 'dayGridMonth',
                 headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek' },
-                themeSystem: 'standard',
                 eventClick: (info) => showBookingDetails(info.event.id, info.event.extendedProps)
             });
             calendar.render();
         };
 
-        // Modal Logic
-        const showBookingDetails = (id, props) => {
-            currentViewingBookingId = id;
-            document.getElementById('modalTitle').textContent = props.customerName;
-            document.getElementById('modalSubtitle').textContent = `${props.resDate} @ ${props.resTime}`;
-            document.getElementById('modalPax').textContent = `${(parseInt(props.adultCount)||0) + (parseInt(props.childCount)||0)} Adults/Children`;
-            document.getElementById('modalMenu').textContent = props.menuArrangement === 'Other' ? props.menuOtherDetails : props.menuArrangement;
-            document.getElementById('modalPhone').textContent = props.customerPhone || 'N/A';
-            document.getElementById('modalEmail').textContent = props.customerEmail || 'N/A';
-            document.getElementById('modalNotes').textContent = props.notes || 'None provided.';
-            detailModal.classList.remove('hidden');
-        };
-
-        document.getElementById('modalClose').onclick = () => detailModal.classList.add('hidden');
-        document.getElementById('modalCancelBtn').onclick = () => {
-            if (currentViewingBookingId) {
-                detailModal.classList.add('hidden');
-                cancelBooking(currentViewingBookingId);
-            }
-        };
-
-        // Tab Switching
-        document.getElementById('showCalendarBtn').onclick = () => {
-            listContainer.classList.add('hidden');
-            calendarContainer.classList.remove('hidden');
-            document.getElementById('showCalendarBtn').classList.replace('bg-white', 'bg-slate-900');
-            document.getElementById('showCalendarBtn').classList.replace('text-slate-900', 'text-white');
-            document.getElementById('showListBtn').classList.replace('bg-slate-900', 'bg-white');
-            document.getElementById('showListBtn').classList.replace('text-white', 'text-slate-900');
-            setTimeout(() => calendar.updateSize(), 50);
-        };
-
-        document.getElementById('showListBtn').onclick = () => {
-            calendarContainer.classList.add('hidden');
-            listContainer.classList.remove('hidden');
-            document.getElementById('showListBtn').classList.replace('bg-white', 'bg-slate-900');
-            document.getElementById('showListBtn').classList.replace('text-slate-900', 'text-white');
-            document.getElementById('showCalendarBtn').classList.replace('bg-slate-900', 'bg-white');
-            document.getElementById('showCalendarBtn').classList.replace('text-white', 'text-slate-900');
-        };
-
-        // Dashboard Listener
-        const setupBookingsListener = () => {
-            const bookingsRef = collection(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings');
-            onSnapshot(bookingsRef, (snapshot) => {
+        const startDataSync = () => {
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings'), (snapshot) => {
                 const bookings = [];
                 const events = [];
                 snapshot.forEach(doc => {
-                    const data = doc.data();
-                    bookings.push({ id: doc.id, ...data });
+                    const data = { id: doc.id, ...doc.data() };
+                    bookings.push(data);
+                    const isFinal = data.status === 'finalized';
                     events.push({
-                        id: doc.id,
+                        id: data.id,
                         title: `${data.customerName} (${(parseInt(data.adultCount)||0) + (parseInt(data.childCount)||0)})`,
                         start: `${data.resDate}T${data.resTime}`,
-                        backgroundColor: '#2563eb',
+                        backgroundColor: isFinal ? '#d1fae5' : '#2563eb',
+                        borderColor: isFinal ? '#10b981' : '#2563eb',
+                        textColor: isFinal ? '#065f46' : '#ffffff',
                         extendedProps: { ...data }
                     });
                 });
-                
-                // Update List View
-                renderListView(bookings);
-                
-                // Update Calendar View
-                if (calendar) {
-                    calendar.removeAllEvents();
-                    calendar.addEventSource(events);
-                }
+                renderList(bookings);
+                if (calendar) { calendar.removeAllEvents(); calendar.addEventSource(events); }
             });
         };
 
-        const renderListView = (bookings) => {
-            if (bookings.length === 0) {
-                listContainer.innerHTML = '<div class="col-span-full p-12 text-center bg-white rounded-xl border border-dashed border-slate-300 text-slate-400 italic">No confirmed reservations.</div>';
-                return;
-            }
-            bookings.sort((a, b) => new Date(`${a.resDate}T${a.resTime}`) - new Date(`${b.resDate}T${b.resTime}`));
-            listContainer.innerHTML = '';
-            bookings.forEach(booking => {
-                const [y, m, d] = booking.resDate.split('-');
-                const tile = document.createElement('div');
-                tile.className = "bg-white p-4 rounded-xl shadow-sm border border-slate-200 hover:border-blue-300 transition-colors relative";
-                tile.innerHTML = `
-                    <div class="flex justify-between items-start mb-2">
-                        <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">${d}/${m}/${y.slice(-2)}</span>
-                        <span class="text-xs font-medium text-slate-400">${booking.resTime}</span>
-                    </div>
-                    <h3 class="font-bold text-slate-900 mb-1 truncate">${booking.customerName}</h3>
-                    <p class="text-xs text-slate-500 mb-4">${(parseInt(booking.adultCount)||0) + (parseInt(booking.childCount)||0)} PAX • ${booking.menuArrangement}</p>
-                    <button onclick="cancelBooking('${booking.id}')" class="w-full bg-red-50 text-red-600 text-[10px] font-bold py-2 rounded hover:bg-red-600 hover:text-white transition-all uppercase tracking-tight">Cancel Group</button>
-                `;
-                listContainer.appendChild(tile);
-            });
+        const showBookingDetails = (id, data) => {
+            currentViewingBooking = { id, ...data };
+            getEl('modalTitle').textContent = data.customerName;
+            getEl('modalSubtitle').textContent = `${data.resDate} @ ${data.resTime}`;
+            getEl('modalPax').textContent = `${(parseInt(data.adultCount)||0) + (parseInt(data.childCount)||0)} Total`;
+            getEl('modalMenu').textContent = data.menuArrangement === 'Other' ? data.menuOtherDetails : data.menuArrangement;
+            getEl('modalPhone').textContent = data.customerPhone || 'N/A';
+            getEl('modalEmail').textContent = data.customerEmail || 'N/A';
+            getEl('modalNotes').textContent = data.notes || 'None provided.';
+            
+            const isFinal = data.status === 'finalized';
+            getEl('finalizedBadge').classList.toggle('hidden', !isFinal);
+            getEl('modalKitchenBtn').classList.toggle('hidden', !isFinal);
+            getEl('modalConfirmTrigger').textContent = isFinal ? "Edit Confirmation" : "Confirm Reservation";
+            
+            const notesWrap = getEl('modalConfirmedNotesWrapper');
+            if (isFinal && data.confirmedNotes) {
+                notesWrap.classList.remove('hidden');
+                getEl('modalConfirmedNotes').textContent = data.confirmedNotes;
+            } else notesWrap.classList.add('hidden');
+
+            dom.detailModal.classList.remove('hidden');
         };
 
-        window.cancelBooking = async (bookingId) => {
-            if (!confirm("Confirm cancellation? This will notify the team and remove it from the shared calendar.")) return;
+        getEl('modalConfirmTrigger').onclick = () => {
+            const f = getEl('finalConfirmForm');
+            const d = currentViewingBooking;
+            f.resDate.value = d.resDate; f.resTime.value = d.resTime;
+            f.adultCount.value = d.adultCount; f.childCount.value = d.childCount;
+            f.menuArrangement.value = (d.menuArrangement === 'Unknown' || !d.menuArrangement) ? 'Choose on the Day' : d.menuArrangement;
+            f.confirmedNotes.value = d.confirmedNotes || '';
+            f.isResident.checked = !!d.isResident;
+            f.depositAmount.value = d.depositAmount || '';
+            f.nraSetup.checked = !!d.nraSetup;
+            dom.nonResidentFields.classList.toggle('hidden', f.isResident.checked);
+            
+            // Format Preview logic: Surname Initial xPAX dd.mm.yy
+            const parts = d.customerName.trim().split(/\s+/);
+            const sur = parts.length > 1 ? parts[parts.length-1] : parts[0];
+            const ini = parts[0][0].toUpperCase();
+            const pax = (parseInt(d.adultCount)||0) + (parseInt(d.childCount)||0);
+            const [y, m, day] = d.resDate.split('-');
+            dom.nraPreview.textContent = `${sur} ${ini} x${pax} ${day}.${m}.${y.slice(-2)}`;
+
+            dom.detailModal.classList.add('hidden');
+            dom.confirmModal.classList.remove('hidden');
+        };
+
+        dom.residentToggle.onchange = () => dom.nonResidentFields.classList.toggle('hidden', dom.residentToggle.checked);
+
+        getEl('finalConfirmForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const fd = new FormData(e.target);
+            const updates = Object.fromEntries(fd.entries());
+            updates.status = 'finalized';
+            updates.isResident = fd.has('isResident');
+            updates.nraSetup = fd.has('nraSetup');
+            updates.sequence = (currentViewingBooking.sequence || 0) + (currentViewingBooking.status === 'finalized' ? 1 : 0);
             try {
-                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings', bookingId);
-                const snap = await getDoc(docRef);
-                if (snap.exists()) {
-                    const data = snap.data();
-                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
-                        toUids: ['reservation_team'],
-                        message: {
-                            subject: `CANCELLED: BARECA ENQUIRY - ${data.customerName}`,
-                            text: `CANCELLATION NOTICE\n------------------\nCustomer: ${data.customerName}\nDate: ${data.resDate}\nTime: ${data.resTime}\n\nThis booking was cancelled and removed from the shared calendar by ${currentUser.email}.`
-                        }
-                    });
-                    await deleteDoc(docRef);
-                }
-            } catch (e) { alert("Error updating dashboard."); }
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings', currentViewingBooking.id), updates, { merge: true });
+                dom.confirmModal.classList.add('hidden');
+                alert("Confirmed!");
+            } catch (err) { alert("Save Error: " + err.message); }
         };
 
-        // Form Logic
-        const getExportData = () => {
-            const data = Object.fromEntries(new FormData(reservationForm).entries());
-            const [y, m, d] = data.resDate.split('-');
-            const pax = (parseInt(data.adultCount)||0) + (parseInt(data.childCount)||0);
-            return {
-                raw: data,
-                subject: `BARECA ENQUIRY: ${data.customerName.split(' ').pop()} ${data.customerName[0]} ${d}/${m}/${y.slice(-2)} (${pax} PAX)`,
-                body: `SECURE RESERVATION INTAKE\n------------------\nCUSTOMER: ${data.customerName}\nPHONE: ${data.customerPhone}\nDATE: ${d}-${m}-${y}\nTIME: ${data.resTime}\nPAX: ${pax}\nMENU: ${data.menuArrangement}\nSPECIAL REQUESTS / DIETARY REQUIREMENTS: ${data.notes}\n\nTAKEN BY: ${data.takenBy}`
-            };
-        };
-
-        document.getElementById('sendCloudEmailBtn').onclick = async () => {
-            const exp = getExportData();
-            if (!reservationForm.elements.customerName.value || !reservationForm.elements.resDate.value) { alert("Missing required fields."); return; }
-            const btn = document.getElementById('sendCloudEmailBtn');
-            btn.disabled = true; btn.classList.add('syncing-pulse');
+        getEl('modalKitchenBtn').onclick = async () => {
+            const d = currentViewingBooking;
+            const parts = d.customerName.trim().split(/\s+/);
+            const sur = parts.length > 1 ? parts[parts.length-1] : parts[0];
+            const ini = parts[0][0].toUpperCase();
+            const pax = (parseInt(d.adultCount)||0) + (parseInt(d.childCount)||0);
+            const [y, m, day] = d.resDate.split('-');
+            const label = `${sur} ${ini} x${pax} ${day}.${m}.${y.slice(-2)}`;
+            const seq = d.sequence || 0;
+            const ics = [`BEGIN:VCALENDAR`,`VERSION:2.0`,`METHOD:PUBLISH`,`BEGIN:VEVENT`,`UID:${d.id}@bareca.portal`,`SEQUENCE:${seq}`,`SUMMARY:${seq > 0 ? '[UPDATED] ' : ''}${label}`,`DTSTART:${y}${m}${day}T${d.resTime.replace(':','')}00`,`DESCRIPTION:Guests: ${pax}\\nMenu: ${d.menuArrangement}\\nResident: ${d.isResident?'Yes':'No'}\\nDeposit: £${d.depositAmount||0}\\nExtra: ${d.confirmedNotes||'None'}`,`END:VEVENT`,`END:VCALENDAR`].join('\r\n');
             try {
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
                     toUids: ['reservation_team'],
-                    message: { subject: exp.subject, text: exp.body }
+                    message: {
+                        subject: `${seq > 0 ? 'UPDATED: ' : ''}KITCHEN DIARY: ${label}`,
+                        text: `KITCHEN NOTIFICATION\n------------------\nGroup: ${label}\nMenu: ${d.menuArrangement}\nDietary/Notes: ${d.notes || 'None'}\n\nExtra Info: ${d.confirmedNotes||'None'}\nResident: ${d.isResident?'Yes':'No'}\nDeposit: £${d.depositAmount||0}`,
+                        attachments: [{ filename: `Reservation_${sur}_${ini}.ics`, content: btoa(ics), encoding: 'base64', contentType: 'text/calendar' }]
+                    }
                 });
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings'), { ...exp.raw, createdAt: new Date().toISOString() });
+                alert("Sent to Kitchen Diary!");
+                dom.detailModal.classList.add('hidden');
+            } catch (e) { alert("Email Failed: " + e.code); }
+        };
+
+        const renderList = (bookings) => {
+            if (!bookings.length) { dom.list.innerHTML = '<div class="col-span-full p-12 text-center bg-white rounded-xl border border-dashed border-slate-300 text-slate-400 italic">No current bookings.</div>'; return; }
+            bookings.sort((a, b) => new Date(`${a.resDate}T${a.resTime}`) - new Date(`${b.resDate}T${b.resTime}`));
+            dom.list.innerHTML = '';
+            bookings.forEach(b => {
+                const isFinal = b.status === 'finalized';
+                const [y, m, day] = b.resDate.split('-');
+                const tile = document.createElement('div');
+                tile.className = `p-4 rounded-xl shadow-sm border transition-all cursor-pointer ${isFinal ? 'status-finalized' : 'bg-white border-slate-200 hover:border-blue-300'}`;
+                tile.onclick = () => showBookingDetails(b.id, b);
+                tile.innerHTML = `<div class="flex justify-between items-start mb-2"><span class="text-xs font-bold uppercase tracking-widest">${day}/${m}/${y.slice(-2)}</span><span class="text-xs font-medium">${b.resTime}</span></div><h3 class="font-bold text-slate-900 mb-1 truncate">${b.customerName}</h3><p class="text-xs opacity-70 mb-1">${(parseInt(b.adultCount)||0) + (parseInt(b.childCount)||0)} PAX • ${b.menuArrangement}</p>${isFinal ? '<span class="text-[9px] font-bold uppercase tracking-widest text-emerald-600">Confirmed</span>' : ''}`;
+                dom.list.appendChild(tile);
+            });
+        };
+
+        // Form Logic
+        dom.resForm.addEventListener('input', () => {
+            if (!currentUser || isRestoringDraft) return;
+            const data = Object.fromEntries(new FormData(dom.resForm).entries());
+            setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current'), data).catch(() => {});
+            dom.saveStatus.textContent = "Synced.";
+        });
+
+        getEl('sendCloudEmailBtn').onclick = async () => {
+            const data = Object.fromEntries(new FormData(dom.resForm).entries());
+            if (!data.customerName || !data.resDate) { alert("Name and Date are required."); return; }
+            getEl('sendCloudEmailBtn').disabled = true;
+            try {
+                const [y, m, day] = data.resDate.split('-');
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
+                    toUids: ['reservation_team'],
+                    message: { 
+                        subject: `BARECA ENQUIRY: ${data.customerName} ${day}/${m}/${y}`, 
+                        text: `NEW ENQUIRY\n------------------\nCustomer: ${data.customerName}\nDate: ${day}-${m}-${y}\nTime: ${data.resTime}\nMenu: ${data.menuArrangement}\nDietary: ${data.notes}\n\nTaken by: ${data.takenBy}` 
+                    }
+                });
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings'), { ...data, status: 'enquiry', sequence: 0 });
                 await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current'));
-                alert("Booking Confirmed!");
-                reservationForm.reset();
-                otherWrapper.classList.add('hidden');
-            } catch (e) { alert("Permission Error."); }
-            finally { btn.disabled = false; btn.classList.remove('syncing-pulse'); }
+                alert("Enquiry Recorded!"); dom.resForm.reset();
+                dom.otherWrapper.classList.add('hidden');
+            } catch (e) { alert("Sync Error: " + e.code); } finally { getEl('sendCloudEmailBtn').disabled = false; }
         };
 
-        // Auth, Draft, and UI listeners
-        loginForm.onsubmit = async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('loginBtn');
-            btn.disabled = true; btn.textContent = "Verifying...";
-            try { await signInWithEmailAndPassword(auth, document.getElementById('loginEmail').value, document.getElementById('loginPassword').value); }
-            catch (err) { document.getElementById('loginError').classList.remove('hidden'); }
-            finally { btn.disabled = false; btn.textContent = "Sign In"; }
-        };
-
-        document.getElementById('logoutBtn').onclick = () => signOut(auth);
-        document.getElementById('clearFormBtn').onclick = async () => {
-            if (confirm("Reset form?")) {
-                reservationForm.reset();
-                if (currentUser) await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current'));
-            }
-        };
-
+        dom.menuSelect.addEventListener('change', () => dom.otherWrapper.classList.toggle('hidden', dom.menuSelect.value !== 'Other'));
+        getEl('takenBy').addEventListener('input', (e) => {
+            if (e.target.value.trim() && !getEl('takenAt').value) getEl('takenAt').value = new Date().toLocaleString('en-GB');
+        });
+        
         const loadDraft = async () => {
             const snap = await getDoc(doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'drafts', 'current')).catch(() => {});
-            if (snap && snap.exists()) {
+            if (snap?.exists()) {
                 const data = snap.data();
-                Object.keys(data).forEach(k => { if(reservationForm.elements[k]) reservationForm.elements[k].value = data[k]; });
-                menuSelect.dispatchEvent(new Event('change'));
+                Object.keys(data).forEach(k => { if(dom.resForm.elements[k]) dom.resForm.elements[k].value = data[k]; });
+                dom.menuSelect.dispatchEvent(new Event('change'));
             }
         };
 
-        reservationForm.addEventListener('input', () => {
-            if (!currentUser || isRestoring) return;
-            const data = Object.fromEntries(new FormData(reservationForm).entries());
-            setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current'), data).catch(() => {});
-            saveStatus.textContent = "Synced.";
-        });
-
-        menuSelect.addEventListener('change', () => otherWrapper.classList.toggle('hidden', menuSelect.value !== 'Other'));
-        takenByInput.addEventListener('input', () => {
-            if (takenByInput.value.trim() && !takenAtInput.value) {
-                takenAtInput.value = new Date().toLocaleString('en-GB', {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'});
-            }
-        });
+        dom.loginForm.onsubmit = async (e) => {
+            e.preventDefault();
+            try { await signInWithEmailAndPassword(auth, getEl('loginEmail').value, getEl('loginPassword').value); } catch (err) { dom.loginError.classList.remove('hidden'); }
+        };
+        getEl('logoutBtn').onclick = () => signOut(auth);
+        getEl('modalClose').onclick = () => dom.detailModal.classList.add('hidden');
+        getEl('confirmFormCancel').onclick = () => dom.confirmModal.classList.add('hidden');
+        getEl('showCalendarBtn').onclick = () => { dom.list.classList.add('hidden'); getEl('calendarContainer').classList.remove('hidden'); setTimeout(() => calendar.updateSize(), 50); };
+        getEl('showListBtn').onclick = () => { getEl('calendarContainer').classList.add('hidden'); dom.list.classList.remove('hidden'); };
     </script>
 </body>
 </html>
