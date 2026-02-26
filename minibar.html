@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini Bar Till System</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React and ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel for JSX transformation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { background-color: #f8fafc; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useMemo, useEffect } = React;
+
+        // Helper component for Lucide icons in this standalone version
+        const Icon = ({ name, size = 24, className = "" }) => {
+            const [svg, setSvg] = useState("");
+            
+            useEffect(() => {
+                // Initialize lucide icons after render
+                if (window.lucide) {
+                    window.lucide.createIcons();
+                }
+            }, []);
+
+            return <i data-lucide={name} style={{ width: size, height: size }} className={className}></i>;
+        };
+
+        const App = () => {
+            // Mini Bar Inventory
+            const inventory = [
+                { id: 'coke', name: 'Coke', price: 1.80, icon: 'cup-soda', color: 'bg-red-500' },
+                { id: 'gb', name: 'Ginger Beer', price: 2.50, icon: 'beer', color: 'bg-amber-600' },
+                { id: 'prosecco', name: 'Prosecco', price: 8.50, icon: 'wine', color: 'bg-emerald-600' },
+                { id: 'nuts', name: 'Nuts', price: 1.85, icon: 'nut', color: 'bg-orange-500' },
+                { id: 'choc-nuts', name: 'Choc Nuts', price: 3.50, icon: 'candy', color: 'bg-yellow-700' },
+            ];
+
+            const [cart, setCart] = useState([]);
+
+            const addItem = (item) => {
+                setCart(prevCart => {
+                    const existing = prevCart.find(i => i.id === item.id);
+                    if (existing) {
+                        return prevCart.map(i => 
+                            i.id === item.id ? { ...i, qty: i.qty + 1 } : i
+                        );
+                    }
+                    return [...prevCart, { ...item, qty: 1 }];
+                });
+            };
+
+            const removeItem = (id) => {
+                setCart(prevCart => {
+                    const existing = prevCart.find(i => i.id === id);
+                    if (existing && existing.qty > 1) {
+                        return prevCart.map(i => 
+                            i.id === id ? { ...i, qty: i.qty - 1 } : i
+                        );
+                    }
+                    return prevCart.filter(i => i.id !== id);
+                });
+            };
+
+            const clearCart = () => setCart([]);
+
+            const total = useMemo(() => {
+                return cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            }, [cart]);
+
+            useEffect(() => {
+                if (window.lucide) window.lucide.createIcons();
+            }, [cart]);
+
+            return (
+                <div className="min-h-screen p-4 md:p-8 text-slate-900">
+                    <div className="max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        
+                        {/* Left Column: Input Buttons */}
+                        <div className="lg:col-span-2 space-y-6">
+                            <header className="mb-8">
+                                <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-2">
+                                    <Icon name="receipt" className="text-blue-600" />
+                                    Mini Bar Till
+                                </h1>
+                                <p className="text-slate-500">Tap items to add them to the bill</p>
+                            </header>
+
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                                {inventory.map((item) => (
+                                    <button
+                                        key={item.id}
+                                        onClick={() => addItem(item)}
+                                        className="flex flex-col items-center justify-center p-6 bg-white rounded-2xl shadow-sm border border-slate-200 hover:border-blue-400 hover:shadow-md active:scale-95 transition-all group"
+                                    >
+                                        <div className={`${item.color} text-white p-4 rounded-full mb-4 group-hover:scale-110 transition-transform flex items-center justify-center`}>
+                                            <Icon name={item.icon} />
+                                        </div>
+                                        <span className="font-semibold text-slate-700 text-center">{item.name}</span>
+                                        <span className="text-blue-600 font-bold">£{item.price.toFixed(2)}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Right Column: Checkout/Bill */}
+                        <div className="bg-white rounded-3xl shadow-xl border border-slate-100 flex flex-col h-[600px] lg:h-auto">
+                            <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+                                <h2 className="text-xl font-bold flex items-center gap-2">
+                                    Current Bill
+                                </h2>
+                                <button 
+                                    onClick={clearCart}
+                                    className="text-slate-400 hover:text-red-500 transition-colors p-2"
+                                    title="Clear all"
+                                >
+                                    <Icon name="trash-2" size={20} />
+                                </button>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                                {cart.length === 0 ? (
+                                    <div className="h-full flex flex-col items-center justify-center text-slate-400 opacity-50 space-y-2">
+                                        <Icon name="pound-sterling" size={48} />
+                                        <p>Bill is empty</p>
+                                    </div>
+                                ) : (
+                                    cart.map((item) => (
+                                        <div key={item.id} className="flex items-center justify-between group">
+                                            <div className="flex-1">
+                                                <p className="font-medium text-slate-800">{item.name}</p>
+                                                <p className="text-sm text-slate-500">£{item.price.toFixed(2)} each</p>
+                                            </div>
+                                            
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex items-center bg-slate-100 rounded-lg p-1">
+                                                    <button 
+                                                        onClick={() => removeItem(item.id)}
+                                                        className="p-1 hover:bg-white rounded shadow-sm text-slate-600 transition-all flex items-center justify-center"
+                                                    >
+                                                        <Icon name="minus" size={14} />
+                                                    </button>
+                                                    <span className="px-3 font-bold text-slate-700 min-w-[2rem] text-center">
+                                                        {item.qty}
+                                                    </span>
+                                                    <button 
+                                                        onClick={() => addItem(item)}
+                                                        className="p-1 hover:bg-white rounded shadow-sm text-slate-600 transition-all flex items-center justify-center"
+                                                    >
+                                                        <Icon name="plus" size={14} />
+                                                    </button>
+                                                </div>
+                                                <div className="w-20 text-right font-semibold text-slate-800">
+                                                    £{(item.price * item.qty).toFixed(2)}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+
+                            <div className="p-6 bg-slate-50 rounded-b-3xl border-t border-slate-100">
+                                <div className="flex justify-between items-center mb-6">
+                                    <span className="text-slate-500 font-medium">Total Amount</span>
+                                    <span className="text-3xl font-black text-slate-900">
+                                        £{total.toFixed(2)}
+                                    </span>
+                                </div>
+                                
+                                <button 
+                                    disabled={cart.length === 0}
+                                    className={`w-full py-4 rounded-xl font-bold text-lg transition-all shadow-lg ${
+                                        cart.length === 0 
+                                        ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none' 
+                                        : 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800'
+                                    }`}
+                                >
+                                    Finish & Pay
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
