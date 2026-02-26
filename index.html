@@ -10,6 +10,43 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
+    <style>
+        /* --- General Super App Styles --- */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #faf5ff; 
+        }
+        .card {
+            box-shadow: 0 10px 30px -5px rgba(109, 40, 217, 0.1), 0 4px 10px -2px rgba(109, 40, 217, 0.05);
+            border-width: 1px;
+            border-radius: 1.5rem;
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            cursor: pointer;
+        }
+        input[type="date"] {
+            appearance: none;
+            -moz-appearance: none;
+            position: relative;
+            padding-right: 3rem;
+        }
+        .app-content {
+            display: none; /* All app views are hidden by default */
+        }
+        .app-content.active {
+            display: block; /* The active app view is shown */
+        }
+        .nav-button.active {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        }
+        </style>
 <body class="p-4 sm:p-1 min-h-screen">
 
     <div class="max-w-screen-2xl mx-auto">
