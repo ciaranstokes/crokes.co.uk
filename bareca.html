@@ -31,7 +31,7 @@
     <div id="loginSection" class="flex items-center justify-center min-h-screen p-4">
         <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-200">
             <div class="text-center mb-8">
-                <h1 class="text-2xl font-bold text-slate-900">Bareca Portal</h1>
+                <h1 class="text-2xl font-bold text-slate-900">Bareca Peaks Portal</h1>
                 <p class="text-slate-500 font-medium">Internal Secure Access Only</p>
             </div>
             <form id="loginForm" class="space-y-4">
@@ -55,7 +55,7 @@
     <div id="appSection" class="max-w-4xl mx-auto py-8 px-4 hidden">
         <div class="bg-white rounded-t-xl shadow-sm border-b p-6 flex justify-between items-center">
             <div>
-                <h1 class="text-2xl font-bold text-slate-900">Bareca at Bike and Boot</h1>
+                <h1 class="text-2xl font-bold text-slate-900">Bareca Peaks at Bike and Boot</h1>
                 <p class="text-slate-500 text-sm">Secure Reservation Intake</p>
             </div>
             <div class="flex flex-col items-end">
@@ -164,7 +164,7 @@
 
     <!-- Enquiry Details Modal -->
     <div id="detailModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-md overflow-hidden">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
             <div id="modalHeader" class="bg-slate-900 text-white p-6">
                 <h3 id="modalTitle" class="text-xl font-bold">Reservation</h3>
                 <p id="modalSubtitle" class="text-slate-400 text-sm mt-1 uppercase tracking-wider font-semibold"></p>
@@ -198,12 +198,12 @@
                             Email Guest
                         </button>
                         <button id="modalDownloadICSBtn" class="w-full bg-slate-100 text-slate-800 border border-slate-200 font-bold py-3 rounded-lg hover:bg-slate-200 transition flex items-center justify-center gap-2 text-sm">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" /></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 001-2H6z" clip-rule="evenodd" /></svg>
                             Add to Cal
                         </button>
                     </div>
                     <button id="modalKitchenBtn" class="w-full bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold py-3 rounded-lg hover:bg-emerald-200 transition flex items-center justify-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" /></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /></svg>
                         Send to Kitchen Diary
                     </button>
                 </div>
@@ -332,7 +332,7 @@
                 `DTSTAMP:${stamp}`,
                 `SEQUENCE:${seq}`,
                 isCancel ? 'STATUS:CANCELLED' : 'STATUS:CONFIRMED',
-                'ORGANIZER;CN=Bareca Portal:mailto:stokes.ciaran@gmail.com',
+                'ORGANIZER;CN=Bareca Peaks Portal:mailto:stokes.ciaran@gmail.com',
                 `SUMMARY:${isCancel ? 'CANCELLED: ' : ''}${label}`,
                 `DTSTART:${start}`,
                 `DTEND:${start}`,
@@ -350,7 +350,7 @@
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', `Bareca_${currentViewingBooking.customerName.replace(/\s+/g,'_')}.ics`);
+            link.setAttribute('download', `Bareca_Peaks_${currentViewingBooking.customerName.replace(/\s+/g,'_')}.ics`);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -363,7 +363,7 @@
                 return;
             }
             const email = currentViewingBooking.customerEmail;
-            const subject = encodeURIComponent("Bareca Booking Confirmation");
+            const subject = encodeURIComponent("Bareca Peaks Booking Confirmation");
             window.location.href = `mailto:${email}?subject=${subject}`;
         };
 
@@ -400,7 +400,7 @@
                     await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
                         toUids: ['reservation_team'],
                         message: {
-                            subject: `CANCELLED: BARECA ${subjectType} - ${bName}`,
+                            subject: `CANCELLED: BARECA PEAKS ${subjectType} - ${bName}`,
                             text: `CANCELLATION NOTICE\nGroup: ${bName}\nRecord Type: ${subjectType}\nReservation: ${data.resDate} @ ${data.resTime}\n\nActioned by: ${currentUser.email}`,
                             attachments: isBooking ? [{
                                 filename: `CANCELLED_${bName.replace(/\s+/g,'_')}.ics`,
@@ -538,7 +538,7 @@
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
                     toUids: ['reservation_team_confirm'],
                     message: {
-                        subject: `BARECA CONFIRMATION - ${updates.customerName || currentViewingBooking.customerName}`,
+                        subject: `BARECA PEAKS CONFIRMATION - ${updates.customerName || currentViewingBooking.customerName}`,
                         text: `RESERVATION CONFIRMED\n------------------\nGroup Label: ${label}\nCustomer: ${currentViewingBooking.customerName}\nDate: ${updates.resDate}\nTime: ${updates.resTime}\nGuests: ${pax}\nMenu: ${updates.menuArrangement}\n\nResident: ${updates.isResident ? 'Yes' : 'No'}\nDeposit Paid: £${updates.depositAmount || '0.00'}\nNRA Setup: ${updates.nraSetup ? 'Yes' : 'No'}\n\nNotes: ${updates.confirmedNotes || 'None'}\n\nConfirmed by: ${currentUser.email}`,
                         attachments: [{
                             filename: `Invite_${label.replace(/\s+/g,'_')}.ics`,
@@ -565,7 +565,7 @@
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
                     toUids: ['reservation_team_kitchen'],
                     message: {
-                        subject: `${seq > 0 ? 'UPDATED: ' : ''}KITCHEN DIARY: ${label}`,
+                        subject: `${seq > 0 ? 'UPDATED: ' : ''}BARECA PEAKS KITCHEN DIARY: ${label}`,
                         text: `KITCHEN NOTIFICATION\n------------------\nLabel: ${label}\nGuests: ${(parseInt(d.adultCount)||0) + (parseInt(d.childCount)||0)}\nMenu: ${d.menuArrangement}\nDeposit: £${d.depositAmount||0}\n\nExtra Details: ${d.confirmedNotes||'None'}\nOriginal Dietary: ${d.notes}`,
                         attachments: [{ filename: `Reservation_${label.replace(/\s+/g,'_')}.ics`, content: btoa(ics), encoding: 'base64', contentType: 'text/calendar' }]
                     }
@@ -617,7 +617,7 @@
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
                     toUids: ['reservation_team'],
                     message: { 
-                        subject: `BARECA ENQUIRY: ${data.customerName} ${day}/${m}/${y}`, 
+                        subject: `BARECA PEAKS ENQUIRY: ${data.customerName} ${day}/${m}/${y}`, 
                         text: `NEW ENQUIRY\nCustomer: ${data.customerName}\nDate: ${day}-${m}-${y}\nTime: ${data.resTime}\nMenu: ${data.menuArrangement}\nDietary: ${data.notes}\n\nTaken by: ${data.takenBy}` 
                     }
                 });
