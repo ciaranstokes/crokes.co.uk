@@ -164,7 +164,7 @@
 
     <!-- Enquiry Details Modal -->
     <div id="detailModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-md overflow-hidden">
             <div id="modalHeader" class="bg-slate-900 text-white p-6">
                 <h3 id="modalTitle" class="text-xl font-bold">Reservation</h3>
                 <p id="modalSubtitle" class="text-slate-400 text-sm mt-1 uppercase tracking-wider font-semibold"></p>
@@ -192,16 +192,22 @@
             <div class="bg-slate-50 p-4 flex flex-col gap-3">
                 <button id="modalConfirmTrigger" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-lg hover:bg-emerald-700 transition">Confirm Reservation</button>
                 <div id="confirmedActions" class="hidden flex flex-col gap-3">
-                    <button id="modalSendGuestBtn" class="w-full bg-blue-100 text-blue-800 border border-blue-200 font-bold py-3 rounded-lg hover:bg-blue-200 transition flex items-center justify-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /></svg>
-                        Send to Guest
-                    </button>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button id="modalSendGuestBtn" class="w-full bg-blue-100 text-blue-800 border border-blue-200 font-bold py-3 rounded-lg hover:bg-blue-200 transition flex items-center justify-center gap-2 text-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /></svg>
+                            Email Guest
+                        </button>
+                        <button id="modalDownloadICSBtn" class="w-full bg-slate-100 text-slate-800 border border-slate-200 font-bold py-3 rounded-lg hover:bg-slate-200 transition flex items-center justify-center gap-2 text-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" /></svg>
+                            Add to Cal
+                        </button>
+                    </div>
                     <button id="modalKitchenBtn" class="w-full bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold py-3 rounded-lg hover:bg-emerald-200 transition flex items-center justify-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" /></svg>
                         Send to Kitchen Diary
                     </button>
                 </div>
-                <div class="flex gap-2">
+                <div class="flex gap-2 border-t pt-3">
                     <button id="modalClose" class="flex-1 py-3 font-bold text-slate-600 hover:bg-slate-200 rounded-lg transition">Close</button>
                     <button id="modalCancelBtn" class="flex-1 py-3 font-bold text-red-600 hover:bg-red-50 rounded-lg border border-red-200 transition">Cancel Group</button>
                 </div>
@@ -287,10 +293,11 @@
             takenBy: getEl('takenBy'),
             takenAt: getEl('takenAt'),
             sendCloudEmailBtn: getEl('sendCloudEmailBtn'),
-            calendarContainer: getEl('calendarContainer')
+            calendarContainer: getEl('calendarContainer'),
+            modalDownloadICSBtn: getEl('modalDownloadICSBtn')
         };
 
-        // --- Standard ICS Formatting ---
+        // --- Helper: Standard ICS Formatting ---
         const formatICSDate = (dateStr, timeStr) => {
             const cleanDate = (dateStr || "2000-01-01").replace(/-/g, '');
             const cleanTime = (timeStr || "12:00").replace(/:/g, '');
@@ -307,6 +314,46 @@
             const dateStr = data.resDate || "2000-01-01";
             const [y, m, d] = dateStr.split('-');
             return `${surname} ${initial} x${pax} ${d}.${m}.${y.slice(-2)}`;
+        };
+
+        const generateICSContent = (d, seq = 0, isCancel = false) => {
+            const label = generateKitchenLabel(d);
+            const start = formatICSDate(d.resDate, d.resTime);
+            const stamp = getDTStamp();
+            const pax = (parseInt(d.adultCount)||0) + (parseInt(d.childCount)||0);
+            
+            return [
+                'BEGIN:VCALENDAR',
+                'VERSION:2.0',
+                'PRODID:-//Bareca//Portal//EN',
+                `METHOD:${isCancel ? 'CANCEL' : 'PUBLISH'}`,
+                'BEGIN:VEVENT',
+                `UID:${d.id}@bareca.portal`,
+                `DTSTAMP:${stamp}`,
+                `SEQUENCE:${seq}`,
+                isCancel ? 'STATUS:CANCELLED' : 'STATUS:CONFIRMED',
+                'ORGANIZER;CN=Bareca Portal:mailto:stokes.ciaran@gmail.com',
+                `SUMMARY:${isCancel ? 'CANCELLED: ' : ''}${label}`,
+                `DTSTART:${start}`,
+                `DTEND:${start}`,
+                `DESCRIPTION:Guests: ${pax}\\nMenu: ${d.menuArrangement}\\nResident: ${d.isResident?'Yes':'No'}\\nDeposit: £${d.depositAmount||0}\\nExtra Details: ${d.confirmedNotes||'None'}\\nOriginal Notes: ${d.notes}`,
+                'END:VEVENT',
+                'END:VCALENDAR'
+            ].join('\r\n');
+        };
+
+        // --- Action: Download ICS ---
+        dom.modalDownloadICSBtn.onclick = () => {
+            if (!currentViewingBooking) return;
+            const icsContent = generateICSContent(currentViewingBooking, currentViewingBooking.sequence || 0);
+            const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `Bareca_${currentViewingBooking.customerName.replace(/\s+/g,'_')}.ics`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         };
 
         // --- Action: Send to Guest ---
@@ -346,18 +393,8 @@
                 }
 
                 const data = checkSnap.data();
-                const start = formatICSDate(data.resDate, data.resTime);
-                const stamp = getDTStamp();
                 const seq = (data.sequence || 0) + 1;
-
-                const icsCancel = [
-                    'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Bareca//Portal//EN', 'METHOD:CANCEL', 'BEGIN:VEVENT',
-                    `UID:${bId}@bareca.portal`, `DTSTAMP:${stamp}`, `SEQUENCE:${seq}`,
-                    'STATUS:CANCELLED', 'ORGANIZER;CN=Bareca Portal Intake:mailto:stokes.ciaran@gmail.com',
-                    `SUMMARY:CANCELLED: ${bName}`, `DTSTART:${start}`, `DTEND:${start}`,
-                    `DESCRIPTION:RESERVATION CANCELLED\\nGroup: ${bName}\\nType: ${subjectType}`,
-                    'END:VEVENT', 'END:VCALENDAR'
-                ].join('\r\n');
+                const icsCancel = generateICSContent({id: bId, ...data}, seq, true);
 
                 try {
                     await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
@@ -451,7 +488,7 @@
             
             const isFinal = data.status === 'finalized';
             getEl('finalizedBadge').classList.toggle('hidden', !isFinal);
-            getEl('confirmedActions').classList.toggle('hidden', !isFinal); // Show/Hide guest/kitchen buttons
+            getEl('confirmedActions').classList.toggle('hidden', !isFinal);
             getEl('modalConfirmTrigger').textContent = isFinal ? "Edit Confirmation" : "Confirm Reservation";
             
             const notesWrap = getEl('modalConfirmedNotesWrapper');
@@ -481,7 +518,7 @@
 
         dom.residentToggle.onchange = () => dom.nonResidentFields.classList.toggle('hidden', dom.residentToggle.checked);
 
-        // --- Confirmation Handler ---
+        // --- Confirmation Handler: Automated Email + Attachment ---
         getEl('finalConfirmForm').onsubmit = async (e) => {
             e.preventDefault();
             const fd = new FormData(e.target);
@@ -496,17 +533,24 @@
                 
                 const label = generateKitchenLabel({ ...currentViewingBooking, ...updates });
                 const pax = (parseInt(updates.adultCount)||0) + (parseInt(updates.childCount)||0);
-                
+                const icsContent = generateICSContent({id: currentViewingBooking.id, ...currentViewingBooking, ...updates}, updates.sequence);
+
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
                     toUids: ['reservation_team_confirm'],
                     message: {
                         subject: `BARECA CONFIRMATION - ${updates.customerName || currentViewingBooking.customerName}`,
-                        text: `RESERVATION CONFIRMED\n------------------\nGroup Label: ${label}\nCustomer: ${currentViewingBooking.customerName}\nDate: ${updates.resDate}\nTime: ${updates.resTime}\nGuests: ${pax}\nMenu: ${updates.menuArrangement}\n\nResident: ${updates.isResident ? 'Yes' : 'No'}\nDeposit Paid: £${updates.depositAmount || '0.00'}\nNRA Setup: ${updates.nraSetup ? 'Yes' : 'No'}\n\nNotes: ${updates.confirmedNotes || 'None'}\n\nConfirmed by: ${currentUser.email}`
+                        text: `RESERVATION CONFIRMED\n------------------\nGroup Label: ${label}\nCustomer: ${currentViewingBooking.customerName}\nDate: ${updates.resDate}\nTime: ${updates.resTime}\nGuests: ${pax}\nMenu: ${updates.menuArrangement}\n\nResident: ${updates.isResident ? 'Yes' : 'No'}\nDeposit Paid: £${updates.depositAmount || '0.00'}\nNRA Setup: ${updates.nraSetup ? 'Yes' : 'No'}\n\nNotes: ${updates.confirmedNotes || 'None'}\n\nConfirmed by: ${currentUser.email}`,
+                        attachments: [{
+                            filename: `Invite_${label.replace(/\s+/g,'_')}.ics`,
+                            content: btoa(icsContent),
+                            encoding: 'base64',
+                            contentType: 'text/calendar'
+                        }]
                     }
                 });
 
                 dom.confirmModal.classList.add('hidden');
-                alert("Reservation Confirmed and Team Notified!");
+                alert("Reservation Confirmed and Team Notified with Calendar Link!");
             } catch (err) { alert("Save Failed: " + err.message); }
         };
 
@@ -514,27 +558,15 @@
         getEl('modalKitchenBtn').onclick = async () => {
             const d = currentViewingBooking;
             const label = generateKitchenLabel(d);
-            const pax = (parseInt(d.adultCount)||0) + (parseInt(d.childCount)||0);
-            const start = formatICSDate(d.resDate, d.resTime);
-            const stamp = getDTStamp();
             const seq = d.sequence || 0;
-            
-            const ics = [
-                'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Bareca//Portal//EN', 'METHOD:PUBLISH', 'BEGIN:VEVENT',
-                `UID:${d.id}@bareca.portal`, `DTSTAMP:${stamp}`, `SEQUENCE:${seq}`,
-                'ORGANIZER;CN=Bareca Portal Intake:mailto:stokes.ciaran@gmail.com',
-                `SUMMARY:${seq > 0 ? '[UPDATED] ' : ''}${label}`,
-                `DTSTART:${start}`, `DTEND:${start}`,
-                `DESCRIPTION:Guests: ${pax}\\nMenu: ${d.menuArrangement}\\nResident: ${d.isResident?'Yes':'No'}\\nDeposit: £${d.depositAmount||0}\\nExtra Details: ${d.confirmedNotes||'None'}\\nOriginal Notes: ${d.notes}`,
-                'END:VEVENT', 'END:VCALENDAR'
-            ].join('\r\n');
+            const ics = generateICSContent(d, seq);
 
             try {
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
                     toUids: ['reservation_team_kitchen'],
                     message: {
                         subject: `${seq > 0 ? 'UPDATED: ' : ''}KITCHEN DIARY: ${label}`,
-                        text: `KITCHEN NOTIFICATION\n------------------\nLabel: ${label}\nGuests: ${pax}\nMenu: ${d.menuArrangement}\nDeposit: £${d.depositAmount||0}\n\nDetails: ${d.confirmedNotes||'None'}\nOriginal Dietary: ${d.notes}`,
+                        text: `KITCHEN NOTIFICATION\n------------------\nLabel: ${label}\nGuests: ${(parseInt(d.adultCount)||0) + (parseInt(d.childCount)||0)}\nMenu: ${d.menuArrangement}\nDeposit: £${d.depositAmount||0}\n\nExtra Details: ${d.confirmedNotes||'None'}\nOriginal Dietary: ${d.notes}`,
                         attachments: [{ filename: `Reservation_${label.replace(/\s+/g,'_')}.ics`, content: btoa(ics), encoding: 'base64', contentType: 'text/calendar' }]
                     }
                 });
@@ -558,7 +590,7 @@
             });
         };
 
-        // --- Standard UI Listeners ---
+        // --- Standard UI Handlers ---
         dom.loginForm.onsubmit = async (e) => {
             e.preventDefault();
             try { await signInWithEmailAndPassword(auth, getEl('loginEmail').value, getEl('loginPassword').value); } catch (err) { dom.loginError.classList.remove('hidden'); }
