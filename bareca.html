@@ -191,10 +191,16 @@
             </div>
             <div class="bg-slate-50 p-4 flex flex-col gap-3">
                 <button id="modalConfirmTrigger" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-lg hover:bg-emerald-700 transition">Confirm Reservation</button>
-                <button id="modalKitchenBtn" class="hidden w-full bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold py-3 rounded-lg hover:bg-emerald-200 transition flex items-center justify-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /></svg>
-                    Send to Kitchen Diary
-                </button>
+                <div id="confirmedActions" class="hidden flex flex-col gap-3">
+                    <button id="modalSendGuestBtn" class="w-full bg-blue-100 text-blue-800 border border-blue-200 font-bold py-3 rounded-lg hover:bg-blue-200 transition flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /></svg>
+                        Send to Guest
+                    </button>
+                    <button id="modalKitchenBtn" class="w-full bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold py-3 rounded-lg hover:bg-emerald-200 transition flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" /></svg>
+                        Send to Kitchen Diary
+                    </button>
+                </div>
                 <div class="flex gap-2">
                     <button id="modalClose" class="flex-1 py-3 font-bold text-slate-600 hover:bg-slate-200 rounded-lg transition">Close</button>
                     <button id="modalCancelBtn" class="flex-1 py-3 font-bold text-red-600 hover:bg-red-50 rounded-lg border border-red-200 transition">Cancel Group</button>
@@ -221,7 +227,7 @@
                 <div class="border-t pt-4 space-y-3">
                     <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" id="isResident" name="isResident" class="w-5 h-5 rounded border-slate-300"><span class="text-sm font-semibold">Are they a Resident?</span></label>
                     <div id="nonResidentFields" class="space-y-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
-                        <div><label class="block text-xs font-bold text-slate-400 uppercase mb-1">Deposit Amount Paid (£)</label><input type="number" name="depositAmount" step="0.01" min="0" class="w-full p-2 border rounded"></div>
+                        <div><label class="block text-xs font-bold text-slate-400 uppercase mb-1">Deposit Amount (£)</label><input type="number" name="depositAmount" step="0.01" min="0" class="w-full p-2 border rounded"></div>
                         <div class="space-y-2">
                             <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" name="nraSetup" class="w-4 h-4 rounded border-slate-300"><span class="text-sm">Has an NRA been setup?</span></label>
                             <div class="bg-blue-50 p-2 rounded border border-blue-100"><p class="text-[10px] text-blue-600 font-bold uppercase">Required NRA Label Format:</p><p id="nraFormatPreview" class="text-xs font-mono text-blue-800 font-bold mt-1 italic"></p></div>
@@ -255,6 +261,7 @@
         const db = getFirestore(app);
         const appId = 'bareca-enquiry-v1';
 
+        // Internal State
         let currentUser = null;
         let calendar = null;
         let currentViewingBooking = null; 
@@ -279,12 +286,11 @@
             saveStatus: getEl('saveStatus'),
             takenBy: getEl('takenBy'),
             takenAt: getEl('takenAt'),
-            sendCloudEmailBtn: getEl('sendCloudEmailBtn')
+            sendCloudEmailBtn: getEl('sendCloudEmailBtn'),
+            calendarContainer: getEl('calendarContainer')
         };
 
-        /**
-         * Standard ICS Format Helper
-         */
+        // --- Standard ICS Formatting ---
         const formatICSDate = (dateStr, timeStr) => {
             const cleanDate = (dateStr || "2000-01-01").replace(/-/g, '');
             const cleanTime = (timeStr || "12:00").replace(/:/g, '');
@@ -293,16 +299,34 @@
 
         const getDTStamp = () => new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
 
-        /**
-         * Enhanced Cancellation Logic with Gmail-friendly ICS
-         */
+        const generateKitchenLabel = (data) => {
+            const nameParts = (data.customerName || "").trim().split(/\s+/);
+            const surname = nameParts.length > 1 ? nameParts[nameParts.length - 1] : nameParts[0];
+            const initial = nameParts[0] ? nameParts[0][0].toUpperCase() : "?";
+            const pax = (parseInt(data.adultCount)||0) + (parseInt(data.childCount)||0);
+            const dateStr = data.resDate || "2000-01-01";
+            const [y, m, d] = dateStr.split('-');
+            return `${surname} ${initial} x${pax} ${d}.${m}.${y.slice(-2)}`;
+        };
+
+        // --- Action: Send to Guest ---
+        getEl('modalSendGuestBtn').onclick = () => {
+            if (!currentViewingBooking || !currentViewingBooking.customerEmail) {
+                alert("No email address found for this guest.");
+                return;
+            }
+            const email = currentViewingBooking.customerEmail;
+            const subject = encodeURIComponent("Bareca Booking Confirmation");
+            window.location.href = `mailto:${email}?subject=${subject}`;
+        };
+
+        // --- Cancellation Logic ---
         const handleBookingCancellation = async () => {
             if (!currentUser || !currentViewingBooking?.id) return;
 
             const bId = currentViewingBooking.id;
             const bName = currentViewingBooking.customerName || "this booking";
             const isBooking = currentViewingBooking.status === 'finalized';
-            // Request: Remove ENQUIRY change to BOOKING for cancellations of confirmed bookings
             const subjectType = isBooking ? 'BOOKING' : 'ENQUIRY';
 
             if (!confirm(`Are you sure you want to cancel the ${subjectType.toLowerCase()} for ${bName}?`)) return;
@@ -326,24 +350,13 @@
                 const stamp = getDTStamp();
                 const seq = (data.sequence || 0) + 1;
 
-                // Gmail-Compatible Cancellation ICS
                 const icsCancel = [
-                    'BEGIN:VCALENDAR',
-                    'VERSION:2.0',
-                    'PRODID:-//Bareca//Portal//EN',
-                    'METHOD:CANCEL',
-                    'BEGIN:VEVENT',
-                    `UID:${bId}@bareca.portal`,
-                    `DTSTAMP:${stamp}`,
-                    `SEQUENCE:${seq}`,
-                    'STATUS:CANCELLED',
-                    'ORGANIZER;CN=Bareca Portal Intake:mailto:stokes.ciaran@gmail.com',
-                    `SUMMARY:CANCELLED: ${bName}`,
-                    `DTSTART:${start}`,
-                    `DTEND:${start}`,
-                    `DESCRIPTION:RESERVATION CANCELLED\\nGroup: ${bName}\\nType: ${subjectType}\\nActioned by: ${currentUser.email}`,
-                    'END:VEVENT',
-                    'END:VCALENDAR'
+                    'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Bareca//Portal//EN', 'METHOD:CANCEL', 'BEGIN:VEVENT',
+                    `UID:${bId}@bareca.portal`, `DTSTAMP:${stamp}`, `SEQUENCE:${seq}`,
+                    'STATUS:CANCELLED', 'ORGANIZER;CN=Bareca Portal Intake:mailto:stokes.ciaran@gmail.com',
+                    `SUMMARY:CANCELLED: ${bName}`, `DTSTART:${start}`, `DTEND:${start}`,
+                    `DESCRIPTION:RESERVATION CANCELLED\\nGroup: ${bName}\\nType: ${subjectType}`,
+                    'END:VEVENT', 'END:VCALENDAR'
                 ].join('\r\n');
 
                 try {
@@ -351,7 +364,7 @@
                         toUids: ['reservation_team'],
                         message: {
                             subject: `CANCELLED: BARECA ${subjectType} - ${bName}`,
-                            text: `CANCELLATION NOTICE\n------------------\nCustomer: ${bName}\nReservation: ${data.resDate} @ ${data.resTime}\n\nActioned by: ${currentUser.email}\nDate: ${new Date().toLocaleString('en-GB')}`,
+                            text: `CANCELLATION NOTICE\nGroup: ${bName}\nRecord Type: ${subjectType}\nReservation: ${data.resDate} @ ${data.resTime}\n\nActioned by: ${currentUser.email}`,
                             attachments: isBooking ? [{
                                 filename: `CANCELLED_${bName.replace(/\s+/g,'_')}.ics`,
                                 content: btoa(icsCancel),
@@ -377,7 +390,7 @@
 
         dom.modalCancelBtn.addEventListener('click', handleBookingCancellation);
 
-        // --- App Logic ---
+        // --- Main App Logic ---
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
@@ -426,15 +439,6 @@
             });
         };
 
-        const generateKitchenLabel = (data) => {
-            const nameParts = (data.customerName || "").trim().split(/\s+/);
-            const surname = nameParts.length > 1 ? nameParts[nameParts.length - 1] : nameParts[0];
-            const initial = nameParts[0] ? nameParts[0][0].toUpperCase() : "?";
-            const pax = (parseInt(data.adultCount)||0) + (parseInt(data.childCount)||0);
-            const [y, m, day] = (data.resDate || "0000-00-00").split('-');
-            return `${surname} ${initial} x${pax} ${day}.${m}.${y.slice(-2)}`;
-        };
-
         const showBookingDetails = (id, data) => {
             currentViewingBooking = { id, ...data };
             getEl('modalTitle').textContent = data.customerName;
@@ -447,7 +451,7 @@
             
             const isFinal = data.status === 'finalized';
             getEl('finalizedBadge').classList.toggle('hidden', !isFinal);
-            getEl('modalKitchenBtn').classList.toggle('hidden', !isFinal);
+            getEl('confirmedActions').classList.toggle('hidden', !isFinal); // Show/Hide guest/kitchen buttons
             getEl('modalConfirmTrigger').textContent = isFinal ? "Edit Confirmation" : "Confirm Reservation";
             
             const notesWrap = getEl('modalConfirmedNotesWrapper');
@@ -477,6 +481,7 @@
 
         dom.residentToggle.onchange = () => dom.nonResidentFields.classList.toggle('hidden', dom.residentToggle.checked);
 
+        // --- Confirmation Handler ---
         getEl('finalConfirmForm').onsubmit = async (e) => {
             e.preventDefault();
             const fd = new FormData(e.target);
@@ -485,13 +490,27 @@
             updates.isResident = fd.has('isResident');
             updates.nraSetup = fd.has('nraSetup');
             updates.sequence = (currentViewingBooking.sequence || 0) + (currentViewingBooking.status === 'finalized' ? 1 : 0);
+
             try {
                 await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings', currentViewingBooking.id), updates, { merge: true });
+                
+                const label = generateKitchenLabel({ ...currentViewingBooking, ...updates });
+                const pax = (parseInt(updates.adultCount)||0) + (parseInt(updates.childCount)||0);
+                
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
+                    toUids: ['reservation_team_confirm'],
+                    message: {
+                        subject: `BARECA CONFIRMATION - ${updates.customerName || currentViewingBooking.customerName}`,
+                        text: `RESERVATION CONFIRMED\n------------------\nGroup Label: ${label}\nCustomer: ${currentViewingBooking.customerName}\nDate: ${updates.resDate}\nTime: ${updates.resTime}\nGuests: ${pax}\nMenu: ${updates.menuArrangement}\n\nResident: ${updates.isResident ? 'Yes' : 'No'}\nDeposit Paid: £${updates.depositAmount || '0.00'}\nNRA Setup: ${updates.nraSetup ? 'Yes' : 'No'}\n\nNotes: ${updates.confirmedNotes || 'None'}\n\nConfirmed by: ${currentUser.email}`
+                    }
+                });
+
                 dom.confirmModal.classList.add('hidden');
-                alert("Details Saved!");
+                alert("Reservation Confirmed and Team Notified!");
             } catch (err) { alert("Save Failed: " + err.message); }
         };
 
+        // --- Send to Kitchen Diary ---
         getEl('modalKitchenBtn').onclick = async () => {
             const d = currentViewingBooking;
             const label = generateKitchenLabel(d);
@@ -501,29 +520,21 @@
             const seq = d.sequence || 0;
             
             const ics = [
-                'BEGIN:VCALENDAR',
-                'VERSION:2.0',
-                'PRODID:-//Bareca//Portal//EN',
-                'METHOD:PUBLISH',
-                'BEGIN:VEVENT',
-                `UID:${d.id}@bareca.portal`,
-                `DTSTAMP:${stamp}`,
-                `SEQUENCE:${seq}`,
+                'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Bareca//Portal//EN', 'METHOD:PUBLISH', 'BEGIN:VEVENT',
+                `UID:${d.id}@bareca.portal`, `DTSTAMP:${stamp}`, `SEQUENCE:${seq}`,
                 'ORGANIZER;CN=Bareca Portal Intake:mailto:stokes.ciaran@gmail.com',
                 `SUMMARY:${seq > 0 ? '[UPDATED] ' : ''}${label}`,
-                `DTSTART:${start}`,
-                `DTEND:${start}`,
+                `DTSTART:${start}`, `DTEND:${start}`,
                 `DESCRIPTION:Guests: ${pax}\\nMenu: ${d.menuArrangement}\\nResident: ${d.isResident?'Yes':'No'}\\nDeposit: £${d.depositAmount||0}\\nExtra Details: ${d.confirmedNotes||'None'}\\nOriginal Notes: ${d.notes}`,
-                'END:VEVENT',
-                'END:VCALENDAR'
+                'END:VEVENT', 'END:VCALENDAR'
             ].join('\r\n');
 
             try {
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
-                    toUids: ['reservation_team'],
+                    toUids: ['reservation_team_kitchen'],
                     message: {
                         subject: `${seq > 0 ? 'UPDATED: ' : ''}KITCHEN DIARY: ${label}`,
-                        text: `KITCHEN NOTIFICATION\n------------------\nGroup: ${label}\nMenu: ${d.menuArrangement}\nDietary/Notes: ${d.notes || 'None'}\n\nExtra Info: ${d.confirmedNotes||'None'}\nResident: ${d.isResident?'Yes':'No'}\nDeposit: £${d.depositAmount||0}`,
+                        text: `KITCHEN NOTIFICATION\n------------------\nLabel: ${label}\nGuests: ${pax}\nMenu: ${d.menuArrangement}\nDeposit: £${d.depositAmount||0}\n\nDetails: ${d.confirmedNotes||'None'}\nOriginal Dietary: ${d.notes}`,
                         attachments: [{ filename: `Reservation_${label.replace(/\s+/g,'_')}.ics`, content: btoa(ics), encoding: 'base64', contentType: 'text/calendar' }]
                     }
                 });
@@ -547,7 +558,17 @@
             });
         };
 
-        // Form Logic
+        // --- Standard UI Listeners ---
+        dom.loginForm.onsubmit = async (e) => {
+            e.preventDefault();
+            try { await signInWithEmailAndPassword(auth, getEl('loginEmail').value, getEl('loginPassword').value); } catch (err) { dom.loginError.classList.remove('hidden'); }
+        };
+        getEl('logoutBtn').onclick = () => signOut(auth);
+        getEl('modalClose').onclick = () => dom.detailModal.classList.add('hidden');
+        getEl('confirmFormCancel').onclick = () => dom.confirmModal.classList.add('hidden');
+        getEl('showCalendarBtn').onclick = () => { dom.list.classList.add('hidden'); getEl('calendarContainer').classList.remove('hidden'); setTimeout(() => calendar.updateSize(), 50); };
+        getEl('showListBtn').onclick = () => { getEl('calendarContainer').classList.add('hidden'); dom.list.classList.remove('hidden'); };
+
         dom.resForm.addEventListener('input', () => {
             if (!currentUser || isRestoringDraft) return;
             const data = Object.fromEntries(new FormData(dom.resForm).entries());
@@ -565,20 +586,18 @@
                     toUids: ['reservation_team'],
                     message: { 
                         subject: `BARECA ENQUIRY: ${data.customerName} ${day}/${m}/${y}`, 
-                        text: `NEW ENQUIRY\n------------------\nCustomer: ${data.customerName}\nDate: ${day}-${m}-${y}\nTime: ${data.resTime}\nMenu: ${data.menuArrangement}\nDietary: ${data.notes}\n\nTaken by: ${data.takenBy}` 
+                        text: `NEW ENQUIRY\nCustomer: ${data.customerName}\nDate: ${day}-${m}-${y}\nTime: ${data.resTime}\nMenu: ${data.menuArrangement}\nDietary: ${data.notes}\n\nTaken by: ${data.takenBy}` 
                     }
                 });
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings'), { ...data, status: 'enquiry', sequence: 0 });
                 await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current'));
                 alert("Enquiry Recorded!"); dom.resForm.reset();
-                dom.otherWrapper.classList.add('hidden');
             } catch (e) { alert("Sync Error: " + e.code); } finally { getEl('sendCloudEmailBtn').disabled = false; }
         };
 
         dom.menuSelect.addEventListener('change', () => dom.otherWrapper.classList.toggle('hidden', dom.menuSelect.value !== 'Other'));
-        
-        dom.takenBy.addEventListener('input', (e) => {
-            if (e.target.value.trim() && !dom.takenAt.value) dom.takenAt.value = new Date().toLocaleString('en-GB');
+        getEl('takenBy').addEventListener('input', (e) => {
+            if (e.target.value.trim() && !getEl('takenAt').value) getEl('takenAt').value = new Date().toLocaleString('en-GB');
         });
         
         const loadDraft = async () => {
@@ -589,16 +608,6 @@
                 dom.menuSelect.dispatchEvent(new Event('change'));
             }
         };
-
-        dom.loginForm.onsubmit = async (e) => {
-            e.preventDefault();
-            try { await signInWithEmailAndPassword(auth, getEl('loginEmail').value, getEl('loginPassword').value); } catch (err) { dom.loginError.classList.remove('hidden'); }
-        };
-        getEl('logoutBtn').onclick = () => signOut(auth);
-        getEl('modalClose').onclick = () => dom.detailModal.classList.add('hidden');
-        getEl('confirmFormCancel').onclick = () => dom.confirmModal.classList.add('hidden');
-        getEl('showCalendarBtn').onclick = () => { dom.list.classList.add('hidden'); getEl('calendarContainer').classList.remove('hidden'); setTimeout(() => calendar.updateSize(), 50); };
-        getEl('showListBtn').onclick = () => { getEl('calendarContainer').classList.add('hidden'); dom.list.classList.remove('hidden'); };
     </script>
 </body>
 </html>
