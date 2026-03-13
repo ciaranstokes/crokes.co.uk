@@ -606,11 +606,24 @@
             <div class="dashboard-header">
                 <h2>Live Schedule</h2>
                 <div class="view-toggle">
-                    <button id="showCalendarBtn" class="active-view">Calendar</button>
+                    <button id="showCalendarBtn" class="active-view">Month</button>
+                    <button id="showDayBtn">Day</button>
                     <button id="showListBtn">List</button>
                 </div>
             </div>
             <div id="calendarContainer"><div id="calendar"></div></div>
+            <div id="dayViewContainer" style="display:none;">
+                <!-- Day nav bar -->
+                <div style="background:var(--burgundy);border-radius:2px 2px 0 0;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;">
+                    <button id="dayPrevBtn" style="background:none;border:1px solid rgba(228,225,220,0.3);border-radius:2px;color:var(--taupe);padding:5px 14px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;">‹ Prev</button>
+                    <div style="text-align:center;">
+                        <div id="dayViewHeading" style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--taupe);"></div>
+                        <div id="dayViewSubheading" style="font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(228,225,220,0.5);margin-top:2px;"></div>
+                    </div>
+                    <button id="dayNextBtn" style="background:none;border:1px solid rgba(228,225,220,0.3);border-radius:2px;color:var(--taupe);padding:5px 14px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;">Next ›</button>
+                </div>
+                <div id="dayViewBody" style="background:#fff;border:1px solid var(--taupe-dk);border-top:none;border-radius:0 0 2px 2px;min-height:200px;"></div>
+            </div>
             <div id="listContainer" class="hidden" style="display:none;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;"></div>
         </div>
 
@@ -1078,6 +1091,8 @@
         let calendar = null;
         let currentViewingBooking = null;
         let isRestoringDraft = true;
+        let allBookingsCache = [];
+        let dayViewDate = new Date();
 
         const getEl = (id) => document.getElementById(id);
         const dom = {
@@ -1731,8 +1746,12 @@
         const initCalendar = () => {
             calendar = new FullCalendar.Calendar(getEl('calendar'), {
                 initialView: 'dayGridMonth',
-                headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek' },
-                eventClick: (info) => showBookingDetails(info.event.id, info.event.extendedProps)
+                headerToolbar: { left: 'prev,next today', center: 'title', right: '' },
+                eventClick: (info) => showBookingDetails(info.event.id, info.event.extendedProps),
+                dateClick: (info) => {
+                    dayViewDate = new Date(info.date);
+                    showDayView();
+                }
             });
             calendar.render();
         };
@@ -1749,13 +1768,16 @@
                         id: data.id,
                         title: `${data.customerName} (${(parseInt(data.adultCount)||0) + (parseInt(data.childCount)||0)})`,
                         start: `${data.resDate}T${data.resTime}`,
-                        backgroundColor: isFinal ? '#d1fae5' : '#2563eb',
-                        borderColor: isFinal ? '#10b981' : '#2563eb',
+                        backgroundColor: isFinal ? '#d1fae5' : '#624A44',
+                        borderColor: isFinal ? '#10b981' : '#624A44',
                         textColor: isFinal ? '#065f46' : '#ffffff',
                         extendedProps: { ...data }
                     });
                 });
+                allBookingsCache = bookings;
                 renderList(bookings);
+                // Refresh day view if it's currently visible
+                if (getEl('dayViewContainer').style.display !== 'none') renderDayView();
                 if (calendar) { calendar.removeAllEvents(); calendar.addEventSource(events); }
             });
         };
@@ -2042,22 +2064,145 @@
         getEl('logoutBtn').onclick = () => signOut(auth);
         getEl('modalClose').onclick = () => dom.detailModal.classList.add('hidden');
         getEl('confirmFormCancel').onclick = () => dom.confirmModal.classList.add('hidden');
-        getEl('showCalendarBtn').onclick = () => {
-            document.getElementById('listContainer').style.display = 'none';
-            document.getElementById('listContainer').classList.add('hidden');
-            getEl('calendarContainer').classList.remove('hidden');
-            getEl('showCalendarBtn').classList.add('active-view');
-            getEl('showListBtn').classList.remove('active-view');
-            setTimeout(() => calendar.updateSize(), 50);
-        };
-        getEl('showListBtn').onclick = () => {
-            getEl('calendarContainer').classList.add('hidden');
-            document.getElementById('listContainer').style.display = 'grid';
-            document.getElementById('listContainer').classList.remove('hidden');
-            getEl('showCalendarBtn').classList.remove('active-view');
-            getEl('showListBtn').classList.add('active-view');
+        // ── View toggle ──────────────────────────────────────────────────
+
+        const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+        const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+        const setActiveViewBtn = (active) => {
+            ['showCalendarBtn','showDayBtn','showListBtn'].forEach(id => {
+                getEl(id).classList.toggle('active-view', id === active);
+            });
         };
 
+        const showMonthView = () => {
+            getEl('calendarContainer').style.display = '';
+            getEl('calendarContainer').classList.remove('hidden');
+            getEl('dayViewContainer').style.display = 'none';
+            document.getElementById('listContainer').style.display = 'none';
+            document.getElementById('listContainer').classList.add('hidden');
+            setActiveViewBtn('showCalendarBtn');
+            setTimeout(() => calendar.updateSize(), 50);
+        };
+
+        const showDayView = (date) => {
+            if (date) dayViewDate = new Date(date);
+            getEl('calendarContainer').style.display = 'none';
+            getEl('calendarContainer').classList.add('hidden');
+            getEl('dayViewContainer').style.display = '';
+            document.getElementById('listContainer').style.display = 'none';
+            document.getElementById('listContainer').classList.add('hidden');
+            setActiveViewBtn('showDayBtn');
+            renderDayView();
+        };
+
+        const showListViewFn = () => {
+            getEl('calendarContainer').style.display = 'none';
+            getEl('calendarContainer').classList.add('hidden');
+            getEl('dayViewContainer').style.display = 'none';
+            document.getElementById('listContainer').style.display = 'grid';
+            document.getElementById('listContainer').classList.remove('hidden');
+            setActiveViewBtn('showListBtn');
+        };
+
+        getEl('showCalendarBtn').onclick = showMonthView;
+        getEl('showDayBtn').onclick = () => showDayView(new Date());
+        getEl('showListBtn').onclick = showListViewFn;
+
+        // Navigate day view
+        getEl('dayPrevBtn').onclick = () => { dayViewDate.setDate(dayViewDate.getDate() - 1); renderDayView(); };
+        getEl('dayNextBtn').onclick = () => { dayViewDate.setDate(dayViewDate.getDate() + 1); renderDayView(); };
+
+        // ── Day View Renderer ────────────────────────────────────────────
+        const renderDayView = () => {
+            const y = dayViewDate.getFullYear();
+            const m = dayViewDate.getMonth();
+            const d = dayViewDate.getDate();
+            const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+
+            getEl('dayViewHeading').textContent = `${DAYS[dayViewDate.getDay()]}, ${d} ${MONTHS[m]} ${y}`;
+
+            const todayStr = new Date().toISOString().slice(0,10);
+            const isToday = dateStr === todayStr;
+            const isPast  = dateStr < todayStr;
+            getEl('dayViewSubheading').textContent = isToday ? 'Today' : isPast ? 'Past date' : 'Upcoming';
+
+            const dayBookings = allBookingsCache
+                .filter(b => b.resDate === dateStr)
+                .sort((a, b) => (a.resTime || '').localeCompare(b.resTime || ''));
+
+            const body = getEl('dayViewBody');
+
+            if (!dayBookings.length) {
+                body.innerHTML = `<div style="padding:48px;text-align:center;color:var(--text-light);font-style:italic;font-size:14px;">No reservations on this day.</div>`;
+                return;
+            }
+
+            // Time-slot style layout
+            body.innerHTML = '';
+
+            // Summary strip
+            const totalPax = dayBookings.reduce((sum, b) => sum + (parseInt(b.adultCount)||0) + (parseInt(b.childCount)||0), 0);
+            const summary = document.createElement('div');
+            summary.style.cssText = 'padding:12px 20px;background:var(--cream);border-bottom:1px solid var(--taupe-dk);display:flex;gap:20px;align-items:center;';
+            summary.innerHTML = `
+                <span style="font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-mid);">${dayBookings.length} reservation${dayBookings.length!==1?'s':''}</span>
+                <span style="width:1px;height:12px;background:var(--taupe-dk);"></span>
+                <span style="font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-mid);">${totalPax} covers</span>
+                <span style="width:1px;height:12px;background:var(--taupe-dk);"></span>
+                <span style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-mid);">
+                    ${dayBookings.filter(b=>b.status==='finalized').length} confirmed
+                </span>`;
+            body.appendChild(summary);
+
+            dayBookings.forEach((b, i) => {
+                const isFinal = b.status === 'finalized';
+                const pax = (parseInt(b.adultCount)||0) + (parseInt(b.childCount)||0);
+
+                // Format time to 12hr
+                let timeLabel = b.resTime || '';
+                if (timeLabel) {
+                    const [hh, mm] = timeLabel.split(':');
+                    const h = parseInt(hh);
+                    timeLabel = `${h > 12 ? h-12 : (h===0?12:h)}:${mm} ${h >= 12 ? 'PM' : 'AM'}`;
+                }
+
+                const row = document.createElement('div');
+                row.style.cssText = `display:flex;align-items:stretch;border-bottom:${i < dayBookings.length-1 ? '1px solid var(--taupe-dk)' : 'none'};cursor:pointer;transition:background 0.15s;`;
+                row.onmouseenter = () => row.style.background = 'var(--cream)';
+                row.onmouseleave = () => row.style.background = '';
+                row.onclick = () => showBookingDetails(b.id, b);
+
+                // Colour bar on left
+                const bar = document.createElement('div');
+                bar.style.cssText = `width:4px;flex-shrink:0;background:${isFinal ? '#10b981' : 'var(--burgundy)'};`;
+
+                const content = document.createElement('div');
+                content.style.cssText = 'flex:1;padding:16px 20px;display:flex;align-items:center;gap:20px;';
+                content.innerHTML = `
+                    <div style="min-width:64px;">
+                        <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--text-dark);line-height:1;">${timeLabel}</div>
+                    </div>
+                    <div style="width:1px;height:32px;background:var(--taupe-dk);flex-shrink:0;"></div>
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-weight:600;font-size:14px;color:var(--text-dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${b.customerName}</div>
+                        <div style="font-size:12px;color:var(--text-mid);margin-top:2px;">${pax} cover${pax!==1?'s':''} · ${b.menuArrangement==='Other'?(b.menuOtherDetails||'Special'):b.menuArrangement||'—'}</div>
+                    </div>
+                    ${b.notes ? `<div style="max-width:180px;font-size:11px;color:var(--text-light);font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${b.notes}">${b.notes}</div>` : ''}
+                    <div style="flex-shrink:0;text-align:right;">
+                        ${isFinal
+                            ? '<span style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#059669;background:#d1fae5;padding:3px 8px;border-radius:20px;">Confirmed</span>'
+                            : '<span style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--burgundy);background:rgba(98,74,68,0.08);padding:3px 8px;border-radius:20px;">Enquiry</span>'
+                        }
+                    </div>`;
+
+                row.appendChild(bar);
+                row.appendChild(content);
+                body.appendChild(row);
+            });
+        };
+
+        // ── List View Renderer ───────────────────────────────────────────
         // --- 12-hour time picker → hidden resTime field (24hr for storage) ---
         const syncTimeField = () => {
             const h = getEl('timeHour').value;
