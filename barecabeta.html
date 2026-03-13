@@ -164,8 +164,8 @@
 
     <!-- Enquiry Details Modal -->
     <div id="detailModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto flex flex-col">
-            <div id="modalHeader" class="bg-slate-900 text-white p-6 shrink-0">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div id="modalHeader" class="bg-slate-900 text-white p-6">
                 <h3 id="modalTitle" class="text-xl font-bold">Reservation</h3>
                 <p id="modalSubtitle" class="text-slate-400 text-sm mt-1 uppercase tracking-wider font-semibold"></p>
             </div>
@@ -189,7 +189,7 @@
                     <p id="modalConfirmedNotes" class="text-emerald-800 text-sm italic mt-1"></p>
                 </div>
             </div>
-            <div class="bg-slate-50 p-4 flex flex-col gap-3 shrink-0">
+            <div class="bg-slate-50 p-4 flex flex-col gap-3">
                 <button id="modalConfirmTrigger" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-lg hover:bg-emerald-700 transition">Confirm Reservation</button>
                 <div id="confirmedActions" class="hidden flex flex-col gap-3">
                     <div class="grid grid-cols-2 gap-3">
@@ -203,7 +203,7 @@
                         </button>
                     </div>
                     <button id="modalKitchenBtn" class="w-full bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold py-3 rounded-lg hover:bg-emerald-200 transition flex items-center justify-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" /></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /></svg>
                         Send to Kitchen Diary
                     </button>
                 </div>
@@ -217,9 +217,9 @@
 
     <!-- Confirm Form Modal -->
     <div id="confirmFormModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[60] hidden">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto flex flex-col">
-            <div class="bg-emerald-600 text-white p-6 shrink-0"><h3 id="confirmFormTitle" class="text-xl font-bold">Finalise Reservation</h3></div>
-            <form id="finalConfirmForm" class="p-6 space-y-4 shrink-0">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
+            <div class="bg-emerald-600 text-white p-6"><h3 id="confirmFormTitle" class="text-xl font-bold">Finalise Reservation</h3></div>
+            <form id="finalConfirmForm" class="p-6 space-y-4">
                 <div class="grid grid-cols-2 gap-4">
                     <div><label class="block text-xs font-bold text-slate-400 uppercase">Confirmed Date</label><input type="date" name="resDate" required class="w-full p-2 border rounded mt-1"></div>
                     <div><label class="block text-xs font-bold text-slate-400 uppercase">Confirmed Time</label><input type="time" name="resTime" required class="w-full p-2 border rounded mt-1"></div>
@@ -270,7 +270,7 @@
         // Internal State
         let currentUser = null;
         let calendar = null;
-        let currentViewingBooking = null; 
+        let currentViewingBooking = null;
         let isRestoringDraft = true;
 
         const getEl = (id) => document.getElementById(id);
@@ -321,7 +321,7 @@
             const start = formatICSDate(d.resDate, d.resTime);
             const stamp = getDTStamp();
             const pax = (parseInt(d.adultCount)||0) + (parseInt(d.childCount)||0);
-            
+
             return [
                 'BEGIN:VCALENDAR',
                 'VERSION:2.0',
@@ -342,6 +342,200 @@
             ].join('\r\n');
         };
 
+        // ---------------------------------------------------------------
+        // GUEST EMAIL TEMPLATE
+        // Generates a fully branded HTML email body for guest confirmation.
+        // ---------------------------------------------------------------
+        const generateGuestEmailHTML = (d) => {
+            const pax = (parseInt(d.adultCount)||0) + (parseInt(d.childCount)||0);
+            const adults = parseInt(d.adultCount) || 0;
+            const children = parseInt(d.childCount) || 0;
+            const [y, m, day] = (d.resDate || "").split('-');
+            const dateFormatted = `${day}/${m}/${y}`;
+
+            // Format time to 12hr
+            const [h, min] = (d.resTime || "00:00").split(':');
+            const hour = parseInt(h);
+            const timeFormatted = `${hour > 12 ? hour - 12 : hour || 12}:${min} ${hour >= 12 ? 'PM' : 'AM'}`;
+
+            const menuDisplay = d.menuArrangement === 'Other'
+                ? (d.menuOtherDetails || 'Special Arrangement')
+                : (d.menuArrangement || 'To Be Confirmed');
+
+            const guestBreakdown = children > 0
+                ? `${adults} Adult${adults !== 1 ? 's' : ''} &amp; ${children} Child${children !== 1 ? 'ren' : ''}`
+                : `${adults} Adult${adults !== 1 ? 's' : ''}`;
+
+            const specialRequestsBlock = d.notes
+                ? `
+                    <tr>
+                        <td style="padding: 12px 0; border-bottom: 1px solid #f1f5f9;">
+                            <table width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td style="font-family: Georgia, serif; font-size: 11px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; color: #94a3b8; padding-bottom: 4px;">Special Requests</td>
+                                </tr>
+                                <tr>
+                                    <td style="font-family: Georgia, serif; font-size: 15px; color: #0f172a;">${d.notes}</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>`
+                : '';
+
+            return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bareca Peaks – Booking Confirmation</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: Georgia, serif;">
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8fafc; padding: 40px 20px;">
+        <tr>
+            <td align="center">
+                <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 560px;">
+
+                    <!-- HEADER -->
+                    <tr>
+                        <td style="background-color: #0f172a; padding: 40px 40px 32px; border-radius: 16px 16px 0 0; text-align: center;">
+                            <p style="margin: 0 0 6px; font-family: Georgia, serif; font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: #64748b; font-weight: normal;">Bike and Boot, Hope Valley</p>
+                            <h1 style="margin: 0; font-family: Georgia, serif; font-size: 28px; font-weight: normal; color: #ffffff; letter-spacing: 1px;">Bareca Peaks</h1>
+                            <div style="width: 40px; height: 2px; background-color: #10b981; margin: 16px auto 0;"></div>
+                        </td>
+                    </tr>
+
+                    <!-- INTRO BAND -->
+                    <tr>
+                        <td style="background-color: #10b981; padding: 14px 40px; text-align: center;">
+                            <p style="margin: 0; font-family: Georgia, serif; font-size: 12px; letter-spacing: 3px; text-transform: uppercase; color: #ffffff; font-weight: bold;">Reservation Confirmed</p>
+                        </td>
+                    </tr>
+
+                    <!-- BODY -->
+                    <tr>
+                        <td style="background-color: #ffffff; padding: 40px;">
+
+                            <!-- Greeting -->
+                            <p style="margin: 0 0 24px; font-family: Georgia, serif; font-size: 17px; color: #0f172a; line-height: 1.6;">
+                                Dear ${d.customerName},
+                            </p>
+                            <p style="margin: 0 0 32px; font-family: Georgia, serif; font-size: 15px; color: #475569; line-height: 1.8;">
+                                Thank you for choosing Bareca Peaks. We're delighted to confirm your upcoming reservation and look forward to welcoming your party.
+                            </p>
+
+                            <!-- Booking Details Card -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 32px; overflow: hidden;">
+                                <tr>
+                                    <td style="padding: 20px 24px; border-bottom: 1px solid #e2e8f0; background-color: #0f172a;">
+                                        <p style="margin: 0; font-family: Georgia, serif; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: #64748b; font-weight: bold;">Your Booking Details</p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 4px 24px;">
+                                        <table width="100%" cellpadding="0" cellspacing="0">
+
+                                            <!-- Date -->
+                                            <tr>
+                                                <td style="padding: 16px 0; border-bottom: 1px solid #f1f5f9;">
+                                                    <table width="100%" cellpadding="0" cellspacing="0">
+                                                        <tr>
+                                                            <td style="font-family: Georgia, serif; font-size: 11px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; color: #94a3b8; padding-bottom: 4px;">Date</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td style="font-family: Georgia, serif; font-size: 18px; font-weight: bold; color: #0f172a;">${dateFormatted}</td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+
+                                            <!-- Time -->
+                                            <tr>
+                                                <td style="padding: 16px 0; border-bottom: 1px solid #f1f5f9;">
+                                                    <table width="100%" cellpadding="0" cellspacing="0">
+                                                        <tr>
+                                                            <td style="font-family: Georgia, serif; font-size: 11px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; color: #94a3b8; padding-bottom: 4px;">Arrival Time</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td style="font-family: Georgia, serif; font-size: 18px; font-weight: bold; color: #0f172a;">${timeFormatted}</td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+
+                                            <!-- Party Size -->
+                                            <tr>
+                                                <td style="padding: 16px 0; border-bottom: 1px solid #f1f5f9;">
+                                                    <table width="100%" cellpadding="0" cellspacing="0">
+                                                        <tr>
+                                                            <td style="font-family: Georgia, serif; font-size: 11px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; color: #94a3b8; padding-bottom: 4px;">Party Size</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td style="font-family: Georgia, serif; font-size: 15px; color: #0f172a;">${guestBreakdown} <span style="color: #94a3b8;">(${pax} total)</span></td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+
+                                            <!-- Menu -->
+                                            <tr>
+                                                <td style="padding: 16px 0; border-bottom: 1px solid #f1f5f9;">
+                                                    <table width="100%" cellpadding="0" cellspacing="0">
+                                                        <tr>
+                                                            <td style="font-family: Georgia, serif; font-size: 11px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; color: #94a3b8; padding-bottom: 4px;">Menu Arrangement</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td style="font-family: Georgia, serif; font-size: 15px; color: #0f172a;">${menuDisplay}</td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+
+                                            ${specialRequestsBlock}
+
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Message -->
+                            <p style="margin: 0 0 16px; font-family: Georgia, serif; font-size: 15px; color: #475569; line-height: 1.8;">
+                                Should you need to make any changes or have questions before your visit, please don't hesitate to get in touch with us directly.
+                            </p>
+                            <p style="margin: 0 0 32px; font-family: Georgia, serif; font-size: 15px; color: #475569; line-height: 1.8;">
+                                We look forward to seeing you very soon.
+                            </p>
+
+                            <!-- Sign off -->
+                            <p style="margin: 0; font-family: Georgia, serif; font-size: 15px; color: #0f172a; line-height: 1.8;">
+                                Warm regards,<br>
+                                <strong>The Bareca Peaks Team</strong>
+                            </p>
+
+                        </td>
+                    </tr>
+
+                    <!-- FOOTER -->
+                    <tr>
+                        <td style="background-color: #0f172a; padding: 24px 40px; border-radius: 0 0 16px 16px; text-align: center;">
+                            <p style="margin: 0 0 8px; font-family: Georgia, serif; font-size: 13px; color: #94a3b8; line-height: 1.6;">
+                                Bareca Peaks at Bike and Boot &nbsp;·&nbsp; Hope Valley, Derbyshire
+                            </p>
+                            <p style="margin: 0; font-family: Georgia, serif; font-size: 11px; color: #475569; letter-spacing: 1px;">
+                                This is a confirmation of your reservation. Please keep for your records.
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+
+</body>
+</html>`;
+        };
+
         // --- Action: Download ICS ---
         dom.modalDownloadICSBtn.onclick = () => {
             if (!currentViewingBooking) return;
@@ -356,83 +550,69 @@
             document.body.removeChild(link);
         };
 
-        // --- Action: Send to Guest (EML Draft Generator) ---
-        getEl('modalSendGuestBtn').onclick = () => {
-            if (!currentViewingBooking || !currentViewingBooking.customerEmail) {
-                alert("No email address found for this guest.");
+        // --- Action: Send Email to Guest ---
+        // Uses Firebase mail queue with `to` field (direct email address)
+        // rather than `toUids`. Requires Trigger Email extension to have
+        // a verified sender domain configured (e.g. via SendGrid).
+        getEl('modalSendGuestBtn').onclick = async () => {
+            const d = currentViewingBooking;
+            if (!d?.customerEmail) {
+                alert("No email address found for this guest. Please update their record first.");
                 return;
             }
-            const d = currentViewingBooking;
-            const email = d.customerEmail;
-            const firstName = d.customerName.split(' ')[0] || "Guest";
-            const pax = (parseInt(d.adultCount)||0) + (parseInt(d.childCount)||0);
 
-            // Using EML format allows us to inject a fully styled HTML table (matching the Word doc) directly into an Outlook/Apple Mail draft.
-            const emlContent = [
-                `To: ${email}`,
-                `Subject: Bareca Peaks Booking Confirmation`,
-                `X-Unsent: 1`,
-                `Content-Type: text/html; charset=utf-8`,
-                ``,
-                `<!DOCTYPE html>`,
-                `<html>`,
-                `<head>`,
-                `<style>`,
-                `  .label-cell { background-color: #E4E1DC; color: #624A44; font-weight: bold; text-align: right; width: 30%; padding: 10px; border: 1px solid black; font-family: 'Arial', sans-serif; font-size: 14px; }`,
-                `  .value-cell { padding: 10px; border: 1px solid black; font-family: 'Arial', sans-serif; font-size: 14px; }`,
-                `  p { font-family: 'Arial', sans-serif; font-size: 14px; }`,
-                `</style>`,
-                `</head>`,
-                `<body>`,
-                `<p>Dear ${firstName},</p>`,
-                `<br>`,
-                `<table style="border-collapse: collapse; width: 100%; max-width: 700px; border: 1px solid black;">`,
-                `  <tr>`,
-                `    <td class="label-cell">Reservation Name:</td>`,
-                `    <td class="value-cell">${d.customerName}</td>`,
-                `  </tr>`,
-                `  <tr>`,
-                `    <td class="label-cell">Time of Reservation:</td>`,
-                `    <td class="value-cell">${d.resDate} @ ${d.resTime}</td>`,
-                `  </tr>`,
-                `  <tr>`,
-                `    <td class="label-cell">Number of Guests:</td>`,
-                `    <td class="value-cell">${pax}</td>`,
-                `  </tr>`,
-                `  <tr>`,
-                `    <td class="label-cell">Chosen Menu:</td>`,
-                `    <td class="value-cell">${d.menuArrangement}</td>`,
-                `  </tr>`,
-                `  <tr>`,
-                `    <td class="label-cell">Special Arrangements:</td>`,
-                `    <td class="value-cell">${d.notes || ''}</td>`,
-                `  </tr>`,
-                `  <tr>`,
-                `    <td class="label-cell">Deposit Paid:</td>`,
-                `    <td class="value-cell">£${d.depositAmount || '0.00'}</td>`,
-                `  </tr>`,
-                `  <tr>`,
-                `    <td class="label-cell" style="vertical-align: top;">Things to Note:</td>`,
-                `    <td class="value-cell">`,
-                `      <p style="margin-top: 0;"><b>Please note that your reservation is for a specific time.</b> If you don’t arrive in time, please note that we reserve the right to allocate the table to another guest.</p>`,
-                `      <p><b>If you believe you will be late,</b> please let us know by calling 01433 440 777</p>`,
-                `      <p><b>If you need to change the number of diners,</b> please let us know as soon as you are able by calling 01433 440 777</p>`,
-                `      <p style="margin-bottom: 0;"><b>Dietary requirements and allergies –</b> we have allergen information to accompany our menu. Please let us know of any allergies as soon as you can and we will provide the allergen information.</p>`,
-                `    </td>`,
-                `  </tr>`,
-                `</table>`,
-                `</body>`,
-                `</html>`
-            ].join('\r\n');
+            const btn = getEl('modalSendGuestBtn');
+            btn.disabled = true;
+            btn.textContent = "Sending...";
+            btn.classList.add('syncing-pulse');
 
-            const blob = new Blob([emlContent], { type: 'message/rfc822' });
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `Draft_Confirmation_${firstName.replace(/\s+/g,'_')}.eml`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            try {
+                const [y, m, day] = (d.resDate || "").split('-');
+                const pax = (parseInt(d.adultCount)||0) + (parseInt(d.childCount)||0);
+                const menuDisplay = d.menuArrangement === 'Other'
+                    ? (d.menuOtherDetails || 'Special Arrangement')
+                    : (d.menuArrangement || 'To Be Confirmed');
+
+                // Plain text fallback for email clients that don't render HTML
+                const plainText = [
+                    `Dear ${d.customerName},`,
+                    ``,
+                    `Thank you for choosing Bareca Peaks. We're delighted to confirm your upcoming reservation.`,
+                    ``,
+                    `BOOKING DETAILS`,
+                    `---------------`,
+                    `Date:           ${day}/${m}/${y}`,
+                    `Time:           ${d.resTime}`,
+                    `Party Size:     ${pax} guests`,
+                    `Menu:           ${menuDisplay}`,
+                    d.notes ? `Special Requests: ${d.notes}` : null,
+                    ``,
+                    `If you need to make any changes, please don't hesitate to get in touch.`,
+                    ``,
+                    `We look forward to welcoming you.`,
+                    ``,
+                    `Warm regards,`,
+                    `The Bareca Peaks Team`,
+                    `Bareca Peaks at Bike and Boot, Hope Valley, Derbyshire`
+                ].filter(line => line !== null).join('\n');
+
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
+                    to: [d.customerEmail],
+                    message: {
+                        subject: `Your Bareca Peaks Reservation – ${day}/${m}/${y}`,
+                        text: plainText,
+                        html: generateGuestEmailHTML(d)
+                    }
+                });
+
+                alert(`Confirmation email sent to ${d.customerEmail}`);
+            } catch (err) {
+                alert(`Failed to send email: ${err.message}`);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /></svg> Email Guest`;
+                btn.classList.remove('syncing-pulse');
+            }
         };
 
         // --- Cancellation Logic ---
@@ -453,7 +633,7 @@
             try {
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings', bId);
                 const checkSnap = await getDoc(docRef);
-                
+
                 if (!checkSnap.exists()) {
                     alert("Record no longer exists.");
                     dom.detailModal.classList.add('hidden');
@@ -553,12 +733,12 @@
             getEl('modalPhone').textContent = data.customerPhone || 'N/A';
             getEl('modalEmail').textContent = data.customerEmail || 'N/A';
             getEl('modalNotes').textContent = data.notes || 'None provided.';
-            
+
             const isFinal = data.status === 'finalized';
             getEl('finalizedBadge').classList.toggle('hidden', !isFinal);
             getEl('confirmedActions').classList.toggle('hidden', !isFinal);
             getEl('modalConfirmTrigger').textContent = isFinal ? "Edit Confirmation" : "Confirm Reservation";
-            
+
             const notesWrap = getEl('modalConfirmedNotesWrapper');
             if (isFinal && data.confirmedNotes) {
                 notesWrap.classList.remove('hidden');
@@ -598,7 +778,7 @@
 
             try {
                 await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings', currentViewingBooking.id), updates, { merge: true });
-                
+
                 const label = generateKitchenLabel({ ...currentViewingBooking, ...updates });
                 const pax = (parseInt(updates.adultCount)||0) + (parseInt(updates.childCount)||0);
                 const icsContent = generateICSContent({id: currentViewingBooking.id, ...currentViewingBooking, ...updates}, updates.sequence);
@@ -684,9 +864,9 @@
                 const [y, m, day] = data.resDate.split('-');
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
                     toUids: ['reservation_team'],
-                    message: { 
-                        subject: `BARECA PEAKS ENQUIRY: ${data.customerName} ${day}/${m}/${y}`, 
-                        text: `NEW ENQUIRY\nCustomer: ${data.customerName}\nDate: ${day}-${m}-${y}\nTime: ${data.resTime}\nMenu: ${data.menuArrangement}\nDietary: ${data.notes}\n\nTaken by: ${data.takenBy}` 
+                    message: {
+                        subject: `BARECA PEAKS ENQUIRY: ${data.customerName} ${day}/${m}/${y}`,
+                        text: `NEW ENQUIRY\nCustomer: ${data.customerName}\nDate: ${day}-${m}-${y}\nTime: ${data.resTime}\nMenu: ${data.menuArrangement}\nDietary: ${data.notes}\n\nTaken by: ${data.takenBy}`
                     }
                 });
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings'), { ...data, status: 'enquiry', sequence: 0 });
@@ -699,7 +879,7 @@
         getEl('takenBy').addEventListener('input', (e) => {
             if (e.target.value.trim() && !getEl('takenAt').value) getEl('takenAt').value = new Date().toLocaleString('en-GB');
         });
-        
+
         const loadDraft = async () => {
             const snap = await getDoc(doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'drafts', 'current')).catch(() => {});
             if (snap?.exists()) {
