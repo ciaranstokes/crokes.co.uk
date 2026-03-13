@@ -248,6 +248,45 @@
         </div>
     </div>
 
+    <!-- Email Preview Modal -->
+    <div id="emailPreviewModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 z-[70] hidden">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col" style="max-height: 90vh;">
+            <!-- Header -->
+            <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between flex-shrink-0">
+                <div>
+                    <h3 class="text-base font-bold">Email Preview</h3>
+                    <p class="text-slate-400 text-xs mt-0.5">Review before sending to guest</p>
+                </div>
+                <span class="text-[10px] font-bold uppercase tracking-widest bg-amber-400 text-amber-900 px-3 py-1 rounded-full">Not Sent Yet</span>
+            </div>
+            <!-- Meta bar -->
+            <div class="border-b bg-slate-50 px-6 py-3 flex-shrink-0 space-y-1">
+                <div class="flex items-center gap-2 text-sm">
+                    <span class="text-slate-400 font-bold uppercase text-[10px] w-12 flex-shrink-0">To:</span>
+                    <span id="previewToAddress" class="text-slate-800 font-semibold"></span>
+                </div>
+                <div class="flex items-center gap-2 text-sm">
+                    <span class="text-slate-400 font-bold uppercase text-[10px] w-12 flex-shrink-0">Subject:</span>
+                    <span id="previewSubjectLine" class="text-slate-600 italic"></span>
+                </div>
+            </div>
+            <!-- Iframe preview -->
+            <div class="flex-1 overflow-auto bg-slate-100 p-4 min-h-0">
+                <iframe id="emailPreviewFrame" class="w-full rounded-lg border border-slate-200 shadow-inner bg-white" style="min-height: 520px; height: 100%;" frameborder="0" sandbox="allow-same-origin"></iframe>
+            </div>
+            <!-- Footer actions -->
+            <div class="border-t bg-white px-6 py-4 flex gap-3 flex-shrink-0">
+                <button id="previewCancelBtn" class="flex-1 py-3 font-bold text-slate-600 hover:bg-slate-100 rounded-lg transition border border-slate-200">
+                    Back
+                </button>
+                <button id="previewSendBtn" class="flex-1 py-3 font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition shadow flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
+                    Confirm & Send
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -550,21 +589,46 @@
             document.body.removeChild(link);
         };
 
-        // --- Action: Send Email to Guest ---
-        // Uses Firebase mail queue with `to` field (direct email address)
-        // rather than `toUids`. Requires Trigger Email extension to have
-        // a verified sender domain configured (e.g. via SendGrid).
-        getEl('modalSendGuestBtn').onclick = async () => {
+        // --- Action: Preview Email (opens preview modal) ---
+        // "Email Guest" now opens a preview modal first. The actual Firebase
+        // send only happens when staff click "Confirm & Send" in the preview.
+        getEl('modalSendGuestBtn').onclick = () => {
             const d = currentViewingBooking;
             if (!d?.customerEmail) {
                 alert("No email address found for this guest. Please update their record first.");
                 return;
             }
 
-            const btn = getEl('modalSendGuestBtn');
-            btn.disabled = true;
-            btn.textContent = "Sending...";
-            btn.classList.add('syncing-pulse');
+            const [y, m, day] = (d.resDate || "").split('-');
+            const subject = `Your Bareca Peaks Reservation – ${day}/${m}/${y}`;
+
+            // Populate meta bar
+            getEl('previewToAddress').textContent = d.customerEmail;
+            getEl('previewSubjectLine').textContent = subject;
+
+            // Render HTML into sandboxed iframe
+            const frame = getEl('emailPreviewFrame');
+            const htmlContent = generateGuestEmailHTML(d);
+            frame.srcdoc = htmlContent;
+
+            // Show preview modal (keep detail modal open behind it)
+            getEl('emailPreviewModal').classList.remove('hidden');
+        };
+
+        // Close preview — go back to detail modal
+        getEl('previewCancelBtn').onclick = () => {
+            getEl('emailPreviewModal').classList.add('hidden');
+        };
+
+        // --- Action: Confirmed Send from Preview ---
+        getEl('previewSendBtn').onclick = async () => {
+            const d = currentViewingBooking;
+            if (!d?.customerEmail) return;
+
+            const sendBtn = getEl('previewSendBtn');
+            sendBtn.disabled = true;
+            sendBtn.textContent = "Sending...";
+            sendBtn.classList.add('syncing-pulse');
 
             try {
                 const [y, m, day] = (d.resDate || "").split('-');
@@ -605,13 +669,17 @@
                     }
                 });
 
+                // Close both modals and confirm
+                getEl('emailPreviewModal').classList.add('hidden');
+                dom.detailModal.classList.add('hidden');
                 alert(`Confirmation email sent to ${d.customerEmail}`);
+
             } catch (err) {
                 alert(`Failed to send email: ${err.message}`);
             } finally {
-                btn.disabled = false;
-                btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /></svg> Email Guest`;
-                btn.classList.remove('syncing-pulse');
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg> Confirm & Send`;
+                sendBtn.classList.remove('syncing-pulse');
             }
         };
 
