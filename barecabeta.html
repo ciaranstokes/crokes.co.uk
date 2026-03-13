@@ -250,38 +250,83 @@
 
     <!-- Email Preview Modal -->
     <div id="emailPreviewModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 z-[70] hidden">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col" style="max-height: 90vh;">
+        <div class="bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col" style="max-height: 92vh; width: 100%; max-width: 960px;">
             <!-- Header -->
             <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between flex-shrink-0">
                 <div>
-                    <h3 class="text-base font-bold">Email Preview</h3>
-                    <p class="text-slate-400 text-xs mt-0.5">Review before sending to guest</p>
+                    <h3 class="text-base font-bold">Email Preview & Edit</h3>
+                    <p class="text-slate-400 text-xs mt-0.5">Make any changes, then confirm to send</p>
                 </div>
                 <span class="text-[10px] font-bold uppercase tracking-widest bg-amber-400 text-amber-900 px-3 py-1 rounded-full">Not Sent Yet</span>
             </div>
-            <!-- Meta bar -->
-            <div class="border-b bg-slate-50 px-6 py-3 flex-shrink-0 space-y-1">
-                <div class="flex items-center gap-2 text-sm">
-                    <span class="text-slate-400 font-bold uppercase text-[10px] w-12 flex-shrink-0">To:</span>
-                    <span id="previewToAddress" class="text-slate-800 font-semibold"></span>
+
+            <!-- Two-column body: edit panel left, preview right -->
+            <div class="flex flex-1 min-h-0 overflow-hidden">
+
+                <!-- LEFT: Edit panel -->
+                <div class="w-80 flex-shrink-0 border-r border-slate-200 bg-slate-50 flex flex-col overflow-y-auto">
+                    <div class="p-4 border-b border-slate-200 bg-white">
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Sending to</p>
+                        <p id="previewToAddress" class="text-sm font-semibold text-slate-800 mt-1 truncate"></p>
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mt-3">Subject</p>
+                        <p id="previewSubjectLine" class="text-xs text-slate-600 italic mt-1"></p>
+                    </div>
+
+                    <div class="p-4 space-y-4 flex-1">
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Edit Email Fields</p>
+                        <p class="text-xs text-slate-500">Changes update the preview instantly. Nothing is sent until you click Confirm & Send.</p>
+
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Greeting Name</label>
+                            <input type="text" id="edit_customerName" class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-400 outline-none bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Date</label>
+                            <input type="date" id="edit_resDate" class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-400 outline-none bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Time</label>
+                            <input type="time" id="edit_resTime" class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-400 outline-none bg-white">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Adults</label>
+                                <input type="number" id="edit_adultCount" min="0" class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-400 outline-none bg-white">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Children</label>
+                                <input type="number" id="edit_childCount" min="0" class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-400 outline-none bg-white">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Menu</label>
+                            <input type="text" id="edit_menuDisplay" class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-400 outline-none bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Deposit Paid</label>
+                            <input type="text" id="edit_depositAmount" placeholder="e.g. £50.00 or N/A" class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-400 outline-none bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Special Arrangements</label>
+                            <textarea id="edit_notes" rows="3" class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-400 outline-none bg-white resize-none"></textarea>
+                        </div>
+                    </div>
                 </div>
-                <div class="flex items-center gap-2 text-sm">
-                    <span class="text-slate-400 font-bold uppercase text-[10px] w-12 flex-shrink-0">Subject:</span>
-                    <span id="previewSubjectLine" class="text-slate-600 italic"></span>
+
+                <!-- RIGHT: Live iframe preview -->
+                <div class="flex-1 overflow-auto bg-slate-200 p-4 min-h-0">
+                    <iframe id="emailPreviewFrame" class="w-full rounded-xl border border-slate-300 shadow bg-white" style="min-height: 700px;" frameborder="0" sandbox="allow-same-origin"></iframe>
                 </div>
             </div>
-            <!-- Iframe preview -->
-            <div class="flex-1 overflow-auto bg-slate-100 p-4 min-h-0">
-                <iframe id="emailPreviewFrame" class="w-full rounded-lg border border-slate-200 shadow-inner bg-white" style="min-height: 520px; height: 100%;" frameborder="0" sandbox="allow-same-origin"></iframe>
-            </div>
+
             <!-- Footer actions -->
             <div class="border-t bg-white px-6 py-4 flex gap-3 flex-shrink-0">
                 <button id="previewCancelBtn" class="flex-1 py-3 font-bold text-slate-600 hover:bg-slate-100 rounded-lg transition border border-slate-200">
                     Back
                 </button>
-                <button id="previewSendBtn" class="flex-1 py-3 font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition shadow flex items-center justify-center gap-2">
+                <button id="previewSendBtn" class="flex-1 py-3 font-bold text-white rounded-lg transition shadow flex items-center justify-center gap-2" style="background-color:#624A44;">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
-                    Confirm & Send
+                    Confirm & Send to Guest
                 </button>
             </div>
         </div>
@@ -382,194 +427,132 @@
         };
 
         // ---------------------------------------------------------------
-        // GUEST EMAIL TEMPLATE
-        // Generates a fully branded HTML email body for guest confirmation.
+        // GUEST EMAIL TEMPLATE — Bareca branded
+        // Mirrors the structure of the uploaded Word template with the
+        // brand palette: #624A44 (burgundy), #E4E1DC (warm taupe),
+        // #F5F3F0 (off-white), Metropolis/Georgia fonts.
+        // d.menuDisplay is an override field set from the edit panel.
         // ---------------------------------------------------------------
         const generateGuestEmailHTML = (d) => {
-            const pax = (parseInt(d.adultCount)||0) + (parseInt(d.childCount)||0);
-            const adults = parseInt(d.adultCount) || 0;
+            const adults  = parseInt(d.adultCount)  || 0;
             const children = parseInt(d.childCount) || 0;
-            const [y, m, day] = (d.resDate || "").split('-');
+            const pax = adults + children;
+
+            const [y, m, day] = (d.resDate || "2000-01-01").split('-');
             const dateFormatted = `${day}/${m}/${y}`;
 
-            // Format time to 12hr
-            const [h, min] = (d.resTime || "00:00").split(':');
+            // 12-hour time
+            const [h, min] = (d.resTime || "12:00").split(':');
             const hour = parseInt(h);
-            const timeFormatted = `${hour > 12 ? hour - 12 : hour || 12}:${min} ${hour >= 12 ? 'PM' : 'AM'}`;
+            const timeFormatted = `${hour > 12 ? hour - 12 : (hour === 0 ? 12 : hour)}:${min} ${hour >= 12 ? 'PM' : 'AM'}`;
 
-            const menuDisplay = d.menuArrangement === 'Other'
-                ? (d.menuOtherDetails || 'Special Arrangement')
-                : (d.menuArrangement || 'To Be Confirmed');
+            // Menu — allow override from edit panel
+            const menuDisplay = d.menuDisplay ||
+                (d.menuArrangement === 'Other' ? (d.menuOtherDetails || 'Special Arrangement') : (d.menuArrangement || 'To Be Confirmed'));
 
-            const guestBreakdown = children > 0
-                ? `${adults} Adult${adults !== 1 ? 's' : ''} &amp; ${children} Child${children !== 1 ? 'ren' : ''}`
-                : `${adults} Adult${adults !== 1 ? 's' : ''}`;
+            const depositDisplay = d.depositAmount ? `£${parseFloat(d.depositAmount).toFixed(2)}` : 'N/A';
 
-            const specialRequestsBlock = d.notes
-                ? `
-                    <tr>
-                        <td style="padding: 12px 0; border-bottom: 1px solid #f1f5f9;">
-                            <table width="100%" cellpadding="0" cellspacing="0">
-                                <tr>
-                                    <td style="font-family: Georgia, serif; font-size: 11px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; color: #94a3b8; padding-bottom: 4px;">Special Requests</td>
-                                </tr>
-                                <tr>
-                                    <td style="font-family: Georgia, serif; font-size: 15px; color: #0f172a;">${d.notes}</td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>`
-                : '';
+            // Row builder matching the uploaded template style
+            const row = (label, value, last = false) => `
+              <tr>
+                <td width="38%" style="background-color:#E4E1DC; padding:12px 14px; border:1px solid #c8c4be; ${last ? '' : 'border-bottom:none;'} text-align:right; vertical-align:middle;">
+                  <span style="font-family:Metropolis,'Helvetica Neue',Arial,sans-serif; font-size:13px; font-weight:700; color:#624A44;">${label}</span>
+                </td>
+                <td width="62%" style="background-color:#ffffff; padding:12px 16px; border:1px solid #c8c4be; border-left:none; ${last ? '' : 'border-bottom:none;'} vertical-align:middle;">
+                  <span style="font-family:Metropolis,'Helvetica Neue',Arial,sans-serif; font-size:13px; color:#2d1f1c;">${value}</span>
+                </td>
+              </tr>`;
 
             return `<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bareca Peaks – Booking Confirmation</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Bareca Peaks – Reservation Confirmation</title>
 </head>
-<body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: Georgia, serif;">
+<body style="margin:0;padding:0;background-color:#F5F3F0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;">
 
-    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8fafc; padding: 40px 20px;">
-        <tr>
-            <td align="center">
-                <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 560px;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F5F3F0;padding:32px 16px;">
+  <tr><td align="center">
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;">
 
-                    <!-- HEADER -->
-                    <tr>
-                        <td style="background-color: #0f172a; padding: 40px 40px 32px; border-radius: 16px 16px 0 0; text-align: center;">
-                            <p style="margin: 0 0 6px; font-family: Georgia, serif; font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: #64748b; font-weight: normal;">Bike and Boot, Hope Valley</p>
-                            <h1 style="margin: 0; font-family: Georgia, serif; font-size: 28px; font-weight: normal; color: #ffffff; letter-spacing: 1px;">Bareca Peaks</h1>
-                            <div style="width: 40px; height: 2px; background-color: #10b981; margin: 16px auto 0;"></div>
-                        </td>
-                    </tr>
+      <!-- LOGO HEADER -->
+      <tr>
+        <td style="background-color:#624A44;padding:32px 40px 24px;text-align:center;border-radius:4px 4px 0 0;">
+          <img src="https://framerusercontent.com/images/z1j6LJZfF4uLlPlAZMHc9mP8AtE.png" alt="Bareca at Bike and Boot" width="220" style="display:block;margin:0 auto;max-width:220px;">
+          <div style="width:48px;height:2px;background-color:#E4E1DC;margin:20px auto 0;opacity:0.6;"></div>
+          <p style="margin:12px 0 0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:rgba(228,225,220,0.7);font-weight:400;">Reservation Confirmation</p>
+        </td>
+      </tr>
 
-                    <!-- INTRO BAND -->
-                    <tr>
-                        <td style="background-color: #10b981; padding: 14px 40px; text-align: center;">
-                            <p style="margin: 0; font-family: Georgia, serif; font-size: 12px; letter-spacing: 3px; text-transform: uppercase; color: #ffffff; font-weight: bold;">Reservation Confirmed</p>
-                        </td>
-                    </tr>
+      <!-- WARM TAUPE BAND -->
+      <tr>
+        <td style="background-color:#E4E1DC;padding:10px 40px;text-align:center;">
+          <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#624A44;font-weight:700;">Peaks at Bike &amp; Boot · Hope Valley</p>
+        </td>
+      </tr>
 
-                    <!-- BODY -->
-                    <tr>
-                        <td style="background-color: #ffffff; padding: 40px;">
+      <!-- BODY -->
+      <tr>
+        <td style="background-color:#ffffff;padding:36px 40px 28px;">
 
-                            <!-- Greeting -->
-                            <p style="margin: 0 0 24px; font-family: Georgia, serif; font-size: 17px; color: #0f172a; line-height: 1.6;">
-                                Dear ${d.customerName},
-                            </p>
-                            <p style="margin: 0 0 32px; font-family: Georgia, serif; font-size: 15px; color: #475569; line-height: 1.8;">
-                                Thank you for choosing Bareca Peaks. We're delighted to confirm your upcoming reservation and look forward to welcoming your party.
-                            </p>
+          <p style="margin:0 0 6px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:17px;color:#2d1f1c;">Dear ${d.customerName},</p>
+          <p style="margin:0 0 28px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#5a4a47;line-height:1.7;">
+            Thank you for your reservation at Bareca Peaks. We look forward to welcoming your party and hope you have a wonderful visit.
+          </p>
 
-                            <!-- Booking Details Card -->
-                            <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 32px; overflow: hidden;">
-                                <tr>
-                                    <td style="padding: 20px 24px; border-bottom: 1px solid #e2e8f0; background-color: #0f172a;">
-                                        <p style="margin: 0; font-family: Georgia, serif; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: #64748b; font-weight: bold;">Your Booking Details</p>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 4px 24px;">
-                                        <table width="100%" cellpadding="0" cellspacing="0">
+          <!-- Details table — mirrors the uploaded Word template -->
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+            ${row('Reservation Name:', d.customerName)}
+            ${row('Time of Reservation:', `${dateFormatted} at ${timeFormatted}`)}
+            ${row('Number of Guests:', `${pax} (${adults} adult${adults!==1?'s':''} ${children>0?'&amp; '+children+' child'+(children!==1?'ren':''):''})`)}
+            ${row('Chosen Menu:', menuDisplay)}
+            ${row('Special Arrangements:', d.notes || 'None')}
+            ${row('Deposit Paid:', depositDisplay)}
+            <tr>
+              <td width="38%" style="background-color:#E4E1DC;padding:14px 14px;border:1px solid #c8c4be;border-top:none;text-align:right;vertical-align:top;">
+                <span style="font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;font-weight:700;color:#624A44;">Things to Note:</span>
+              </td>
+              <td width="62%" style="background-color:#ffffff;padding:14px 16px;border:1px solid #c8c4be;border-left:none;border-top:none;vertical-align:top;">
+                <p style="margin:0 0 8px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;color:#2d1f1c;line-height:1.6;">
+                  <strong>Please note that your reservation is for a specific time.</strong> If you don't arrive in time, please note that we reserve the right to allocate the table to another guest.
+                </p>
+                <p style="margin:0 0 8px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;color:#2d1f1c;line-height:1.6;">
+                  <strong>If you believe you will be late,</strong> please let us know by calling <strong>01433 440 777</strong>
+                </p>
+                <p style="margin:0 0 8px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;color:#2d1f1c;line-height:1.6;">
+                  <strong>If you need to change the number of diners,</strong> please let us know as soon as you are able by calling <strong>01433 440 777</strong>
+                </p>
+                <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;color:#2d1f1c;line-height:1.6;">
+                  <strong>Dietary requirements and allergies —</strong> we have allergen information to accompany our menu. Please let us know of any allergies as soon as you can and we will provide the allergen information.
+                </p>
+              </td>
+            </tr>
+          </table>
 
-                                            <!-- Date -->
-                                            <tr>
-                                                <td style="padding: 16px 0; border-bottom: 1px solid #f1f5f9;">
-                                                    <table width="100%" cellpadding="0" cellspacing="0">
-                                                        <tr>
-                                                            <td style="font-family: Georgia, serif; font-size: 11px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; color: #94a3b8; padding-bottom: 4px;">Date</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td style="font-family: Georgia, serif; font-size: 18px; font-weight: bold; color: #0f172a;">${dateFormatted}</td>
-                                                        </tr>
-                                                    </table>
-                                                </td>
-                                            </tr>
+          <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#2d1f1c;line-height:1.7;">
+            Warm regards,<br>
+            <strong>The Bareca Peaks Team</strong>
+          </p>
 
-                                            <!-- Time -->
-                                            <tr>
-                                                <td style="padding: 16px 0; border-bottom: 1px solid #f1f5f9;">
-                                                    <table width="100%" cellpadding="0" cellspacing="0">
-                                                        <tr>
-                                                            <td style="font-family: Georgia, serif; font-size: 11px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; color: #94a3b8; padding-bottom: 4px;">Arrival Time</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td style="font-family: Georgia, serif; font-size: 18px; font-weight: bold; color: #0f172a;">${timeFormatted}</td>
-                                                        </tr>
-                                                    </table>
-                                                </td>
-                                            </tr>
+        </td>
+      </tr>
 
-                                            <!-- Party Size -->
-                                            <tr>
-                                                <td style="padding: 16px 0; border-bottom: 1px solid #f1f5f9;">
-                                                    <table width="100%" cellpadding="0" cellspacing="0">
-                                                        <tr>
-                                                            <td style="font-family: Georgia, serif; font-size: 11px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; color: #94a3b8; padding-bottom: 4px;">Party Size</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td style="font-family: Georgia, serif; font-size: 15px; color: #0f172a;">${guestBreakdown} <span style="color: #94a3b8;">(${pax} total)</span></td>
-                                                        </tr>
-                                                    </table>
-                                                </td>
-                                            </tr>
+      <!-- FOOTER -->
+      <tr>
+        <td style="background-color:#624A44;padding:20px 40px;text-align:center;border-radius:0 0 4px 4px;">
+          <p style="margin:0 0 4px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:12px;color:rgba(228,225,220,0.85);">
+            Bareca Peaks at Bike &amp; Boot &nbsp;·&nbsp; Hope Road, Hope Valley, S33 0AL
+          </p>
+          <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;color:rgba(228,225,220,0.5);letter-spacing:0.5px;">
+            This email confirms your reservation. Please retain for your records.
+          </p>
+        </td>
+      </tr>
 
-                                            <!-- Menu -->
-                                            <tr>
-                                                <td style="padding: 16px 0; border-bottom: 1px solid #f1f5f9;">
-                                                    <table width="100%" cellpadding="0" cellspacing="0">
-                                                        <tr>
-                                                            <td style="font-family: Georgia, serif; font-size: 11px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; color: #94a3b8; padding-bottom: 4px;">Menu Arrangement</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td style="font-family: Georgia, serif; font-size: 15px; color: #0f172a;">${menuDisplay}</td>
-                                                        </tr>
-                                                    </table>
-                                                </td>
-                                            </tr>
-
-                                            ${specialRequestsBlock}
-
-                                        </table>
-                                    </td>
-                                </tr>
-                            </table>
-
-                            <!-- Message -->
-                            <p style="margin: 0 0 16px; font-family: Georgia, serif; font-size: 15px; color: #475569; line-height: 1.8;">
-                                Should you need to make any changes or have questions before your visit, please don't hesitate to get in touch with us directly.
-                            </p>
-                            <p style="margin: 0 0 32px; font-family: Georgia, serif; font-size: 15px; color: #475569; line-height: 1.8;">
-                                We look forward to seeing you very soon.
-                            </p>
-
-                            <!-- Sign off -->
-                            <p style="margin: 0; font-family: Georgia, serif; font-size: 15px; color: #0f172a; line-height: 1.8;">
-                                Warm regards,<br>
-                                <strong>The Bareca Peaks Team</strong>
-                            </p>
-
-                        </td>
-                    </tr>
-
-                    <!-- FOOTER -->
-                    <tr>
-                        <td style="background-color: #0f172a; padding: 24px 40px; border-radius: 0 0 16px 16px; text-align: center;">
-                            <p style="margin: 0 0 8px; font-family: Georgia, serif; font-size: 13px; color: #94a3b8; line-height: 1.6;">
-                                Bareca Peaks at Bike and Boot &nbsp;·&nbsp; Hope Valley, Derbyshire
-                            </p>
-                            <p style="margin: 0; font-family: Georgia, serif; font-size: 11px; color: #475569; letter-spacing: 1px;">
-                                This is a confirmation of your reservation. Please keep for your records.
-                            </p>
-                        </td>
-                    </tr>
-
-                </table>
-            </td>
-        </tr>
     </table>
+  </td></tr>
+</table>
 
 </body>
 </html>`;
@@ -589,9 +572,39 @@
             document.body.removeChild(link);
         };
 
-        // --- Action: Preview Email (opens preview modal) ---
-        // "Email Guest" now opens a preview modal first. The actual Firebase
-        // send only happens when staff click "Confirm & Send" in the preview.
+        // ---------------------------------------------------------------
+        // EMAIL PREVIEW — editable panel with live iframe refresh
+        // ---------------------------------------------------------------
+
+        // Holds the working copy of booking data while the preview is open.
+        // Edits update this object and re-render the iframe.
+        let previewData = {};
+
+        const refreshPreviewFrame = () => {
+            const frame = getEl('emailPreviewFrame');
+            frame.srcdoc = generateGuestEmailHTML(previewData);
+        };
+
+        // Wire all edit fields to update previewData and refresh on input
+        const editFieldMap = {
+            edit_customerName: 'customerName',
+            edit_resDate:      'resDate',
+            edit_resTime:      'resTime',
+            edit_adultCount:   'adultCount',
+            edit_childCount:   'childCount',
+            edit_menuDisplay:  'menuDisplay',
+            edit_depositAmount:'depositAmount',
+            edit_notes:        'notes'
+        };
+
+        Object.entries(editFieldMap).forEach(([elId, key]) => {
+            getEl(elId).addEventListener('input', (e) => {
+                previewData[key] = e.target.value;
+                refreshPreviewFrame();
+            });
+        });
+
+        // --- Action: Open Preview Modal ---
         getEl('modalSendGuestBtn').onclick = () => {
             const d = currentViewingBooking;
             if (!d?.customerEmail) {
@@ -599,19 +612,35 @@
                 return;
             }
 
-            const [y, m, day] = (d.resDate || "").split('-');
-            const subject = `Your Bareca Peaks Reservation – ${day}/${m}/${y}`;
+            // Build working copy — resolve menu display upfront
+            const resolvedMenu = d.menuArrangement === 'Other'
+                ? (d.menuOtherDetails || 'Special Arrangement')
+                : (d.menuArrangement || 'To Be Confirmed');
+
+            previewData = {
+                ...d,
+                menuDisplay: resolvedMenu,
+                depositAmount: d.depositAmount ? `${parseFloat(d.depositAmount).toFixed(2)}` : ''
+            };
+
+            // Populate edit fields
+            getEl('edit_customerName').value  = previewData.customerName  || '';
+            getEl('edit_resDate').value       = previewData.resDate       || '';
+            getEl('edit_resTime').value       = previewData.resTime       || '';
+            getEl('edit_adultCount').value    = previewData.adultCount    || '';
+            getEl('edit_childCount').value    = previewData.childCount    || '';
+            getEl('edit_menuDisplay').value   = previewData.menuDisplay   || '';
+            getEl('edit_depositAmount').value = previewData.depositAmount || '';
+            getEl('edit_notes').value         = previewData.notes         || '';
 
             // Populate meta bar
-            getEl('previewToAddress').textContent = d.customerEmail;
-            getEl('previewSubjectLine').textContent = subject;
+            const [y, m, day] = (d.resDate || '').split('-');
+            getEl('previewToAddress').textContent  = d.customerEmail;
+            getEl('previewSubjectLine').textContent = `Your Bareca Peaks Reservation – ${day}/${m}/${y}`;
 
-            // Render HTML into sandboxed iframe
-            const frame = getEl('emailPreviewFrame');
-            const htmlContent = generateGuestEmailHTML(d);
-            frame.srcdoc = htmlContent;
+            // Render iframe
+            refreshPreviewFrame();
 
-            // Show preview modal (keep detail modal open behind it)
             getEl('emailPreviewModal').classList.remove('hidden');
         };
 
@@ -631,45 +660,40 @@
             sendBtn.classList.add('syncing-pulse');
 
             try {
-                const [y, m, day] = (d.resDate || "").split('-');
-                const pax = (parseInt(d.adultCount)||0) + (parseInt(d.childCount)||0);
-                const menuDisplay = d.menuArrangement === 'Other'
-                    ? (d.menuOtherDetails || 'Special Arrangement')
-                    : (d.menuArrangement || 'To Be Confirmed');
+                const [y, m, day] = (previewData.resDate || "").split('-');
+                const pax = (parseInt(previewData.adultCount)||0) + (parseInt(previewData.childCount)||0);
 
-                // Plain text fallback for email clients that don't render HTML
+                // Plain text fallback
                 const plainText = [
-                    `Dear ${d.customerName},`,
+                    `Dear ${previewData.customerName},`,
                     ``,
-                    `Thank you for choosing Bareca Peaks. We're delighted to confirm your upcoming reservation.`,
+                    `Thank you for your reservation at Bareca Peaks. We look forward to welcoming your party.`,
                     ``,
                     `BOOKING DETAILS`,
                     `---------------`,
-                    `Date:           ${day}/${m}/${y}`,
-                    `Time:           ${d.resTime}`,
-                    `Party Size:     ${pax} guests`,
-                    `Menu:           ${menuDisplay}`,
-                    d.notes ? `Special Requests: ${d.notes}` : null,
+                    `Reservation Name: ${previewData.customerName}`,
+                    `Date & Time:      ${day}/${m}/${y} at ${previewData.resTime}`,
+                    `Number of Guests: ${pax}`,
+                    `Chosen Menu:      ${previewData.menuDisplay}`,
+                    previewData.notes ? `Special Arrangements: ${previewData.notes}` : null,
+                    `Deposit Paid:     ${previewData.depositAmount ? '£'+previewData.depositAmount : 'N/A'}`,
                     ``,
-                    `If you need to make any changes, please don't hesitate to get in touch.`,
-                    ``,
-                    `We look forward to welcoming you.`,
+                    `Please note your reservation is for a specific time. If you are running late please call 01433 440 777.`,
                     ``,
                     `Warm regards,`,
                     `The Bareca Peaks Team`,
-                    `Bareca Peaks at Bike and Boot, Hope Valley, Derbyshire`
-                ].filter(line => line !== null).join('\n');
+                    `Hope Road, Hope Valley, S33 0AL · 01433 440 777`
+                ].filter(l => l !== null).join('\n');
 
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
                     to: [d.customerEmail],
                     message: {
                         subject: `Your Bareca Peaks Reservation – ${day}/${m}/${y}`,
                         text: plainText,
-                        html: generateGuestEmailHTML(d)
+                        html: generateGuestEmailHTML(previewData)
                     }
                 });
 
-                // Close both modals and confirm
                 getEl('emailPreviewModal').classList.add('hidden');
                 dom.detailModal.classList.add('hidden');
                 alert(`Confirmation email sent to ${d.customerEmail}`);
@@ -678,7 +702,7 @@
                 alert(`Failed to send email: ${err.message}`);
             } finally {
                 sendBtn.disabled = false;
-                sendBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg> Confirm & Send`;
+                sendBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg> Confirm & Send to Guest`;
                 sendBtn.classList.remove('syncing-pulse');
             }
         };
