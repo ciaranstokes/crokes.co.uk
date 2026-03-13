@@ -632,260 +632,314 @@
     </div>
 
     <!-- Enquiry Details Modal -->
-    <div id="detailModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
-            <div id="modalHeader" class="bg-slate-900 text-white p-6">
-                <h3 id="modalTitle" class="text-xl font-bold">Reservation</h3>
-                <p id="modalSubtitle" class="text-slate-400 text-sm mt-1 uppercase tracking-wider font-semibold"></p>
-            </div>
-            <div class="p-6 space-y-4">
-                <div id="finalizedBadge" class="hidden bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest text-center">Confirmed Booking</div>
-                <div class="grid grid-cols-2 gap-4 text-sm">
-                    <div><p class="text-slate-400 font-bold uppercase text-[10px]">Guests</p><p id="modalPax" class="font-bold text-slate-900"></p></div>
-                    <div><p class="text-slate-400 font-bold uppercase text-[10px]">Menu</p><p id="modalMenu" class="font-bold text-slate-900"></p></div>
-                </div>
-                <div class="border-t pt-4">
-                    <p class="text-slate-400 font-bold uppercase text-[10px]">Contact Info</p>
-                    <p id="modalPhone" class="text-slate-700 mt-1"></p>
-                    <p id="modalEmail" class="text-slate-700"></p>
-                </div>
-                <div class="border-t pt-4">
-                    <p class="text-slate-400 font-bold uppercase text-[10px]">Special Requests / Dietary</p>
-                    <p id="modalNotes" class="text-slate-700 italic mt-1"></p>
-                </div>
-                <div id="modalConfirmedNotesWrapper" class="hidden border-t border-emerald-100 bg-emerald-50/30 p-3 rounded-lg mt-2">
-                    <p class="text-emerald-600 font-bold uppercase text-[10px]">Kitchen Updates / Extra Details</p>
-                    <p id="modalConfirmedNotes" class="text-emerald-800 text-sm italic mt-1"></p>
+    <div id="detailModal" class="fixed inset-0 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden" style="background:rgba(44,28,26,0.65);">
+        <div style="background:#fff;border-radius:2px;box-shadow:0 20px 60px rgba(98,74,68,0.25);width:100%;max-width:440px;overflow:hidden;">
+
+            <!-- Burgundy header -->
+            <div id="modalHeader" style="background:var(--burgundy);padding:24px 28px 20px;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                    <div>
+                        <h3 id="modalTitle" style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--taupe);margin:0 0 4px;"></h3>
+                        <p id="modalSubtitle" style="font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(228,225,220,0.55);margin:0;font-family:'DM Sans',sans-serif;"></p>
+                    </div>
+                    <div id="finalizedBadge" class="hidden" style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#6ee7b7;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.25);border-radius:20px;padding:4px 10px;white-space:nowrap;">✓ Confirmed</div>
                 </div>
             </div>
-            <div class="bg-slate-50 p-4 flex flex-col gap-3">
-                <button id="modalConfirmTrigger" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-lg hover:bg-emerald-700 transition">Confirm Reservation</button>
-                <div id="confirmedActions" class="hidden flex flex-col gap-3">
-                    <div class="grid grid-cols-2 gap-3">
-                        <button id="modalSendGuestBtn" class="w-full bg-blue-100 text-blue-800 border border-blue-200 font-bold py-3 rounded-lg hover:bg-blue-200 transition flex items-center justify-center gap-2 text-sm">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /></svg>
+
+            <!-- Taupe accent strip -->
+            <div style="background:var(--taupe);border-bottom:1px solid var(--taupe-dk);padding:8px 28px;display:flex;gap:16px;">
+                <div>
+                    <span style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-light);">Covers</span>
+                    <span id="modalPax" style="font-size:13px;font-weight:600;color:var(--burgundy);margin-left:6px;font-family:'DM Sans',sans-serif;"></span>
+                </div>
+                <div style="width:1px;background:var(--taupe-dk);"></div>
+                <div>
+                    <span style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-light);">Menu</span>
+                    <span id="modalMenu" style="font-size:13px;font-weight:600;color:var(--burgundy);margin-left:6px;font-family:'DM Sans',sans-serif;"></span>
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div style="padding:20px 28px;display:flex;flex-direction:column;gap:16px;">
+
+                <!-- Contact -->
+                <div>
+                    <p style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-light);margin:0 0 6px;">Contact</p>
+                    <p id="modalPhone" style="font-size:13px;color:var(--text-dark);margin:0 0 2px;"></p>
+                    <p id="modalEmail" style="font-size:13px;color:var(--text-mid);margin:0;"></p>
+                </div>
+
+                <!-- Divider -->
+                <div style="height:1px;background:var(--taupe-dk);"></div>
+
+                <!-- Dietary -->
+                <div>
+                    <p style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-light);margin:0 0 6px;">Special Requests / Dietary</p>
+                    <p id="modalNotes" style="font-size:13px;color:var(--text-mid);font-style:italic;margin:0;"></p>
+                </div>
+
+                <!-- Kitchen notes (confirmed only) -->
+                <div id="modalConfirmedNotesWrapper" class="hidden" style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);border-radius:2px;padding:12px 14px;">
+                    <p style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#059669;margin:0 0 4px;">Kitchen Notes</p>
+                    <p id="modalConfirmedNotes" style="font-size:13px;color:#065f46;font-style:italic;margin:0;"></p>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div style="padding:16px 28px 20px;display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--taupe-dk);">
+
+                <!-- Primary: confirm / edit -->
+                <button id="modalConfirmTrigger" class="btn-submit" style="font-size:10px;">Confirm Reservation</button>
+
+                <!-- Confirmed-only actions -->
+                <div id="confirmedActions" class="hidden" style="display:none;flex-direction:column;gap:8px;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                        <button id="modalSendGuestBtn" style="background:rgba(98,74,68,0.07);border:1px solid rgba(98,74,68,0.2);border-radius:2px;color:var(--burgundy);font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:11px 8px;cursor:pointer;transition:background 0.15s;display:flex;align-items:center;justify-content:center;gap:6px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" style="width:13px;height:13px;" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/></svg>
                             Email Guest
                         </button>
-                        <button id="modalDownloadICSBtn" class="w-full bg-slate-100 text-slate-800 border border-slate-200 font-bold py-3 rounded-lg hover:bg-slate-200 transition flex items-center justify-center gap-2 text-sm">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 001-2H6z" clip-rule="evenodd" /></svg>
+                        <button id="modalDownloadICSBtn" style="background:var(--cream);border:1px solid var(--taupe-dk);border-radius:2px;color:var(--text-mid);font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:11px 8px;cursor:pointer;transition:background 0.15s;display:flex;align-items:center;justify-content:center;gap:6px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" style="width:13px;height:13px;" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 001-2H6z" clip-rule="evenodd"/></svg>
                             Add to Cal
                         </button>
                     </div>
-                    <button id="modalKitchenBtn" class="w-full bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold py-3 rounded-lg hover:bg-emerald-200 transition flex items-center justify-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /></svg>
+                    <button id="modalKitchenBtn" style="background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.25);border-radius:2px;color:#047857;font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:11px 8px;cursor:pointer;transition:background 0.15s;display:flex;align-items:center;justify-content:center;gap:6px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" style="width:13px;height:13px;" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/></svg>
                         Send to Kitchen Diary
                     </button>
                 </div>
-                <div class="flex gap-2 border-t pt-3">
-                    <button id="modalClose" class="flex-1 py-3 font-bold text-slate-600 hover:bg-slate-200 rounded-lg transition">Close</button>
-                    <button id="modalCancelBtn" class="flex-1 py-3 font-bold text-red-600 hover:bg-red-50 rounded-lg border border-red-200 transition">Cancel Group</button>
+
+                <!-- Close / Cancel -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:2px;">
+                    <button id="modalClose" style="background:transparent;border:1px solid var(--taupe-dk);border-radius:2px;color:var(--text-mid);font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:11px 8px;cursor:pointer;transition:all 0.15s;">Close</button>
+                    <button id="modalCancelBtn" style="background:transparent;border:1px solid rgba(185,28,28,0.25);border-radius:2px;color:#b91c1c;font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:11px 8px;cursor:pointer;transition:all 0.15s;">Cancel Booking</button>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Confirm Form Modal -->
-    <div id="confirmFormModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[60] hidden">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
-            <div class="bg-emerald-600 text-white p-6"><h3 id="confirmFormTitle" class="text-xl font-bold">Finalise Reservation</h3></div>
-            <form id="finalConfirmForm" class="p-6 space-y-4">
-                <div class="grid grid-cols-2 gap-4">
-                    <div><label class="block text-xs font-bold text-slate-400 uppercase">Confirmed Date</label><input type="date" name="resDate" required class="w-full p-2 border rounded mt-1"></div>
-                    <div><label class="block text-xs font-bold text-slate-400 uppercase">Confirmed Time</label><input type="time" name="resTime" required class="w-full p-2 border rounded mt-1"></div>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div><label class="block text-xs font-bold text-slate-400 uppercase">Adults</label><input type="number" name="adultCount" min="1" class="w-full p-2 border rounded mt-1"></div>
-                    <div><label class="block text-xs font-bold text-slate-400 uppercase">Children</label><input type="number" name="childCount" min="0" class="w-full p-2 border rounded mt-1"></div>
-                </div>
-                <div><label class="block text-xs font-bold text-slate-400 uppercase">Confirmed Menu Choice</label><select name="menuArrangement" class="w-full p-2 border rounded mt-1"><option value="Sharing Menu">Sharing Menu</option><option value="Choose on the Day">Choose on the Day</option><option value="Other">Other (Special)</option></select></div>
-                <div><label class="block text-xs font-bold text-slate-400 uppercase">Kitchen Update Notes</label><textarea name="confirmedNotes" rows="2" class="w-full p-2 border rounded mt-1 text-sm"></textarea></div>
-                <div class="border-t pt-4 space-y-3">
-                    <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" id="isResident" name="isResident" class="w-5 h-5 rounded border-slate-300"><span class="text-sm font-semibold">Are they a Resident?</span></label>
-                    <div id="nonResidentFields" class="space-y-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
-                        <div><label class="block text-xs font-bold text-slate-400 uppercase mb-1">Deposit Amount (£)</label><input type="number" name="depositAmount" step="0.01" min="0" class="w-full p-2 border rounded"></div>
-                        <div class="space-y-2">
-                            <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" name="nraSetup" class="w-4 h-4 rounded border-slate-300"><span class="text-sm">Has an NRA been setup?</span></label>
-                            <div class="bg-blue-50 p-2 rounded border border-blue-100"><p class="text-[10px] text-blue-600 font-bold uppercase">Required NRA Label Format:</p><p id="nraFormatPreview" class="text-xs font-mono text-blue-800 font-bold mt-1 italic"></p></div>
+    <div id="confirmFormModal" class="fixed inset-0 backdrop-blur-sm flex items-center justify-center p-4 z-[60] hidden" style="background:rgba(44,28,26,0.65);">
+        <div style="background:#fff;border-radius:2px;box-shadow:0 20px 60px rgba(98,74,68,0.25);width:100%;max-width:520px;overflow:hidden;max-height:92vh;display:flex;flex-direction:column;">
+
+            <!-- Header -->
+            <div style="background:var(--burgundy);padding:22px 28px 18px;flex-shrink:0;">
+                <h3 id="confirmFormTitle" style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--taupe);margin:0 0 2px;">Finalise Reservation</h3>
+                <p style="font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(228,225,220,0.5);margin:0;font-family:'DM Sans',sans-serif;">Verify details before confirming</p>
+            </div>
+
+            <!-- Accent strip -->
+            <div style="background:var(--taupe);border-bottom:1px solid var(--taupe-dk);padding:7px 28px;">
+                <span style="font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--burgundy);">Reservation Details</span>
+            </div>
+
+            <!-- Form body -->
+            <form id="finalConfirmForm" style="padding:24px 28px;display:flex;flex-direction:column;gap:18px;overflow-y:auto;flex:1;">
+
+                <!-- Date & Time -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                    <div class="form-group">
+                        <label class="field-label">Confirmed Date</label>
+                        <input type="date" name="resDate" required class="field-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="field-label">Confirmed Time</label>
+                        <input type="hidden" name="resTime" id="confirmResTimeHidden">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                            <select id="confirmTimeHour" class="field-input" aria-label="Hour">
+                                <option value="">Hour</option>
+                                <option>12</option><option>1</option><option>2</option>
+                                <option>3</option><option>4</option><option>5</option>
+                                <option>6</option><option>7</option><option>8</option><option>9</option>
+                            </select>
+                            <select id="confirmTimeMin" class="field-input" aria-label="Minute">
+                                <option value="">Min</option>
+                                <option>00</option><option>15</option><option>30</option><option>45</option>
+                            </select>
                         </div>
                     </div>
                 </div>
-                <div class="flex gap-3 pt-4 border-t">
-                    <button type="button" id="confirmFormCancel" class="flex-1 py-3 text-slate-500 font-bold hover:bg-slate-100 rounded-lg transition">Back</button>
-                    <button type="submit" class="flex-1 py-3 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 shadow-md transition">Save & Confirm</button>
+
+                <!-- Adults & Children -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                    <div class="form-group">
+                        <label class="field-label">Adults</label>
+                        <input type="number" name="adultCount" min="1" class="field-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="field-label">Children</label>
+                        <input type="number" name="childCount" min="0" class="field-input">
+                    </div>
                 </div>
+
+                <!-- Menu -->
+                <div class="form-group">
+                    <label class="field-label">Confirmed Menu Choice</label>
+                    <select name="menuArrangement" class="field-input">
+                        <option value="Sharing Menu">Sharing Menu</option>
+                        <option value="Choose on the Day">Choose on the Day</option>
+                        <option value="Other">Other (Special)</option>
+                    </select>
+                </div>
+
+                <!-- Kitchen notes -->
+                <div class="form-group">
+                    <label class="field-label">Kitchen Update Notes</label>
+                    <textarea name="confirmedNotes" rows="2" class="field-input" style="resize:vertical;"></textarea>
+                </div>
+
+                <!-- Resident / NRA section -->
+                <div style="border-top:1px solid var(--taupe-dk);padding-top:18px;display:flex;flex-direction:column;gap:14px;">
+                    <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+                        <input type="checkbox" id="isResident" name="isResident" style="width:16px;height:16px;accent-color:var(--burgundy);cursor:pointer;">
+                        <span style="font-size:12px;font-weight:600;color:var(--text-dark);font-family:'DM Sans',sans-serif;">Resident booking?</span>
+                    </label>
+                    <div id="nonResidentFields" style="background:var(--cream);border:1px solid var(--taupe-dk);border-radius:2px;padding:16px;display:flex;flex-direction:column;gap:14px;">
+                        <div class="form-group">
+                            <label class="field-label">Deposit Amount (£)</label>
+                            <input type="number" name="depositAmount" step="0.01" min="0" class="field-input">
+                        </div>
+                        <div style="display:flex;flex-direction:column;gap:8px;">
+                            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+                                <input type="checkbox" name="nraSetup" style="width:16px;height:16px;accent-color:var(--burgundy);cursor:pointer;">
+                                <span style="font-size:12px;color:var(--text-dark);font-family:'DM Sans',sans-serif;">NRA has been set up</span>
+                            </label>
+                            <div style="background:#fff;border:1px solid var(--taupe-dk);border-radius:2px;padding:10px 12px;">
+                                <p style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-light);margin:0 0 4px;">Required NRA Label Format</p>
+                                <p id="nraFormatPreview" style="font-size:12px;font-family:monospace;font-weight:700;color:var(--burgundy);margin:0;font-style:italic;"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer buttons -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding-top:4px;">
+                    <button type="button" id="confirmFormCancel" class="btn-reset">Back</button>
+                    <button type="submit" class="btn-submit" style="font-size:10px;">Save &amp; Confirm</button>
+                </div>
+
             </form>
         </div>
     </div>
 
     <!-- Email Preview Modal -->
-    <div id="emailPreviewModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 z-[70] hidden">
-        <div class="bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col" style="max-height: 92vh; width: 100%; max-width: 960px;">
+    <div id="emailPreviewModal" class="fixed inset-0 backdrop-blur-sm flex items-center justify-center p-4 z-[70] hidden" style="background:rgba(44,28,26,0.65);">
+        <div style="background:#fff;border-radius:2px;box-shadow:0 20px 60px rgba(98,74,68,0.25);overflow:hidden;display:flex;flex-direction:column;max-height:92vh;width:100%;max-width:960px;">
+
             <!-- Header -->
-            <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between flex-shrink-0">
+            <div style="background:var(--burgundy);padding:18px 24px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
                 <div>
-                    <h3 class="text-base font-bold">Email Preview & Edit</h3>
-                    <p class="text-slate-400 text-xs mt-0.5">Make any changes, then confirm to send</p>
+                    <h3 style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:var(--taupe);margin:0 0 2px;">Guest Email Preview</h3>
+                    <p style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(228,225,220,0.5);margin:0;font-family:'DM Sans',sans-serif;">Make changes, then confirm to send</p>
                 </div>
-                <span class="text-[10px] font-bold uppercase tracking-widest bg-amber-400 text-amber-900 px-3 py-1 rounded-full">Not Sent Yet</span>
+                <span style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;background:rgba(251,191,36,0.2);color:#fbbf24;border:1px solid rgba(251,191,36,0.3);border-radius:20px;padding:4px 12px;">Not Sent Yet</span>
             </div>
 
-            <!-- Two-column body: edit panel left, preview right -->
-            <div class="flex flex-1 min-h-0 overflow-hidden">
+            <!-- Two-column body -->
+            <div style="display:flex;flex:1;min-height:0;overflow:hidden;">
 
                 <!-- LEFT: Edit panel -->
-                <div class="w-80 flex-shrink-0 border-r border-slate-200 bg-slate-50 flex flex-col overflow-y-auto">
-                    <div class="p-4 border-b border-slate-200 bg-white space-y-3">
+                <div style="width:300px;flex-shrink:0;border-right:1px solid var(--taupe-dk);background:var(--cream);display:flex;flex-direction:column;overflow-y:auto;">
+                    <div style="padding:16px 18px;border-bottom:1px solid var(--taupe-dk);background:#fff;display:flex;flex-direction:column;gap:12px;">
                         <div>
-                            <label class="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Sending To</label>
-                            <input type="email" id="previewToAddress" class="w-full p-2 text-sm font-semibold border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-400 outline-none bg-white" placeholder="guest@example.com">
-                            <p id="emailValidationMsg" class="text-[10px] text-red-500 mt-1 hidden">Please enter a valid email address.</p>
+                            <label class="field-label">Sending To</label>
+                            <input type="email" id="previewToAddress" class="field-input" style="margin-top:4px;" placeholder="guest@example.com">
+                            <p id="emailValidationMsg" class="hidden" style="font-size:11px;color:#b91c1c;margin:4px 0 0;">Please enter a valid email address.</p>
                         </div>
                         <div>
-                            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Subject</p>
-                            <p id="previewSubjectLine" class="text-xs text-slate-600 italic mt-1"></p>
+                            <p class="field-label">Subject</p>
+                            <p id="previewSubjectLine" style="font-size:12px;color:var(--text-mid);font-style:italic;margin:4px 0 0;"></p>
                         </div>
                     </div>
-
-                    <div class="p-4 space-y-4 flex-1">
-                        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Edit Email Fields</p>
-                        <p class="text-xs text-slate-500">Changes update the preview instantly. Nothing is sent until you click Confirm & Send.</p>
-
-                        <div>
-                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Greeting Name</label>
-                            <input type="text" id="edit_customerName" class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-400 outline-none bg-white">
+                    <div style="padding:16px 18px;display:flex;flex-direction:column;gap:14px;flex:1;">
+                        <p class="field-label">Edit Email Fields</p>
+                        <p style="font-size:11px;color:var(--text-light);margin:0;">Changes update the preview instantly.</p>
+                        <div class="form-group"><label class="field-label">Greeting Name</label><input type="text" id="edit_customerName" class="field-input" style="margin-top:4px;"></div>
+                        <div class="form-group"><label class="field-label">Date</label><input type="date" id="edit_resDate" class="field-input" style="margin-top:4px;"></div>
+                        <div class="form-group"><label class="field-label">Time</label><input type="time" id="edit_resTime" class="field-input" style="margin-top:4px;"></div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                            <div class="form-group"><label class="field-label">Adults</label><input type="number" id="edit_adultCount" min="0" class="field-input" style="margin-top:4px;"></div>
+                            <div class="form-group"><label class="field-label">Children</label><input type="number" id="edit_childCount" min="0" class="field-input" style="margin-top:4px;"></div>
                         </div>
-                        <div>
-                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Date</label>
-                            <input type="date" id="edit_resDate" class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-400 outline-none bg-white">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Time</label>
-                            <input type="time" id="edit_resTime" class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-400 outline-none bg-white">
-                        </div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <div>
-                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Adults</label>
-                                <input type="number" id="edit_adultCount" min="0" class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-400 outline-none bg-white">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Children</label>
-                                <input type="number" id="edit_childCount" min="0" class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-400 outline-none bg-white">
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Menu</label>
-                            <input type="text" id="edit_menuDisplay" class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-400 outline-none bg-white">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Deposit Paid</label>
-                            <input type="text" id="edit_depositAmount" placeholder="e.g. £50.00 or N/A" class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-400 outline-none bg-white">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Special Arrangements</label>
-                            <textarea id="edit_notes" rows="3" class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-400 outline-none bg-white resize-none"></textarea>
-                        </div>
+                        <div class="form-group"><label class="field-label">Menu</label><input type="text" id="edit_menuDisplay" class="field-input" style="margin-top:4px;"></div>
+                        <div class="form-group"><label class="field-label">Deposit Paid</label><input type="text" id="edit_depositAmount" placeholder="e.g. £50.00 or N/A" class="field-input" style="margin-top:4px;"></div>
+                        <div class="form-group"><label class="field-label">Special Arrangements</label><textarea id="edit_notes" rows="3" class="field-input" style="margin-top:4px;resize:none;"></textarea></div>
                     </div>
                 </div>
 
-                <!-- RIGHT: Live iframe preview -->
-                <div class="flex-1 overflow-auto bg-slate-200 p-4 min-h-0">
-                    <iframe id="emailPreviewFrame" class="w-full rounded-xl border border-slate-300 shadow bg-white" style="min-height: 700px;" frameborder="0" sandbox="allow-same-origin"></iframe>
+                <!-- RIGHT: Live preview -->
+                <div style="flex:1;overflow:auto;background:var(--cream-dk);padding:16px;">
+                    <iframe id="emailPreviewFrame" style="width:100%;border-radius:2px;border:1px solid var(--taupe-dk);min-height:700px;background:#fff;" frameborder="0" sandbox="allow-same-origin"></iframe>
                 </div>
             </div>
 
-            <!-- Footer actions -->
-            <div class="border-t bg-white px-6 py-4 flex gap-3 flex-shrink-0">
-                <button id="previewCancelBtn" class="flex-1 py-3 font-bold text-slate-600 hover:bg-slate-100 rounded-lg transition border border-slate-200">
-                    Back
-                </button>
-                <button id="previewSendBtn" class="flex-1 py-3 font-bold text-white rounded-lg transition shadow flex items-center justify-center gap-2" style="background-color:#624A44;">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
-                    Confirm & Send to Guest
+            <!-- Footer -->
+            <div style="border-top:1px solid var(--taupe-dk);background:#fff;padding:14px 24px;display:flex;gap:10px;flex-shrink:0;">
+                <button id="previewCancelBtn" class="btn-reset" style="flex:1;">Back</button>
+                <button id="previewSendBtn" class="btn-submit" style="flex:1;font-size:10px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/></svg>
+                    Confirm &amp; Send to Guest
                 </button>
             </div>
         </div>
     </div>
 
     <!-- Cancellation Email Preview Modal -->
-    <div id="cancelPreviewModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 z-[70] hidden">
-        <div class="bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col" style="max-height: 92vh; width: 100%; max-width: 960px;">
-            <!-- Header -->
-            <div class="px-6 py-4 flex items-center justify-between flex-shrink-0" style="background-color:#7f1d1d;">
+    <div id="cancelPreviewModal" class="fixed inset-0 backdrop-blur-sm flex items-center justify-center p-4 z-[70] hidden" style="background:rgba(44,28,26,0.65);">
+        <div style="background:#fff;border-radius:2px;box-shadow:0 20px 60px rgba(98,74,68,0.25);overflow:hidden;display:flex;flex-direction:column;max-height:92vh;width:100%;max-width:960px;">
+
+            <!-- Header — dark red for cancellation -->
+            <div style="background:#7f1d1d;padding:18px 24px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
                 <div>
-                    <h3 class="text-base font-bold text-white">Cancellation Email Preview & Edit</h3>
-                    <p class="text-red-200 text-xs mt-0.5">Review before sending — this cannot be undone</p>
+                    <h3 style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:#fecaca;margin:0 0 2px;">Cancellation Email Preview</h3>
+                    <p style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(254,202,202,0.5);margin:0;font-family:'DM Sans',sans-serif;">Review before sending — this cannot be undone</p>
                 </div>
-                <span class="text-[10px] font-bold uppercase tracking-widest bg-red-200 text-red-900 px-3 py-1 rounded-full">Not Sent Yet</span>
+                <span style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;background:rgba(254,202,202,0.15);color:#fca5a5;border:1px solid rgba(254,202,202,0.25);border-radius:20px;padding:4px 12px;">Not Sent Yet</span>
             </div>
 
             <!-- Two-column body -->
-            <div class="flex flex-1 min-h-0 overflow-hidden">
+            <div style="display:flex;flex:1;min-height:0;overflow:hidden;">
 
                 <!-- LEFT: Edit panel -->
-                <div class="w-80 flex-shrink-0 border-r border-slate-200 bg-slate-50 flex flex-col overflow-y-auto">
-                    <div class="p-4 border-b border-slate-200 bg-white space-y-3">
+                <div style="width:300px;flex-shrink:0;border-right:1px solid var(--taupe-dk);background:var(--cream);display:flex;flex-direction:column;overflow-y:auto;">
+                    <div style="padding:16px 18px;border-bottom:1px solid var(--taupe-dk);background:#fff;display:flex;flex-direction:column;gap:12px;">
                         <div>
-                            <label class="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Sending To</label>
-                            <input type="email" id="cancelPreviewToAddress" class="w-full p-2 text-sm font-semibold border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-300 outline-none bg-white" placeholder="guest@example.com">
-                            <p id="cancelEmailValidationMsg" class="text-[10px] text-red-500 mt-1 hidden">Please enter a valid email address.</p>
+                            <label class="field-label">Sending To</label>
+                            <input type="email" id="cancelPreviewToAddress" class="field-input" style="margin-top:4px;" placeholder="guest@example.com">
+                            <p id="cancelEmailValidationMsg" class="hidden" style="font-size:11px;color:#b91c1c;margin:4px 0 0;">Please enter a valid email address.</p>
                         </div>
                         <div>
-                            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Subject</p>
-                            <p id="cancelPreviewSubjectLine" class="text-xs text-slate-600 italic mt-1"></p>
+                            <p class="field-label">Subject</p>
+                            <p id="cancelPreviewSubjectLine" style="font-size:12px;color:var(--text-mid);font-style:italic;margin:4px 0 0;"></p>
                         </div>
                     </div>
-
-                    <div class="p-4 space-y-4 flex-1">
-                        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Edit Email Fields</p>
-                        <p class="text-xs text-slate-500">Adjust any details before sending. The booking will be deleted after you send.</p>
-
-                        <div>
-                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Guest Name</label>
-                            <input type="text" id="cancel_customerName" class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-300 outline-none bg-white">
+                    <div style="padding:16px 18px;display:flex;flex-direction:column;gap:14px;flex:1;">
+                        <p class="field-label">Edit Email Fields</p>
+                        <p style="font-size:11px;color:var(--text-light);margin:0;">The booking will be deleted after you send.</p>
+                        <div class="form-group"><label class="field-label">Guest Name</label><input type="text" id="cancel_customerName" class="field-input" style="margin-top:4px;"></div>
+                        <div class="form-group"><label class="field-label">Original Date</label><input type="date" id="cancel_resDate" class="field-input" style="margin-top:4px;"></div>
+                        <div class="form-group"><label class="field-label">Original Time</label><input type="time" id="cancel_resTime" class="field-input" style="margin-top:4px;"></div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                            <div class="form-group"><label class="field-label">Adults</label><input type="number" id="cancel_adultCount" min="0" class="field-input" style="margin-top:4px;"></div>
+                            <div class="form-group"><label class="field-label">Children</label><input type="number" id="cancel_childCount" min="0" class="field-input" style="margin-top:4px;"></div>
                         </div>
-                        <div>
-                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Original Date</label>
-                            <input type="date" id="cancel_resDate" class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-300 outline-none bg-white">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Original Time</label>
-                            <input type="time" id="cancel_resTime" class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-300 outline-none bg-white">
-                        </div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <div>
-                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Adults</label>
-                                <input type="number" id="cancel_adultCount" min="0" class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-300 outline-none bg-white">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Children</label>
-                                <input type="number" id="cancel_childCount" min="0" class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-300 outline-none bg-white">
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Deposit Refund Note</label>
-                            <input type="text" id="cancel_depositNote" placeholder="e.g. Refund processed or N/A" class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-300 outline-none bg-white">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Additional Message (optional)</label>
-                            <textarea id="cancel_additionalMsg" rows="3" placeholder="e.g. We hope to welcome you again soon." class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-300 outline-none bg-white resize-none"></textarea>
-                        </div>
+                        <div class="form-group"><label class="field-label">Deposit Refund Note</label><input type="text" id="cancel_depositNote" placeholder="e.g. Refund processed or N/A" class="field-input" style="margin-top:4px;"></div>
+                        <div class="form-group"><label class="field-label">Additional Message (optional)</label><textarea id="cancel_additionalMsg" rows="3" placeholder="e.g. We hope to welcome you again soon." class="field-input" style="margin-top:4px;resize:none;"></textarea></div>
                     </div>
                 </div>
 
-                <!-- RIGHT: Live iframe preview -->
-                <div class="flex-1 overflow-auto bg-slate-200 p-4 min-h-0">
-                    <iframe id="cancelPreviewFrame" class="w-full rounded-xl border border-slate-300 shadow bg-white" style="min-height: 700px;" frameborder="0" sandbox="allow-same-origin"></iframe>
+                <!-- RIGHT: Live preview -->
+                <div style="flex:1;overflow:auto;background:var(--cream-dk);padding:16px;">
+                    <iframe id="cancelPreviewFrame" style="width:100%;border-radius:2px;border:1px solid var(--taupe-dk);min-height:700px;background:#fff;" frameborder="0" sandbox="allow-same-origin"></iframe>
                 </div>
             </div>
 
-            <!-- Footer actions -->
-            <div class="border-t bg-white px-6 py-4 flex gap-3 flex-shrink-0">
-                <button id="cancelPreviewBackBtn" class="flex-1 py-3 font-bold text-slate-600 hover:bg-slate-100 rounded-lg transition border border-slate-200">
-                    Back
-                </button>
-                <button id="cancelPreviewSendBtn" class="flex-1 py-3 font-bold text-white rounded-lg transition shadow flex items-center justify-center gap-2" style="background-color:#991b1b;">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
-                    Send Cancellation & Delete Booking
+            <!-- Footer -->
+            <div style="border-top:1px solid var(--taupe-dk);background:#fff;padding:14px 24px;display:flex;gap:10px;flex-shrink:0;">
+                <button id="cancelPreviewBackBtn" class="btn-reset" style="flex:1;">Back</button>
+                <button id="cancelPreviewSendBtn" class="btn-submit" style="flex:1;font-size:10px;background:#991b1b;">
+                    <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/></svg>
+                    Send Cancellation &amp; Delete Booking
                 </button>
             </div>
         </div>
@@ -1789,7 +1843,7 @@
 
             const isFinal = data.status === 'finalized';
             getEl('finalizedBadge').classList.toggle('hidden', !isFinal);
-            getEl('confirmedActions').classList.toggle('hidden', !isFinal);
+            getEl('confirmedActions').style.display = isFinal ? 'flex' : 'none';
             getEl('modalConfirmTrigger').textContent = isFinal ? "Edit Confirmation" : "Confirm Reservation";
 
             const notesWrap = getEl('modalConfirmedNotesWrapper');
@@ -1804,20 +1858,31 @@
         getEl('modalConfirmTrigger').onclick = () => {
             const f = getEl('finalConfirmForm');
             const d = currentViewingBooking;
-            f.resDate.value = d.resDate; f.resTime.value = d.resTime;
+            f.resDate.value = d.resDate;
+            // Populate 12hr confirm time picker
+            if (d.resTime) {
+                const [hh, mm] = d.resTime.split(':');
+                let h = parseInt(hh);
+                if (h > 12) h -= 12;
+                getEl('confirmTimeHour').value = String(h);
+                getEl('confirmTimeMin').value = mm;
+                syncConfirmTime();
+            }
             f.adultCount.value = d.adultCount; f.childCount.value = d.childCount;
             f.menuArrangement.value = (d.menuArrangement === 'Unknown' || !d.menuArrangement) ? 'Choose on the Day' : d.menuArrangement;
             f.confirmedNotes.value = d.confirmedNotes || '';
             f.isResident.checked = !!d.isResident;
             f.depositAmount.value = d.depositAmount || '';
             f.nraSetup.checked = !!d.nraSetup;
-            dom.nonResidentFields.classList.toggle('hidden', f.isResident.checked);
+            dom.nonResidentFields.style.display = f.isResident.checked ? 'none' : 'flex';
             dom.nraPreview.textContent = generateKitchenLabel(d);
             dom.detailModal.classList.add('hidden');
             dom.confirmModal.classList.remove('hidden');
         };
 
-        dom.residentToggle.onchange = () => dom.nonResidentFields.classList.toggle('hidden', dom.residentToggle.checked);
+        dom.residentToggle.onchange = () => {
+            dom.nonResidentFields.style.display = dom.residentToggle.checked ? 'none' : 'flex';
+        };
 
         // --- Confirmation Handler: Automated Email + Attachment ---
         getEl('finalConfirmForm').onsubmit = async (e) => {
@@ -2266,11 +2331,19 @@
             const h = getEl('timeHour').value;
             const m = getEl('timeMin').value;
             if (!h || !m) { getEl('resTimeHidden').value = ''; return; }
-            // Always PM: 12→12, 1→13, 2→14 ... 9→21
             const hour24 = parseInt(h) === 12 ? 12 : parseInt(h) + 12;
             getEl('resTimeHidden').value = `${String(hour24).padStart(2,'0')}:${m}`;
         };
         ['timeHour','timeMin'].forEach(id => getEl(id).addEventListener('change', () => { syncTimeField(); dom.resForm.dispatchEvent(new Event('input')); }));
+
+        const syncConfirmTime = () => {
+            const h = getEl('confirmTimeHour').value;
+            const m = getEl('confirmTimeMin').value;
+            if (!h || !m) { getEl('confirmResTimeHidden').value = ''; return; }
+            const hour24 = parseInt(h) === 12 ? 12 : parseInt(h) + 12;
+            getEl('confirmResTimeHidden').value = `${String(hour24).padStart(2,'0')}:${m}`;
+        };
+        ['confirmTimeHour','confirmTimeMin'].forEach(id => getEl(id).addEventListener('change', syncConfirmTime));
 
         // Restore 12hr dropdowns when draft is loaded (resTime is in 24hr format)
         const set12hrFromValue = (val) => {
