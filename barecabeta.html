@@ -337,6 +337,91 @@
         </div>
     </div>
 
+    <!-- Cancellation Email Preview Modal -->
+    <div id="cancelPreviewModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 z-[70] hidden">
+        <div class="bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col" style="max-height: 92vh; width: 100%; max-width: 960px;">
+            <!-- Header -->
+            <div class="px-6 py-4 flex items-center justify-between flex-shrink-0" style="background-color:#7f1d1d;">
+                <div>
+                    <h3 class="text-base font-bold text-white">Cancellation Email Preview & Edit</h3>
+                    <p class="text-red-200 text-xs mt-0.5">Review before sending — this cannot be undone</p>
+                </div>
+                <span class="text-[10px] font-bold uppercase tracking-widest bg-red-200 text-red-900 px-3 py-1 rounded-full">Not Sent Yet</span>
+            </div>
+
+            <!-- Two-column body -->
+            <div class="flex flex-1 min-h-0 overflow-hidden">
+
+                <!-- LEFT: Edit panel -->
+                <div class="w-80 flex-shrink-0 border-r border-slate-200 bg-slate-50 flex flex-col overflow-y-auto">
+                    <div class="p-4 border-b border-slate-200 bg-white space-y-3">
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Sending To</label>
+                            <input type="email" id="cancelPreviewToAddress" class="w-full p-2 text-sm font-semibold border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-300 outline-none bg-white" placeholder="guest@example.com">
+                            <p id="cancelEmailValidationMsg" class="text-[10px] text-red-500 mt-1 hidden">Please enter a valid email address.</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Subject</p>
+                            <p id="cancelPreviewSubjectLine" class="text-xs text-slate-600 italic mt-1"></p>
+                        </div>
+                    </div>
+
+                    <div class="p-4 space-y-4 flex-1">
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Edit Email Fields</p>
+                        <p class="text-xs text-slate-500">Adjust any details before sending. The booking will be deleted after you send.</p>
+
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Guest Name</label>
+                            <input type="text" id="cancel_customerName" class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-300 outline-none bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Original Date</label>
+                            <input type="date" id="cancel_resDate" class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-300 outline-none bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Original Time</label>
+                            <input type="time" id="cancel_resTime" class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-300 outline-none bg-white">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Adults</label>
+                                <input type="number" id="cancel_adultCount" min="0" class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-300 outline-none bg-white">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Children</label>
+                                <input type="number" id="cancel_childCount" min="0" class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-300 outline-none bg-white">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Deposit Refund Note</label>
+                            <input type="text" id="cancel_depositNote" placeholder="e.g. Refund processed or N/A" class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-300 outline-none bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Additional Message (optional)</label>
+                            <textarea id="cancel_additionalMsg" rows="3" placeholder="e.g. We hope to welcome you again soon." class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-300 outline-none bg-white resize-none"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT: Live iframe preview -->
+                <div class="flex-1 overflow-auto bg-slate-200 p-4 min-h-0">
+                    <iframe id="cancelPreviewFrame" class="w-full rounded-xl border border-slate-300 shadow bg-white" style="min-height: 700px;" frameborder="0" sandbox="allow-same-origin"></iframe>
+                </div>
+            </div>
+
+            <!-- Footer actions -->
+            <div class="border-t bg-white px-6 py-4 flex gap-3 flex-shrink-0">
+                <button id="cancelPreviewBackBtn" class="flex-1 py-3 font-bold text-slate-600 hover:bg-slate-100 rounded-lg transition border border-slate-200">
+                    Back
+                </button>
+                <button id="cancelPreviewSendBtn" class="flex-1 py-3 font-bold text-white rounded-lg transition shadow flex items-center justify-center gap-2" style="background-color:#991b1b;">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
+                    Send Cancellation & Delete Booking
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -483,8 +568,8 @@
 
       <!-- LOGO HEADER -->
       <tr>
-        <td style="background-color:##e4e1dc;padding:32px 40px 24px;text-align:center;border-radius:4px 4px 0 0;">
-          <img src="https://framerusercontent.com/images/z1j6LJZfF4uLlPlAZMHc9mP8AtE.png" alt="Bareca at Bike and Boot" width="220" style="display:block;margin:0 auto;max-width:220px;">
+        <td style="background-color:#624A44;padding:32px 40px 24px;text-align:center;border-radius:4px 4px 0 0;">
+          <img src="https://framerusercontent.com/images/z1j6LJZfF4uLlPlAZMHc9mP8AtE.png" alt="Bareca at Bike and Boot" width="220" style="display:block;margin:0 auto;max-width:220px;background-color:#e4e1dc;padding:10px 16px;border-radius:4px;">
           <div style="width:48px;height:2px;background-color:#E4E1DC;margin:20px auto 0;opacity:0.6;"></div>
           <p style="margin:12px 0 0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:rgba(228,225,220,0.7);font-weight:400;">Reservation Confirmation</p>
         </td>
@@ -493,7 +578,7 @@
       <!-- WARM TAUPE BAND -->
       <tr>
         <td style="background-color:#E4E1DC;padding:10px 40px;text-align:center;">
-          <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#624A44;font-weight:700;">Bareca at Bike &amp; Boot · Peak District</p>
+          <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#624A44;font-weight:700;">Peaks at Bike &amp; Boot · Hope Valley</p>
         </td>
       </tr>
 
@@ -537,7 +622,7 @@
 
           <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#2d1f1c;line-height:1.7;">
             Warm regards,<br>
-            <strong>The Bareca Team</strong>
+            <strong>The Bareca Peaks Team</strong>
           </p>
 
         </td>
@@ -547,10 +632,126 @@
       <tr>
         <td style="background-color:#624A44;padding:20px 40px;text-align:center;border-radius:0 0 4px 4px;">
           <p style="margin:0 0 4px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:12px;color:rgba(228,225,220,0.85);">
-            Bareca at Bike &amp; Boot &nbsp;·&nbsp; Hope Road, Hope Valley, S33 0AL
+            Bareca Peaks at Bike &amp; Boot &nbsp;·&nbsp; Hope Road, Hope Valley, S33 0AL
           </p>
           <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;color:rgba(228,225,220,0.5);letter-spacing:0.5px;">
             This email confirms your reservation. Please retain for your records.
+          </p>
+        </td>
+      </tr>
+
+    </table>
+  </td></tr>
+</table>
+
+</body>
+</html>`;
+        };
+
+        // ---------------------------------------------------------------
+        // CANCELLATION EMAIL TEMPLATE — same brand palette as confirmation
+        // Uses a muted red accent to signal cancellation clearly whilst
+        // keeping the Bareca warmth and Metropolis typography.
+        // ---------------------------------------------------------------
+        const generateCancellationEmailHTML = (d) => {
+            const adults   = parseInt(d.adultCount)  || 0;
+            const children = parseInt(d.childCount)  || 0;
+            const pax      = adults + children;
+
+            const [y, m, day] = (d.resDate || "2000-01-01").split('-');
+            const dateFormatted = `${day}/${m}/${y}`;
+
+            const [h, min] = (d.resTime || "12:00").split(':');
+            const hour = parseInt(h);
+            const timeFormatted = `${hour > 12 ? hour - 12 : (hour === 0 ? 12 : hour)}:${min} ${hour >= 12 ? 'PM' : 'AM'}`;
+
+            const depositNote = d.depositNote || 'N/A';
+            const additionalMsg = d.additionalMsg
+                ? `<p style="margin:0 0 20px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#5a4a47;line-height:1.7;">${d.additionalMsg}</p>`
+                : '';
+
+            const cancelRow = (label, value, isLast = false) => `
+              <tr>
+                <td width="38%" style="background-color:#E4E1DC;padding:12px 14px;border:1px solid #c8c4be;${isLast ? '' : 'border-bottom:none;'}text-align:right;vertical-align:middle;">
+                  <span style="font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;font-weight:700;color:#624A44;">${label}</span>
+                </td>
+                <td width="62%" style="background-color:#ffffff;padding:12px 16px;border:1px solid #c8c4be;border-left:none;${isLast ? '' : 'border-bottom:none;'}vertical-align:middle;">
+                  <span style="font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;color:#2d1f1c;">${value}</span>
+                </td>
+              </tr>`;
+
+            return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Bareca Peaks – Cancellation Confirmation</title>
+</head>
+<body style="margin:0;padding:0;background-color:#F5F3F0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;">
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F5F3F0;padding:32px 16px;">
+  <tr><td align="center">
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;">
+
+      <!-- LOGO HEADER -->
+      <tr>
+        <td style="background-color:#624A44;padding:32px 40px 24px;text-align:center;border-radius:4px 4px 0 0;">
+          <img src="https://framerusercontent.com/images/z1j6LJZfF4uLlPlAZMHc9mP8AtE.png" alt="Bareca at Bike and Boot" width="220" style="display:block;margin:0 auto;max-width:220px;background-color:#e4e1dc;padding:10px 16px;border-radius:4px;">
+          <div style="width:48px;height:2px;background-color:#E4E1DC;margin:20px auto 0;opacity:0.6;"></div>
+          <p style="margin:12px 0 0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:rgba(228,225,220,0.7);font-weight:400;">Cancellation Notice</p>
+        </td>
+      </tr>
+
+      <!-- RED ACCENT BAND -->
+      <tr>
+        <td style="background-color:#991b1b;padding:10px 40px;text-align:center;">
+          <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#fecaca;font-weight:700;">Reservation Cancelled · Peaks at Bike &amp; Boot</p>
+        </td>
+      </tr>
+
+      <!-- BODY -->
+      <tr>
+        <td style="background-color:#ffffff;padding:36px 40px 28px;">
+
+          <p style="margin:0 0 6px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:17px;color:#2d1f1c;">Dear ${d.customerName},</p>
+          <p style="margin:0 0 28px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#5a4a47;line-height:1.7;">
+            We're writing to confirm that your reservation at Bareca Peaks has been successfully cancelled. The details of the cancelled reservation are shown below for your reference.
+          </p>
+
+          <!-- Cancelled details table -->
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+            ${cancelRow('Reservation Name:', d.customerName)}
+            ${cancelRow('Original Date:', dateFormatted)}
+            ${cancelRow('Original Time:', timeFormatted)}
+            ${cancelRow('Number of Guests:', `${pax} (${adults} adult${adults!==1?'s':''} ${children>0?'&amp; '+children+' child'+(children!==1?'ren':''):''})`)}
+            ${cancelRow('Deposit:', depositNote, true)}
+          </table>
+
+          ${additionalMsg}
+
+          <p style="margin:0 0 16px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#5a4a47;line-height:1.7;">
+            We're sorry we won't be seeing you this time. If you'd like to make a future reservation, please don't hesitate to get in touch.
+          </p>
+          <p style="margin:0 0 28px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#5a4a47;line-height:1.7;">
+            You can reach us on <strong>01433 440 777</strong> or visit us at <strong>Hope Road, Hope Valley, S33 0AL</strong>.
+          </p>
+
+          <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#2d1f1c;line-height:1.7;">
+            Warm regards,<br>
+            <strong>The Bareca Peaks Team</strong>
+          </p>
+
+        </td>
+      </tr>
+
+      <!-- FOOTER -->
+      <tr>
+        <td style="background-color:#624A44;padding:20px 40px;text-align:center;border-radius:0 0 4px 4px;">
+          <p style="margin:0 0 4px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:12px;color:rgba(228,225,220,0.85);">
+            Bareca Peaks at Bike &amp; Boot &nbsp;·&nbsp; Hope Road, Hope Valley, S33 0AL
+          </p>
+          <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;color:rgba(228,225,220,0.5);letter-spacing:0.5px;">
+            This email confirms your cancellation. Please retain for your records.
           </p>
         </td>
       </tr>
@@ -723,35 +924,118 @@
             }
         };
 
-        // --- Cancellation Logic ---
+        // ---------------------------------------------------------------
+        // CANCELLATION PREVIEW FLOW
+        // Cancel Group button now opens a preview modal first.
+        // The actual delete + email only fires on "Send Cancellation".
+        // ---------------------------------------------------------------
+        let cancelPreviewData = {};
+
+        const refreshCancelFrame = () => {
+            getEl('cancelPreviewFrame').srcdoc = generateCancellationEmailHTML(cancelPreviewData);
+        };
+
+        const cancelEditFieldMap = {
+            cancel_customerName:  'customerName',
+            cancel_resDate:       'resDate',
+            cancel_resTime:       'resTime',
+            cancel_adultCount:    'adultCount',
+            cancel_childCount:    'childCount',
+            cancel_depositNote:   'depositNote',
+            cancel_additionalMsg: 'additionalMsg'
+        };
+
+        Object.entries(cancelEditFieldMap).forEach(([elId, key]) => {
+            getEl(elId).addEventListener('input', (e) => {
+                cancelPreviewData[key] = e.target.value;
+                refreshCancelFrame();
+            });
+        });
+
         const handleBookingCancellation = async () => {
             if (!currentUser || !currentViewingBooking?.id) return;
 
-            const bId = currentViewingBooking.id;
-            const bName = currentViewingBooking.customerName || "this booking";
-            const isBooking = currentViewingBooking.status === 'finalized';
+            const d = currentViewingBooking;
+            const isBooking = d.status === 'finalized';
             const subjectType = isBooking ? 'BOOKING' : 'ENQUIRY';
 
-            if (!confirm(`Are you sure you want to cancel the ${subjectType.toLowerCase()} for ${bName}?`)) return;
+            if (!confirm(`Are you sure you want to cancel the ${subjectType.toLowerCase()} for ${d.customerName}? You will be able to preview and edit a guest email before anything is deleted.`)) return;
 
-            dom.modalCancelBtn.disabled = true;
-            dom.modalCancelBtn.textContent = "Cancelling...";
-            dom.modalCancelBtn.classList.add('syncing-pulse');
+            // Build cancel preview data
+            cancelPreviewData = {
+                id:           d.id,
+                customerName: d.customerName || '',
+                customerEmail: d.customerEmail || '',
+                resDate:      d.resDate || '',
+                resTime:      d.resTime || '',
+                adultCount:   d.adultCount || 0,
+                childCount:   d.childCount || 0,
+                depositNote:  d.depositAmount ? `Your deposit of £${parseFloat(d.depositAmount).toFixed(2)} will be refunded within 5–10 working days.` : 'N/A',
+                additionalMsg: '',
+                isBooking,
+                subjectType
+            };
+
+            // Populate cancel edit fields
+            getEl('cancel_customerName').value  = cancelPreviewData.customerName;
+            getEl('cancel_resDate').value       = cancelPreviewData.resDate;
+            getEl('cancel_resTime').value       = cancelPreviewData.resTime;
+            getEl('cancel_adultCount').value    = cancelPreviewData.adultCount;
+            getEl('cancel_childCount').value    = cancelPreviewData.childCount;
+            getEl('cancel_depositNote').value   = cancelPreviewData.depositNote;
+            getEl('cancel_additionalMsg').value = '';
+
+            // Populate meta bar
+            const [y, m, day] = (d.resDate || '').split('-');
+            getEl('cancelPreviewToAddress').value         = d.customerEmail || '';
+            getEl('cancelEmailValidationMsg').classList.add('hidden');
+            getEl('cancelPreviewSubjectLine').textContent = `Bareca Peaks – Cancellation Confirmation`;
+
+            refreshCancelFrame();
+            dom.detailModal.classList.add('hidden');
+            getEl('cancelPreviewModal').classList.remove('hidden');
+        };
+
+        getEl('cancelPreviewBackBtn').onclick = () => {
+            getEl('cancelPreviewModal').classList.add('hidden');
+            dom.detailModal.classList.remove('hidden');
+        };
+
+        getEl('cancelPreviewSendBtn').onclick = async () => {
+            const recipientEmail = getEl('cancelPreviewToAddress').value.trim();
+            const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipientEmail);
+
+            // Allow send without email (enquiries may have no address) but validate if one is entered
+            if (recipientEmail && !emailValid) {
+                getEl('cancelEmailValidationMsg').classList.remove('hidden');
+                getEl('cancelPreviewToAddress').focus();
+                return;
+            }
+            getEl('cancelEmailValidationMsg').classList.add('hidden');
+
+            const sendBtn = getEl('cancelPreviewSendBtn');
+            sendBtn.disabled = true;
+            sendBtn.textContent = 'Processing...';
+            sendBtn.classList.add('syncing-pulse');
 
             try {
+                const { id: bId, isBooking, subjectType } = cancelPreviewData;
+                const bName = cancelPreviewData.customerName;
+
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings', bId);
                 const checkSnap = await getDoc(docRef);
 
                 if (!checkSnap.exists()) {
                     alert("Record no longer exists.");
-                    dom.detailModal.classList.add('hidden');
+                    getEl('cancelPreviewModal').classList.add('hidden');
                     return;
                 }
 
                 const data = checkSnap.data();
                 const seq = (data.sequence || 0) + 1;
-                const icsCancel = generateICSContent({id: bId, ...data}, seq, true);
+                const icsCancel = generateICSContent({ id: bId, ...data }, seq, true);
 
+                // 1. Internal team notification
                 try {
                     await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
                         toUids: ['reservation_team'],
@@ -766,18 +1050,59 @@
                             }] : []
                         }
                     });
-                } catch (e) { console.error("Email queue error:", e); }
+                } catch (e) { console.error("Internal email error:", e); }
 
+                // 2. Guest cancellation email (only if address provided)
+                if (recipientEmail) {
+                    const [y, m, day] = (cancelPreviewData.resDate || '').split('-');
+                    const pax = (parseInt(cancelPreviewData.adultCount)||0) + (parseInt(cancelPreviewData.childCount)||0);
+
+                    const plainText = [
+                        `Dear ${cancelPreviewData.customerName},`,
+                        ``,
+                        `We're writing to confirm that your reservation at Bareca Peaks has been successfully cancelled.`,
+                        ``,
+                        `CANCELLED BOOKING DETAILS`,
+                        `-------------------------`,
+                        `Reservation Name: ${cancelPreviewData.customerName}`,
+                        `Original Date:    ${day}/${m}/${y}`,
+                        `Original Time:    ${cancelPreviewData.resTime}`,
+                        `Number of Guests: ${pax}`,
+                        `Deposit:          ${cancelPreviewData.depositNote}`,
+                        cancelPreviewData.additionalMsg ? `\n${cancelPreviewData.additionalMsg}` : null,
+                        ``,
+                        `We're sorry we won't be seeing you this time. Please call 01433 440 777 to make a future reservation.`,
+                        ``,
+                        `Warm regards,`,
+                        `The Bareca Peaks Team`,
+                        `Hope Road, Hope Valley, S33 0AL · 01433 440 777`
+                    ].filter(l => l !== null).join('\n');
+
+                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
+                        to: [recipientEmail],
+                        message: {
+                            subject: `Bareca Peaks – Cancellation Confirmation`,
+                            text: plainText,
+                            html: generateCancellationEmailHTML(cancelPreviewData)
+                        }
+                    });
+                }
+
+                // 3. Delete the booking record
                 await deleteDoc(docRef);
-                dom.detailModal.classList.add('hidden');
-                alert(`The ${subjectType.toLowerCase()} for ${bName} has been removed.`);
+
+                getEl('cancelPreviewModal').classList.add('hidden');
+                alert(recipientEmail
+                    ? `Booking cancelled and confirmation email sent to ${recipientEmail}.`
+                    : `Booking cancelled. No guest email sent (no address on record).`
+                );
 
             } catch (err) {
                 alert(`Error: ${err.message}`);
             } finally {
-                dom.modalCancelBtn.disabled = false;
-                dom.modalCancelBtn.textContent = "Cancel Group";
-                dom.modalCancelBtn.classList.remove('syncing-pulse');
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg> Send Cancellation & Delete Booking`;
+                sendBtn.classList.remove('syncing-pulse');
             }
         };
 
