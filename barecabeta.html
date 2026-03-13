@@ -23,6 +23,8 @@
         .fc-button-primary { background-color: #0f172a !important; border-color: #0f172a !important; }
         .status-finalized { background-color: #d1fae5 !important; border-color: #10b981 !important; color: #065f46 !important; }
         button:disabled { opacity: 0.6; cursor: not-allowed; }
+        .admin-tab { transition: color 0.15s, border-color 0.15s; }
+        .admin-tab.active-tab { color: #0f172a !important; border-color: #0f172a !important; }
     </style>
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800 font-sans">
@@ -59,7 +61,10 @@
                 <p class="text-slate-500 text-sm">Secure Reservation Intake</p>
             </div>
             <div class="flex flex-col items-end">
-                <button id="logoutBtn" class="text-xs text-slate-400 hover:text-red-500 font-bold uppercase tracking-wider mb-2">Logout</button>
+                <div class="flex gap-3 mb-2">
+                    <button id="adminSettingsBtn" class="hidden text-xs text-slate-400 hover:text-indigo-600 font-bold uppercase tracking-wider">⚙ Admin</button>
+                    <button id="logoutBtn" class="text-xs text-slate-400 hover:text-red-500 font-bold uppercase tracking-wider">Logout</button>
+                </div>
                 <div id="authStatus" class="text-[10px] font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full uppercase tracking-widest">● Securely Connected</div>
             </div>
         </div>
@@ -422,6 +427,177 @@
         </div>
     </div>
 
+    <!-- ============================================================
+         ADMIN SETTINGS MODAL
+         Only visible to admin emails. Settings saved to Firestore
+         and loaded at runtime — no code edits needed.
+    ============================================================ -->
+    <div id="adminModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 z-[80] hidden">
+        <div class="bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col" style="max-height:92vh;width:100%;max-width:880px;">
+
+            <!-- Header -->
+            <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between flex-shrink-0">
+                <div>
+                    <h3 class="text-base font-bold">⚙ Admin Settings</h3>
+                    <p class="text-slate-400 text-xs mt-0.5">Changes save to Firestore and apply immediately to all email previews</p>
+                </div>
+                <button id="adminModalClose" class="text-slate-400 hover:text-white text-xl font-bold leading-none">✕</button>
+            </div>
+
+            <!-- Tab bar -->
+            <div class="flex border-b border-slate-200 bg-slate-50 flex-shrink-0">
+                <button data-tab="colours"  class="admin-tab active-tab px-5 py-3 text-sm font-bold text-slate-700 border-b-2 border-slate-900">Colours</button>
+                <button data-tab="confirm"  class="admin-tab px-5 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-700">Confirmation Email</button>
+                <button data-tab="cancel"   class="admin-tab px-5 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-700">Cancellation Email</button>
+                <button data-tab="contact"  class="admin-tab px-5 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-700">Contact &amp; Footer</button>
+            </div>
+
+            <!-- Tab panels -->
+            <div class="flex-1 overflow-y-auto p-6">
+
+                <!-- COLOURS TAB -->
+                <div id="tab-colours" class="admin-panel space-y-6">
+                    <p class="text-xs text-slate-500">These colours apply to both the confirmation and cancellation emails. Use hex codes e.g. <code class="bg-slate-100 px-1 rounded">#624A44</code></p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Header / Footer Background</label>
+                            <p class="text-[10px] text-slate-400">The top and bottom bar behind the logo</p>
+                            <div class="flex gap-2 items-center">
+                                <input type="color" id="cfg_headerBg" class="h-10 w-14 rounded border border-slate-200 cursor-pointer p-0.5">
+                                <input type="text"  id="cfg_headerBg_hex" maxlength="7" class="flex-1 p-2 text-sm border border-slate-200 rounded-lg font-mono outline-none focus:ring-2 focus:ring-indigo-400">
+                            </div>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Confirmation Accent Band</label>
+                            <p class="text-[10px] text-slate-400">The strip below the logo on confirmation emails</p>
+                            <div class="flex gap-2 items-center">
+                                <input type="color" id="cfg_confirmAccent" class="h-10 w-14 rounded border border-slate-200 cursor-pointer p-0.5">
+                                <input type="text"  id="cfg_confirmAccent_hex" maxlength="7" class="flex-1 p-2 text-sm border border-slate-200 rounded-lg font-mono outline-none focus:ring-2 focus:ring-indigo-400">
+                            </div>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Cancellation Accent Band</label>
+                            <p class="text-[10px] text-slate-400">The strip below the logo on cancellation emails</p>
+                            <div class="flex gap-2 items-center">
+                                <input type="color" id="cfg_cancelAccent" class="h-10 w-14 rounded border border-slate-200 cursor-pointer p-0.5">
+                                <input type="text"  id="cfg_cancelAccent_hex" maxlength="7" class="flex-1 p-2 text-sm border border-slate-200 rounded-lg font-mono outline-none focus:ring-2 focus:ring-indigo-400">
+                            </div>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Table Label Background</label>
+                            <p class="text-[10px] text-slate-400">The left-hand column of the details table</p>
+                            <div class="flex gap-2 items-center">
+                                <input type="color" id="cfg_labelBg" class="h-10 w-14 rounded border border-slate-200 cursor-pointer p-0.5">
+                                <input type="text"  id="cfg_labelBg_hex" maxlength="7" class="flex-1 p-2 text-sm border border-slate-200 rounded-lg font-mono outline-none focus:ring-2 focus:ring-indigo-400">
+                            </div>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Table Label Text</label>
+                            <p class="text-[10px] text-slate-400">The colour of the field labels e.g. "Reservation Name:"</p>
+                            <div class="flex gap-2 items-center">
+                                <input type="color" id="cfg_labelText" class="h-10 w-14 rounded border border-slate-200 cursor-pointer p-0.5">
+                                <input type="text"  id="cfg_labelText_hex" maxlength="7" class="flex-1 p-2 text-sm border border-slate-200 rounded-lg font-mono outline-none focus:ring-2 focus:ring-indigo-400">
+                            </div>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Logo Background</label>
+                            <p class="text-[10px] text-slate-400">The pill behind the logo image</p>
+                            <div class="flex gap-2 items-center">
+                                <input type="color" id="cfg_logoBg" class="h-10 w-14 rounded border border-slate-200 cursor-pointer p-0.5">
+                                <input type="text"  id="cfg_logoBg_hex" maxlength="7" class="flex-1 p-2 text-sm border border-slate-200 rounded-lg font-mono outline-none focus:ring-2 focus:ring-indigo-400">
+                            </div>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Page Background</label>
+                            <p class="text-[10px] text-slate-400">The area surrounding the email card</p>
+                            <div class="flex gap-2 items-center">
+                                <input type="color" id="cfg_pageBg" class="h-10 w-14 rounded border border-slate-200 cursor-pointer p-0.5">
+                                <input type="text"  id="cfg_pageBg_hex" maxlength="7" class="flex-1 p-2 text-sm border border-slate-200 rounded-lg font-mono outline-none focus:ring-2 focus:ring-indigo-400">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONFIRMATION EMAIL TAB -->
+                <div id="tab-confirm" class="admin-panel hidden space-y-5">
+                    <p class="text-xs text-slate-500">Default text shown in the confirmation email body. Use the edit panel in the preview modal to make per-booking adjustments.</p>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Intro Paragraph</label>
+                        <textarea id="cfg_confirmIntro" rows="3" class="w-full p-3 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-400 resize-none"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Sign-off Text</label>
+                        <input type="text" id="cfg_confirmSignoff" class="w-full p-3 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-400">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">"Things to Note" Policy Text</label>
+                        <p class="text-[10px] text-slate-400 mb-1">Plain text only. Separate paragraphs with a blank line — they will be bolded at the start automatically.</p>
+                        <textarea id="cfg_thingsToNote" rows="8" class="w-full p-3 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-400 resize-none font-mono"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Accent Band Label Text</label>
+                        <input type="text" id="cfg_confirmBandText" class="w-full p-3 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-400">
+                    </div>
+                </div>
+
+                <!-- CANCELLATION EMAIL TAB -->
+                <div id="tab-cancel" class="admin-panel hidden space-y-5">
+                    <p class="text-xs text-slate-500">Default text for cancellation emails. Per-booking notes can still be added in the cancellation preview modal.</p>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Intro Paragraph</label>
+                        <textarea id="cfg_cancelIntro" rows="3" class="w-full p-3 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-400 resize-none"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Closing Paragraph</label>
+                        <textarea id="cfg_cancelClosing" rows="3" class="w-full p-3 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-400 resize-none"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Sign-off Text</label>
+                        <input type="text" id="cfg_cancelSignoff" class="w-full p-3 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-400">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Accent Band Label Text</label>
+                        <input type="text" id="cfg_cancelBandText" class="w-full p-3 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-400">
+                    </div>
+                </div>
+
+                <!-- CONTACT & FOOTER TAB -->
+                <div id="tab-contact" class="admin-panel hidden space-y-5">
+                    <p class="text-xs text-slate-500">These details appear in the footer and body of both email templates.</p>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Restaurant Name</label>
+                        <input type="text" id="cfg_restaurantName" class="w-full p-3 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-400">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Phone Number</label>
+                        <input type="text" id="cfg_phone" class="w-full p-3 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-400">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Address (one line)</label>
+                        <input type="text" id="cfg_address" class="w-full p-3 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-400">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Footer Sub-line</label>
+                        <input type="text" id="cfg_footerNote" class="w-full p-3 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-400">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Admin Email Addresses</label>
+                        <p class="text-[10px] text-slate-400 mb-1">Comma-separated. These accounts will see the ⚙ Admin button after login.</p>
+                        <input type="text" id="cfg_adminEmails" placeholder="you@example.com, other@example.com" class="w-full p-3 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-400">
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Footer actions -->
+            <div class="border-t bg-white px-6 py-4 flex gap-3 items-center flex-shrink-0">
+                <span id="adminSaveStatus" class="text-xs text-slate-400 italic flex-1"></span>
+                <button id="adminResetBtn" class="px-4 py-2 text-xs font-bold text-slate-500 hover:text-red-500 border border-slate-200 rounded-lg transition">Reset to Defaults</button>
+                <button id="adminSaveBtn" class="px-6 py-2 text-sm font-bold text-white rounded-lg transition shadow" style="background-color:#624A44;">Save Settings</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -531,67 +707,67 @@
             const [y, m, day] = (d.resDate || "2000-01-01").split('-');
             const dateFormatted = `${day}/${m}/${y}`;
 
-            // 12-hour time
             const [h, min] = (d.resTime || "12:00").split(':');
             const hour = parseInt(h);
             const timeFormatted = `${hour > 12 ? hour - 12 : (hour === 0 ? 12 : hour)}:${min} ${hour >= 12 ? 'PM' : 'AM'}`;
 
-            // Menu — allow override from edit panel
             const menuDisplay = d.menuDisplay ||
                 (d.menuArrangement === 'Other' ? (d.menuOtherDetails || 'Special Arrangement') : (d.menuArrangement || 'To Be Confirmed'));
 
             const depositDisplay = d.depositAmount ? `£${parseFloat(d.depositAmount).toFixed(2)}` : 'N/A';
 
-            // Row builder matching the uploaded template style
             const row = (label, value, last = false) => `
               <tr>
-                <td width="38%" style="background-color:#E4E1DC; padding:12px 14px; border:1px solid #c8c4be; ${last ? '' : 'border-bottom:none;'} text-align:right; vertical-align:middle;">
-                  <span style="font-family:Metropolis,'Helvetica Neue',Arial,sans-serif; font-size:13px; font-weight:700; color:#624A44;">${label}</span>
+                <td width="38%" style="background-color:${cfg.labelBg};padding:12px 14px;border:1px solid #c8c4be;${last?'':'border-bottom:none;'}text-align:right;vertical-align:middle;">
+                  <span style="font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;font-weight:700;color:${cfg.labelText};">${label}</span>
                 </td>
-                <td width="62%" style="background-color:#ffffff; padding:12px 16px; border:1px solid #c8c4be; border-left:none; ${last ? '' : 'border-bottom:none;'} vertical-align:middle;">
-                  <span style="font-family:Metropolis,'Helvetica Neue',Arial,sans-serif; font-size:13px; color:#2d1f1c;">${value}</span>
+                <td width="62%" style="background-color:#ffffff;padding:12px 16px;border:1px solid #c8c4be;border-left:none;${last?'':'border-bottom:none;'}vertical-align:middle;">
+                  <span style="font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;color:#2d1f1c;">${value}</span>
                 </td>
               </tr>`;
+
+            // Build "Things to Note" paragraphs from cfg, replacing {{phone}} placeholder
+            const noteParas = (cfg.thingsToNote || '')
+                .replace(/\{\{phone\}\}/g, cfg.phone)
+                .split(/\n\n+/)
+                .filter(p => p.trim())
+                .map(p => {
+                    const [bold, ...rest] = p.split(/(?<=\.|—)\s/);
+                    return `<p style="margin:0 0 8px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;color:#2d1f1c;line-height:1.6;">${p.trim()}</p>`;
+                }).join('');
 
             return `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Bareca Peaks – Reservation Confirmation</title>
+<title>${cfg.restaurantName} – Reservation Confirmation</title>
 </head>
-<body style="margin:0;padding:0;background-color:#F5F3F0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;">
+<body style="margin:0;padding:0;background-color:${cfg.pageBg};font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;">
 
-<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F5F3F0;padding:32px 16px;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:${cfg.pageBg};padding:32px 16px;">
   <tr><td align="center">
     <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;">
 
-      <!-- LOGO HEADER -->
       <tr>
-        <td style="background-color:#624A44;padding:32px 40px 24px;text-align:center;border-radius:4px 4px 0 0;">
-          <img src="https://framerusercontent.com/images/z1j6LJZfF4uLlPlAZMHc9mP8AtE.png" alt="Bareca at Bike and Boot" width="220" style="display:block;margin:0 auto;max-width:220px;background-color:#e4e1dc;padding:10px 16px;border-radius:4px;">
+        <td style="background-color:${cfg.headerBg};padding:32px 40px 24px;text-align:center;border-radius:4px 4px 0 0;">
+          <img src="https://framerusercontent.com/images/z1j6LJZfF4uLlPlAZMHc9mP8AtE.png" alt="${cfg.restaurantName}" width="220" style="display:block;margin:0 auto;max-width:220px;background-color:${cfg.logoBg};padding:10px 16px;border-radius:4px;">
           <div style="width:48px;height:2px;background-color:#E4E1DC;margin:20px auto 0;opacity:0.6;"></div>
           <p style="margin:12px 0 0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:rgba(228,225,220,0.7);font-weight:400;">Reservation Confirmation</p>
         </td>
       </tr>
 
-      <!-- WARM TAUPE BAND -->
       <tr>
-        <td style="background-color:#E4E1DC;padding:10px 40px;text-align:center;">
-          <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#624A44;font-weight:700;">Peaks at Bike &amp; Boot · Hope Valley</p>
+        <td style="background-color:${cfg.confirmAccent};padding:10px 40px;text-align:center;">
+          <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:${cfg.labelText};font-weight:700;">${cfg.confirmBandText}</p>
         </td>
       </tr>
 
-      <!-- BODY -->
       <tr>
         <td style="background-color:#ffffff;padding:36px 40px 28px;">
-
           <p style="margin:0 0 6px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:17px;color:#2d1f1c;">Dear ${d.customerName},</p>
-          <p style="margin:0 0 28px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#5a4a47;line-height:1.7;">
-            Thank you for your reservation at Bareca Peaks. We look forward to welcoming your party and hope you have a wonderful visit.
-          </p>
+          <p style="margin:0 0 28px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#5a4a47;line-height:1.7;">${cfg.confirmIntro}</p>
 
-          <!-- Details table — mirrors the uploaded Word template -->
           <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
             ${row('Reservation Name:', d.customerName)}
             ${row('Time of Reservation:', `${dateFormatted} at ${timeFormatted}`)}
@@ -600,50 +776,33 @@
             ${row('Special Arrangements:', d.notes || 'None')}
             ${row('Deposit Paid:', depositDisplay)}
             <tr>
-              <td width="38%" style="background-color:#E4E1DC;padding:14px 14px;border:1px solid #c8c4be;border-top:none;text-align:right;vertical-align:top;">
-                <span style="font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;font-weight:700;color:#624A44;">Things to Note:</span>
+              <td width="38%" style="background-color:${cfg.labelBg};padding:14px 14px;border:1px solid #c8c4be;border-top:none;text-align:right;vertical-align:top;">
+                <span style="font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;font-weight:700;color:${cfg.labelText};">Things to Note:</span>
               </td>
               <td width="62%" style="background-color:#ffffff;padding:14px 16px;border:1px solid #c8c4be;border-left:none;border-top:none;vertical-align:top;">
-                <p style="margin:0 0 8px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;color:#2d1f1c;line-height:1.6;">
-                  <strong>Please note that your reservation is for a specific time.</strong> If you don't arrive in time, please note that we reserve the right to allocate the table to another guest.
-                </p>
-                <p style="margin:0 0 8px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;color:#2d1f1c;line-height:1.6;">
-                  <strong>If you believe you will be late,</strong> please let us know by calling <strong>01433 440 777</strong>
-                </p>
-                <p style="margin:0 0 8px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;color:#2d1f1c;line-height:1.6;">
-                  <strong>If you need to change the number of diners,</strong> please let us know as soon as you are able by calling <strong>01433 440 777</strong>
-                </p>
-                <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;color:#2d1f1c;line-height:1.6;">
-                  <strong>Dietary requirements and allergies —</strong> we have allergen information to accompany our menu. Please let us know of any allergies as soon as you can and we will provide the allergen information.
-                </p>
+                ${noteParas}
               </td>
             </tr>
           </table>
 
           <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#2d1f1c;line-height:1.7;">
-            Warm regards,<br>
-            <strong>The Bareca Peaks Team</strong>
+            Warm regards,<br><strong>${cfg.confirmSignoff}</strong>
           </p>
-
         </td>
       </tr>
 
-      <!-- FOOTER -->
       <tr>
-        <td style="background-color:#624A44;padding:20px 40px;text-align:center;border-radius:0 0 4px 4px;">
+        <td style="background-color:${cfg.headerBg};padding:20px 40px;text-align:center;border-radius:0 0 4px 4px;">
           <p style="margin:0 0 4px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:12px;color:rgba(228,225,220,0.85);">
-            Bareca Peaks at Bike &amp; Boot &nbsp;·&nbsp; Hope Road, Hope Valley, S33 0AL
+            ${cfg.restaurantName} &nbsp;·&nbsp; ${cfg.address}
           </p>
-          <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;color:rgba(228,225,220,0.5);letter-spacing:0.5px;">
-            This email confirms your reservation. Please retain for your records.
-          </p>
+          <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;color:rgba(228,225,220,0.5);letter-spacing:0.5px;">${cfg.footerNote}</p>
         </td>
       </tr>
 
     </table>
   </td></tr>
 </table>
-
 </body>
 </html>`;
         };
@@ -672,10 +831,10 @@
 
             const cancelRow = (label, value, isLast = false) => `
               <tr>
-                <td width="38%" style="background-color:#E4E1DC;padding:12px 14px;border:1px solid #c8c4be;${isLast ? '' : 'border-bottom:none;'}text-align:right;vertical-align:middle;">
-                  <span style="font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;font-weight:700;color:#624A44;">${label}</span>
+                <td width="38%" style="background-color:${cfg.labelBg};padding:12px 14px;border:1px solid #c8c4be;${isLast?'':'border-bottom:none;'}text-align:right;vertical-align:middle;">
+                  <span style="font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;font-weight:700;color:${cfg.labelText};">${label}</span>
                 </td>
-                <td width="62%" style="background-color:#ffffff;padding:12px 16px;border:1px solid #c8c4be;border-left:none;${isLast ? '' : 'border-bottom:none;'}vertical-align:middle;">
+                <td width="62%" style="background-color:#ffffff;padding:12px 16px;border:1px solid #c8c4be;border-left:none;${isLast?'':'border-bottom:none;'}vertical-align:middle;">
                   <span style="font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;color:#2d1f1c;">${value}</span>
                 </td>
               </tr>`;
@@ -685,40 +844,33 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Bareca Peaks – Cancellation Confirmation</title>
+<title>${cfg.restaurantName} – Cancellation Confirmation</title>
 </head>
-<body style="margin:0;padding:0;background-color:#F5F3F0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;">
+<body style="margin:0;padding:0;background-color:${cfg.pageBg};font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;">
 
-<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F5F3F0;padding:32px 16px;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:${cfg.pageBg};padding:32px 16px;">
   <tr><td align="center">
     <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;">
 
-      <!-- LOGO HEADER -->
       <tr>
-        <td style="background-color:#624A44;padding:32px 40px 24px;text-align:center;border-radius:4px 4px 0 0;">
-          <img src="https://framerusercontent.com/images/z1j6LJZfF4uLlPlAZMHc9mP8AtE.png" alt="Bareca at Bike and Boot" width="220" style="display:block;margin:0 auto;max-width:220px;background-color:#e4e1dc;padding:10px 16px;border-radius:4px;">
+        <td style="background-color:${cfg.headerBg};padding:32px 40px 24px;text-align:center;border-radius:4px 4px 0 0;">
+          <img src="https://framerusercontent.com/images/z1j6LJZfF4uLlPlAZMHc9mP8AtE.png" alt="${cfg.restaurantName}" width="220" style="display:block;margin:0 auto;max-width:220px;background-color:${cfg.logoBg};padding:10px 16px;border-radius:4px;">
           <div style="width:48px;height:2px;background-color:#E4E1DC;margin:20px auto 0;opacity:0.6;"></div>
           <p style="margin:12px 0 0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:rgba(228,225,220,0.7);font-weight:400;">Cancellation Notice</p>
         </td>
       </tr>
 
-      <!-- RED ACCENT BAND -->
       <tr>
-        <td style="background-color:#991b1b;padding:10px 40px;text-align:center;">
-          <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#fecaca;font-weight:700;">Reservation Cancelled · Peaks at Bike &amp; Boot</p>
+        <td style="background-color:${cfg.cancelAccent};padding:10px 40px;text-align:center;">
+          <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#fecaca;font-weight:700;">${cfg.cancelBandText}</p>
         </td>
       </tr>
 
-      <!-- BODY -->
       <tr>
         <td style="background-color:#ffffff;padding:36px 40px 28px;">
-
           <p style="margin:0 0 6px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:17px;color:#2d1f1c;">Dear ${d.customerName},</p>
-          <p style="margin:0 0 28px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#5a4a47;line-height:1.7;">
-            We're writing to confirm that your reservation at Bareca Peaks has been successfully cancelled. The details of the cancelled reservation are shown below for your reference.
-          </p>
+          <p style="margin:0 0 28px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#5a4a47;line-height:1.7;">${cfg.cancelIntro}</p>
 
-          <!-- Cancelled details table -->
           <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
             ${cancelRow('Reservation Name:', d.customerName)}
             ${cancelRow('Original Date:', dateFormatted)}
@@ -729,26 +881,20 @@
 
           ${additionalMsg}
 
-          <p style="margin:0 0 16px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#5a4a47;line-height:1.7;">
-            We're sorry we won't be seeing you this time. If you'd like to make a future reservation, please don't hesitate to get in touch.
-          </p>
+          <p style="margin:0 0 16px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#5a4a47;line-height:1.7;">${cfg.cancelClosing}</p>
           <p style="margin:0 0 28px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#5a4a47;line-height:1.7;">
-            You can reach us on <strong>01433 440 777</strong> or visit us at <strong>Hope Road, Hope Valley, S33 0AL</strong>.
+            You can reach us on <strong>${cfg.phone}</strong> or visit us at <strong>${cfg.address}</strong>.
           </p>
-
           <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#2d1f1c;line-height:1.7;">
-            Warm regards,<br>
-            <strong>The Bareca Peaks Team</strong>
+            Warm regards,<br><strong>${cfg.cancelSignoff}</strong>
           </p>
-
         </td>
       </tr>
 
-      <!-- FOOTER -->
       <tr>
-        <td style="background-color:#624A44;padding:20px 40px;text-align:center;border-radius:0 0 4px 4px;">
+        <td style="background-color:${cfg.headerBg};padding:20px 40px;text-align:center;border-radius:0 0 4px 4px;">
           <p style="margin:0 0 4px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:12px;color:rgba(228,225,220,0.85);">
-            Bareca Peaks at Bike &amp; Boot &nbsp;·&nbsp; Hope Road, Hope Valley, S33 0AL
+            ${cfg.restaurantName} &nbsp;·&nbsp; ${cfg.address}
           </p>
           <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;color:rgba(228,225,220,0.5);letter-spacing:0.5px;">
             This email confirms your cancellation. Please retain for your records.
@@ -759,7 +905,6 @@
     </table>
   </td></tr>
 </table>
-
 </body>
 </html>`;
         };
@@ -1117,6 +1262,8 @@
                 getEl('userIdDisplay').textContent = `Staff ID: ${user.uid.substring(0, 8)}`;
                 initCalendar();
                 startDataSync();
+                await loadSettings();
+                syncAdminButton();
                 await loadDraft();
                 isRestoringDraft = false;
             } else {
@@ -1269,6 +1416,166 @@
                 tile.innerHTML = `<div class="flex justify-between items-start mb-2"><span class="text-xs font-bold uppercase tracking-widest">${day}/${m}/${y.slice(-2)}</span><span class="text-xs font-medium">${b.resTime}</span></div><h3 class="font-bold text-slate-900 mb-1 truncate">${b.customerName}</h3><p class="text-xs opacity-70 mb-1">${(parseInt(b.adultCount)||0) + (parseInt(b.childCount)||0)} PAX • ${b.menuArrangement}</p>${isFinal ? '<span class="text-[9px] font-bold uppercase tracking-widest text-emerald-600">Confirmed</span>' : ''}`;
                 dom.list.appendChild(tile);
             });
+        };
+
+        // ===============================================================
+        // ADMIN SETTINGS SYSTEM
+        // Settings live in Firestore at:
+        //   artifacts/{appId}/public/data/settings/emailConfig
+        // Loaded once on login; applied to all email generators at runtime.
+        // ===============================================================
+
+        const ADMIN_EMAILS_FALLBACK = ['stokes.ciaran@gmail.com']; // initial bootstrap admin
+
+        const DEFAULT_CFG = {
+            // Colours
+            headerBg:      '#624A44',
+            confirmAccent: '#E4E1DC',
+            cancelAccent:  '#991b1b',
+            labelBg:       '#E4E1DC',
+            labelText:     '#624A44',
+            logoBg:        '#e4e1dc',
+            pageBg:        '#F5F3F0',
+            // Confirmation text
+            confirmIntro:    "Thank you for your reservation at Bareca Peaks. We look forward to welcoming your party and hope you have a wonderful visit.",
+            confirmSignoff:  "The Bareca Peaks Team",
+            confirmBandText: "Peaks at Bike & Boot · Hope Valley",
+            thingsToNote:    "Please note that your reservation is for a specific time. If you don't arrive in time, please note that we reserve the right to allocate the table to another guest.\n\nIf you believe you will be late, please let us know by calling {{phone}}\n\nIf you need to change the number of diners, please let us know as soon as you are able by calling {{phone}}\n\nDietary requirements and allergies — we have allergen information to accompany our menu. Please let us know of any allergies as soon as you can and we will provide the allergen information.",
+            // Cancellation text
+            cancelIntro:    "We're writing to confirm that your reservation at Bareca Peaks has been successfully cancelled. The details of the cancelled reservation are shown below for your reference.",
+            cancelClosing:  "We're sorry we won't be seeing you this time. If you'd like to make a future reservation, please don't hesitate to get in touch.",
+            cancelSignoff:  "The Bareca Peaks Team",
+            cancelBandText: "Reservation Cancelled · Peaks at Bike & Boot",
+            // Contact
+            restaurantName: "Bareca Peaks at Bike & Boot",
+            phone:          "01433 440 777",
+            address:        "Hope Road, Hope Valley, S33 0AL",
+            footerNote:     "This email confirms your reservation. Please retain for your records.",
+            adminEmails:    ADMIN_EMAILS_FALLBACK.join(', ')
+        };
+
+        // Live config — starts as defaults, gets overwritten by Firestore on load
+        let cfg = { ...DEFAULT_CFG };
+
+        const settingsDocRef = () => doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'emailConfig');
+
+        const loadSettings = async () => {
+            try {
+                const snap = await getDoc(settingsDocRef());
+                if (snap.exists()) cfg = { ...DEFAULT_CFG, ...snap.data() };
+            } catch (e) { console.warn("Settings load failed, using defaults:", e); }
+        };
+
+        const saveSettings = async () => {
+            getEl('adminSaveStatus').textContent = "Saving…";
+            try {
+                await setDoc(settingsDocRef(), cfg, { merge: true });
+                getEl('adminSaveStatus').textContent = "Saved ✓";
+                setTimeout(() => getEl('adminSaveStatus').textContent = '', 3000);
+            } catch (e) {
+                getEl('adminSaveStatus').textContent = "Save failed: " + e.message;
+            }
+        };
+
+        // --- Admin UI helpers ---
+        const isAdmin = () => {
+            if (!currentUser) return false;
+            const adminList = cfg.adminEmails.split(',').map(e => e.trim().toLowerCase());
+            return adminList.includes(currentUser.email.toLowerCase()) ||
+                   ADMIN_EMAILS_FALLBACK.map(e => e.toLowerCase()).includes(currentUser.email.toLowerCase());
+        };
+
+        const syncAdminButton = () => {
+            getEl('adminSettingsBtn').classList.toggle('hidden', !isAdmin());
+        };
+
+        // Sync a colour picker + hex input pair, both ways
+        const bindColourPair = (id, cfgKey) => {
+            const picker = getEl(`cfg_${id}`);
+            const hex    = getEl(`cfg_${id}_hex`);
+            picker.addEventListener('input', () => { hex.value = picker.value; cfg[cfgKey] = picker.value; });
+            hex.addEventListener('input', () => {
+                if (/^#[0-9a-fA-F]{6}$/.test(hex.value)) { picker.value = hex.value; cfg[cfgKey] = hex.value; }
+            });
+        };
+
+        const populateAdminForm = () => {
+            // Colours
+            [
+                ['headerBg','headerBg'], ['confirmAccent','confirmAccent'], ['cancelAccent','cancelAccent'],
+                ['labelBg','labelBg'], ['labelText','labelText'], ['logoBg','logoBg'], ['pageBg','pageBg']
+            ].forEach(([id, key]) => {
+                getEl(`cfg_${id}`).value     = cfg[key];
+                getEl(`cfg_${id}_hex`).value = cfg[key];
+            });
+            // Text fields
+            getEl('cfg_confirmIntro').value    = cfg.confirmIntro;
+            getEl('cfg_confirmSignoff').value  = cfg.confirmSignoff;
+            getEl('cfg_confirmBandText').value = cfg.confirmBandText;
+            getEl('cfg_thingsToNote').value    = cfg.thingsToNote;
+            getEl('cfg_cancelIntro').value     = cfg.cancelIntro;
+            getEl('cfg_cancelClosing').value   = cfg.cancelClosing;
+            getEl('cfg_cancelSignoff').value   = cfg.cancelSignoff;
+            getEl('cfg_cancelBandText').value  = cfg.cancelBandText;
+            getEl('cfg_restaurantName').value  = cfg.restaurantName;
+            getEl('cfg_phone').value           = cfg.phone;
+            getEl('cfg_address').value         = cfg.address;
+            getEl('cfg_footerNote').value      = cfg.footerNote;
+            getEl('cfg_adminEmails').value     = cfg.adminEmails;
+        };
+
+        const readAdminForm = () => {
+            cfg.confirmIntro    = getEl('cfg_confirmIntro').value;
+            cfg.confirmSignoff  = getEl('cfg_confirmSignoff').value;
+            cfg.confirmBandText = getEl('cfg_confirmBandText').value;
+            cfg.thingsToNote    = getEl('cfg_thingsToNote').value;
+            cfg.cancelIntro     = getEl('cfg_cancelIntro').value;
+            cfg.cancelClosing   = getEl('cfg_cancelClosing').value;
+            cfg.cancelSignoff   = getEl('cfg_cancelSignoff').value;
+            cfg.cancelBandText  = getEl('cfg_cancelBandText').value;
+            cfg.restaurantName  = getEl('cfg_restaurantName').value;
+            cfg.phone           = getEl('cfg_phone').value;
+            cfg.address         = getEl('cfg_address').value;
+            cfg.footerNote      = getEl('cfg_footerNote').value;
+            cfg.adminEmails     = getEl('cfg_adminEmails').value;
+        };
+
+        // Admin modal open/close
+        getEl('adminSettingsBtn').onclick = () => {
+            populateAdminForm();
+            getEl('adminSaveStatus').textContent = '';
+            getEl('adminModal').classList.remove('hidden');
+        };
+        getEl('adminModalClose').onclick = () => getEl('adminModal').classList.add('hidden');
+
+        // Tab switching
+        document.querySelectorAll('.admin-tab').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active-tab'));
+                document.querySelectorAll('.admin-panel').forEach(p => p.classList.add('hidden'));
+                btn.classList.add('active-tab');
+                getEl(`tab-${btn.dataset.tab}`).classList.remove('hidden');
+            });
+        });
+
+        // Colour pair bindings
+        bindColourPair('headerBg', 'headerBg');
+        bindColourPair('confirmAccent', 'confirmAccent');
+        bindColourPair('cancelAccent', 'cancelAccent');
+        bindColourPair('labelBg', 'labelBg');
+        bindColourPair('labelText', 'labelText');
+        bindColourPair('logoBg', 'logoBg');
+        bindColourPair('pageBg', 'pageBg');
+
+        // Save button
+        getEl('adminSaveBtn').onclick = () => { readAdminForm(); saveSettings(); };
+
+        // Reset to defaults
+        getEl('adminResetBtn').onclick = () => {
+            if (!confirm("Reset all settings to defaults? This cannot be undone.")) return;
+            cfg = { ...DEFAULT_CFG };
+            populateAdminForm();
+            saveSettings();
         };
 
         // --- Standard UI Handlers ---
