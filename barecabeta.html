@@ -1513,12 +1513,13 @@
             // Render iframe
             refreshPreviewFrame();
 
-            getEl('emailPreviewModal').classList.remove('hidden');
+            openModal(getEl('emailPreviewModal'));
         };
 
         // Close preview — go back to detail modal
         getEl('previewCancelBtn').onclick = () => {
-            getEl('emailPreviewModal').classList.add('hidden');
+            closeModal(getEl('emailPreviewModal'));
+            openModal(dom.detailModal);
         };
 
         // --- Action: Confirmed Send from Preview ---
@@ -1576,8 +1577,8 @@
                     }
                 });
 
-                getEl('emailPreviewModal').classList.add('hidden');
-                dom.detailModal.classList.add('hidden');
+                closeModal(getEl('emailPreviewModal'));
+                closeModal(dom.detailModal);
                 alert(`Confirmation email sent to ${recipientEmail}`);
 
             } catch (err) {
@@ -1657,13 +1658,13 @@
             getEl('cancelPreviewSubjectLine').textContent = `Bareca Peaks – Cancellation Confirmation`;
 
             refreshCancelFrame();
-            dom.detailModal.classList.add('hidden');
-            getEl('cancelPreviewModal').classList.remove('hidden');
+            closeModal(dom.detailModal);
+            openModal(getEl('cancelPreviewModal'));
         };
 
         getEl('cancelPreviewBackBtn').onclick = () => {
-            getEl('cancelPreviewModal').classList.add('hidden');
-            dom.detailModal.classList.remove('hidden');
+            closeModal(getEl('cancelPreviewModal'));
+            openModal(dom.detailModal);
         };
 
         getEl('cancelPreviewSendBtn').onclick = async () => {
@@ -1692,7 +1693,7 @@
 
                 if (!checkSnap.exists()) {
                     alert("Record no longer exists.");
-                    getEl('cancelPreviewModal').classList.add('hidden');
+                    closeModal(getEl('cancelPreviewModal'));
                     return;
                 }
 
@@ -1756,7 +1757,7 @@
                 // 3. Delete the booking record
                 await deleteDoc(docRef);
 
-                getEl('cancelPreviewModal').classList.add('hidden');
+                closeModal(getEl('cancelPreviewModal'));
                 alert(recipientEmail
                     ? `Booking cancelled and confirmation email sent to ${recipientEmail}.`
                     : `Booking cancelled. No guest email sent (no address on record).`
@@ -1852,7 +1853,7 @@
                 getEl('modalConfirmedNotes').textContent = data.confirmedNotes;
             } else notesWrap.classList.add('hidden');
 
-            dom.detailModal.classList.remove('hidden');
+            openModal(dom.detailModal);
         };
 
         getEl('modalConfirmTrigger').onclick = () => {
@@ -1876,8 +1877,8 @@
             f.nraSetup.checked = !!d.nraSetup;
             dom.nonResidentFields.style.display = f.isResident.checked ? 'none' : 'flex';
             dom.nraPreview.textContent = generateKitchenLabel(d);
-            dom.detailModal.classList.add('hidden');
-            dom.confirmModal.classList.remove('hidden');
+            closeModal(dom.detailModal);
+            openModal(dom.confirmModal);
         };
 
         dom.residentToggle.onchange = () => {
@@ -1915,7 +1916,7 @@
                     }
                 });
 
-                dom.confirmModal.classList.add('hidden');
+                closeModal(dom.confirmModal);
                 alert("Reservation Confirmed and Team Notified with Calendar Link!");
             } catch (err) { alert("Save Failed: " + err.message); }
         };
@@ -1937,7 +1938,7 @@
                     }
                 });
                 alert("Sent to Kitchen Diary!");
-                dom.detailModal.classList.add('hidden');
+                closeModal(dom.detailModal);
             } catch (e) { alert("Email Failed: " + e.code); }
         };
 
@@ -2067,9 +2068,9 @@
         getEl('adminSettingsBtn').onclick = () => {
             populateAdminForm();
             getEl('adminSaveStatus').textContent = '';
-            getEl('adminModal').classList.remove('hidden');
+            openModal(getEl('adminModal'));
         };
-        getEl('adminModalClose').onclick = () => getEl('adminModal').classList.add('hidden');
+        getEl('adminModalClose').onclick = () => closeModal(getEl('adminModal'));
 
         // Tab switching
         document.querySelectorAll('.admin-tab').forEach(btn => {
@@ -2101,14 +2102,71 @@
             saveSettings();
         };
 
+        // ── Modal Management ─────────────────────────────────────────────
+        // Centralised open/close so scroll-lock, ESC, and backdrop click
+        // all work consistently across every modal.
+
+        // Stack tracks open modals so ESC closes the topmost one first
+        const modalStack = [];
+
+        const openModal = (el) => {
+            el.classList.remove('hidden');
+            modalStack.push(el);
+            // Lock body scroll on first modal open
+            if (modalStack.length === 1) document.body.style.overflow = 'hidden';
+        };
+
+        const closeModal = (el) => {
+            el.classList.add('hidden');
+            const idx = modalStack.lastIndexOf(el);
+            if (idx !== -1) modalStack.splice(idx, 1);
+            // Restore scroll when no modals remain
+            if (modalStack.length === 0) document.body.style.overflow = '';
+        };
+
+        const closeTopModal = () => {
+            if (!modalStack.length) return;
+            const top = modalStack[modalStack.length - 1];
+            // For confirm/email/cancel preview modals, "back" returns to detail
+            if (top === dom.confirmModal) {
+                closeModal(dom.confirmModal);
+                openModal(dom.detailModal);
+            } else if (top === getEl('emailPreviewModal')) {
+                closeModal(getEl('emailPreviewModal'));
+                openModal(dom.detailModal);
+            } else if (top === getEl('cancelPreviewModal')) {
+                closeModal(getEl('cancelPreviewModal'));
+                openModal(dom.detailModal);
+            } else {
+                closeModal(top);
+            }
+        };
+
+        // ESC key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeTopModal();
+        });
+
+        // Backdrop click — only close if the click is directly on the overlay,
+        // not on the modal card inside it
+        const addBackdropClose = (el) => {
+            el.addEventListener('mousedown', (e) => {
+                if (e.target === el) closeTopModal();
+            });
+        };
+
+        ['detailModal','confirmFormModal','emailPreviewModal','cancelPreviewModal','adminModal'].forEach(id => {
+            addBackdropClose(getEl(id));
+        });
+
         // --- Standard UI Handlers ---
         dom.loginForm.onsubmit = async (e) => {
             e.preventDefault();
             try { await signInWithEmailAndPassword(auth, getEl('loginEmail').value, getEl('loginPassword').value); } catch (err) { dom.loginError.classList.remove('hidden'); }
         };
         getEl('logoutBtn').onclick = () => signOut(auth);
-        getEl('modalClose').onclick = () => dom.detailModal.classList.add('hidden');
-        getEl('confirmFormCancel').onclick = () => dom.confirmModal.classList.add('hidden');
+        getEl('modalClose').onclick = () => closeModal(dom.detailModal);
+        getEl('confirmFormCancel').onclick = () => { closeModal(dom.confirmModal); openModal(dom.detailModal); };
         // ── View toggle ──────────────────────────────────────────────────
 
         const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
