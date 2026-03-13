@@ -532,24 +532,19 @@
                     </div>
                     <div class="form-group">
                         <label class="field-label">Time</label>
-                        <!-- 12-hour time picker — hidden native input carries the 24hr value -->
+                        <!-- 12-hour time picker — PM only, 12:00–9:45 -->
                         <input type="hidden" name="resTime" id="resTimeHidden">
-                        <div class="time-picker-wrap">
+                        <div class="time-picker-wrap" style="grid-template-columns:1fr 1fr;">
                             <select id="timeHour" class="field-input" aria-label="Hour">
-                                <option value="">Hr</option>
-                                <option>1</option><option>2</option><option>3</option>
-                                <option>4</option><option>5</option><option>6</option>
-                                <option>7</option><option>8</option><option>9</option>
-                                <option>10</option><option>11</option><option>12</option>
+                                <option value="">Hour</option>
+                                <option>12</option><option>1</option><option>2</option>
+                                <option>3</option><option>4</option><option>5</option>
+                                <option>6</option><option>7</option><option>8</option>
+                                <option>9</option>
                             </select>
                             <select id="timeMin" class="field-input" aria-label="Minute">
                                 <option value="">Min</option>
                                 <option>00</option><option>15</option><option>30</option><option>45</option>
-                            </select>
-                            <select id="timeAmPm" class="field-input" aria-label="AM/PM">
-                                <option value="">—</option>
-                                <option>AM</option>
-                                <option selected>PM</option>
                             </select>
                         </div>
                     </div>
@@ -1881,21 +1876,6 @@
             } catch (e) { alert("Email Failed: " + e.code); }
         };
 
-        const renderList = (bookings) => {
-            if (!bookings.length) { dom.list.innerHTML = '<div style="grid-column:1/-1;padding:48px;text-align:center;background:#fff;border:1px dashed var(--taupe-dk);border-radius:2px;color:var(--text-light);font-style:italic;">No bookings found.</div>'; return; }
-            bookings.sort((a, b) => new Date(`${a.resDate}T${a.resTime}`) - new Date(`${b.resDate}T${b.resTime}`));
-            dom.list.innerHTML = '';
-            bookings.forEach(b => {
-                const isFinal = b.status === 'finalized';
-                const [y, m, day] = b.resDate.split('-');
-                const tile = document.createElement('div');
-                tile.className = `p-4 rounded-xl shadow-sm border transition-all cursor-pointer ${isFinal ? 'status-finalized' : 'bg-white border-slate-200 hover:border-blue-300'}`;
-                tile.onclick = () => showBookingDetails(b.id, b);
-                tile.innerHTML = `<div class="flex justify-between items-start mb-2"><span class="text-xs font-bold uppercase tracking-widest">${day}/${m}/${y.slice(-2)}</span><span class="text-xs font-medium">${b.resTime}</span></div><h3 class="font-bold text-slate-900 mb-1 truncate">${b.customerName}</h3><p class="text-xs opacity-70 mb-1">${(parseInt(b.adultCount)||0) + (parseInt(b.childCount)||0)} PAX • ${b.menuArrangement}</p>${isFinal ? '<span class="text-[9px] font-bold uppercase tracking-widest text-emerald-600">Confirmed</span>' : ''}`;
-                dom.list.appendChild(tile);
-            });
-        };
-
         // ===============================================================
         // ADMIN SETTINGS SYSTEM
         // Settings live in Firestore at:
@@ -2203,30 +2183,104 @@
         };
 
         // ── List View Renderer ───────────────────────────────────────────
+        const renderList = (bookings) => {
+            const listEl = document.getElementById('listContainer');
+            if (!bookings.length) {
+                listEl.innerHTML = '<div style="grid-column:1/-1;padding:48px;text-align:center;background:#fff;border:1px dashed var(--taupe-dk);border-radius:2px;color:var(--text-light);font-style:italic;">No bookings found.</div>';
+                return;
+            }
+
+            // Chronological sort — earliest first
+            bookings.sort((a, b) => {
+                const da = new Date(`${a.resDate}T${a.resTime||'00:00'}`);
+                const db_ = new Date(`${b.resDate}T${b.resTime||'00:00'}`);
+                return da - db_;
+            });
+
+            const now = new Date();
+            listEl.innerHTML = '';
+
+            bookings.forEach(b => {
+                const isFinal   = b.status === 'finalized';
+                const bookingDT = new Date(`${b.resDate}T${b.resTime||'00:00'}`);
+                const isPast    = bookingDT < now;
+                const [y, m, day] = (b.resDate || '').split('-');
+
+                // 12-hour time label
+                let timeLabel = b.resTime || '';
+                if (timeLabel) {
+                    const [hh, mm] = timeLabel.split(':');
+                    const h = parseInt(hh);
+                    timeLabel = `${h > 12 ? h-12 : (h===0?12:h)}:${mm} ${h >= 12 ? 'PM' : 'AM'}`;
+                }
+
+                const pax = (parseInt(b.adultCount)||0) + (parseInt(b.childCount)||0);
+
+                const tile = document.createElement('div');
+                tile.style.cssText = `
+                    background:${isPast ? 'var(--cream)' : '#fff'};
+                    border:1px solid ${isPast ? 'var(--taupe-dk)' : (isFinal ? '#6ee7b7' : 'var(--taupe-dk)')};
+                    border-radius:2px;
+                    padding:16px 18px;
+                    cursor:pointer;
+                    opacity:${isPast ? '0.55' : '1'};
+                    transition:opacity 0.15s, border-color 0.15s;
+                    position:relative;
+                    overflow:hidden;
+                `;
+                tile.onmouseenter = () => { if (!isPast) tile.style.borderColor = 'var(--burgundy)'; };
+                tile.onmouseleave = () => { tile.style.borderColor = isPast ? 'var(--taupe-dk)' : (isFinal ? '#6ee7b7' : 'var(--taupe-dk)'); };
+                tile.onclick = () => showBookingDetails(b.id, b);
+
+                const accentBar = isFinal && !isPast
+                    ? `<div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:#10b981;"></div>` : '';
+
+                const menuLabel = b.menuArrangement === 'Other' ? (b.menuOtherDetails || 'Special') : (b.menuArrangement || '—');
+                const indent    = isFinal && !isPast ? 'padding-left:8px;' : '';
+                const nameColor = isPast ? 'var(--text-mid)' : 'var(--text-dark)';
+                const dateColor = isPast ? 'var(--text-light)' : 'var(--burgundy)';
+                const statusTag = isPast
+                    ? `<div style="margin-top:6px;font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-light);">Past</div>`
+                    : isFinal
+                        ? `<div style="margin-top:6px;font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#059669;">Confirmed</div>`
+                        : `<div style="margin-top:6px;font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--burgundy);">Enquiry</div>`;
+
+                tile.innerHTML = `
+                    ${accentBar}
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;${indent}">
+                        <span style="font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:${dateColor};">${day}/${m}/${y ? y.slice(-2) : ''}</span>
+                        <span style="font-size:11px;font-weight:500;color:var(--text-mid);">${timeLabel}</span>
+                    </div>
+                    <div style="${indent}">
+                        <div style="font-weight:600;font-size:14px;color:${nameColor};margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${b.customerName}</div>
+                        <div style="font-size:11px;color:var(--text-light);">${pax} cover${pax!==1?'s':''} · ${menuLabel}</div>
+                        ${statusTag}
+                    </div>`;
+
+                listEl.appendChild(tile);
+            });
+        };
+
         // --- 12-hour time picker → hidden resTime field (24hr for storage) ---
         const syncTimeField = () => {
             const h = getEl('timeHour').value;
             const m = getEl('timeMin').value;
-            const ap = getEl('timeAmPm').value;
-            if (!h || !m || !ap) { getEl('resTimeHidden').value = ''; return; }
-            let hour24 = parseInt(h);
-            if (ap === 'AM' && hour24 === 12) hour24 = 0;
-            else if (ap === 'PM' && hour24 !== 12) hour24 += 12;
+            if (!h || !m) { getEl('resTimeHidden').value = ''; return; }
+            // Always PM: 12→12, 1→13, 2→14 ... 9→21
+            const hour24 = parseInt(h) === 12 ? 12 : parseInt(h) + 12;
             getEl('resTimeHidden').value = `${String(hour24).padStart(2,'0')}:${m}`;
         };
-        ['timeHour','timeMin','timeAmPm'].forEach(id => getEl(id).addEventListener('change', () => { syncTimeField(); dom.resForm.dispatchEvent(new Event('input')); }));
+        ['timeHour','timeMin'].forEach(id => getEl(id).addEventListener('change', () => { syncTimeField(); dom.resForm.dispatchEvent(new Event('input')); }));
 
         // Restore 12hr dropdowns when draft is loaded (resTime is in 24hr format)
         const set12hrFromValue = (val) => {
             if (!val) return;
             const [h24, min] = val.split(':');
             let hour = parseInt(h24);
-            const ap = hour >= 12 ? 'PM' : 'AM';
-            if (hour === 0) hour = 12;
-            else if (hour > 12) hour -= 12;
+            // Convert 24hr back: 12→12, 13→1 ... 21→9
+            if (hour > 12) hour -= 12;
             getEl('timeHour').value = String(hour);
             getEl('timeMin').value = min;
-            getEl('timeAmPm').value = ap;
             syncTimeField();
         };
 
@@ -2252,7 +2306,7 @@
                 });
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings'), { ...data, status: 'enquiry', sequence: 0 });
                 await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current'));
-                alert("Enquiry Recorded!"); dom.resForm.reset(); getEl('timeHour').value=''; getEl('timeMin').value=''; getEl('timeAmPm').value='';
+                alert("Enquiry Recorded!"); dom.resForm.reset(); getEl('timeHour').value=''; getEl('timeMin').value='';
             } catch (e) { alert("Sync Error: " + e.code); } finally { getEl('sendCloudEmailBtn').disabled = false; }
         };
 
@@ -2265,7 +2319,6 @@
             dom.resForm.reset();
             getEl('timeHour').value = '';
             getEl('timeMin').value = '';
-            getEl('timeAmPm').value = '';
             getEl('resTimeHidden').value = '';
             dom.menuSelect.dispatchEvent(new Event('change'));
         };
