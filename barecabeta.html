@@ -11,160 +11,616 @@
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js" type="module"></script>
     <!-- FullCalendar Library -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
-        .loading-shimmer { opacity: 0.5; pointer-events: none; }
+        :root {
+            --burgundy:    #624A44;
+            --burgundy-dk: #4a3632;
+            --burgundy-lt: #7d5f58;
+            --taupe:       #E4E1DC;
+            --taupe-dk:    #c8c4be;
+            --cream:       #F5F3F0;
+            --cream-dk:    #ede9e4;
+            --text-dark:   #2d1f1c;
+            --text-mid:    #5a4a47;
+            --text-light:  #9b8a87;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            background-color: var(--cream);
+            background-image:
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(98,74,68,0.08) 0%, transparent 70%);
+            min-height: 100vh;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text-dark);
+        }
+
         .hidden { display: none !important; }
-        input:focus, select:focus, textarea:focus { border-color: #2563eb; }
+
+        /* ── Loading shimmer ── */
+        .loading-shimmer { opacity: 0.5; pointer-events: none; }
+
+        /* ── Pulse animation ── */
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
         .syncing-pulse { animation: pulse 1.5s infinite; }
-        #calendar { background: white; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; }
+
+        /* ── Fade-in ── */
+        @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+        .fade-up { animation: fadeUp 0.45s ease both; }
+
+        /* ── Global form element focus ── */
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--burgundy) !important;
+            box-shadow: 0 0 0 3px rgba(98,74,68,0.12);
+        }
+
+        /* ── LOGIN SCREEN ── */
+        #loginSection {
+            background-image:
+                radial-gradient(ellipse 60% 60% at 70% 50%, rgba(98,74,68,0.06) 0%, transparent 70%);
+        }
+
+        .login-card {
+            background: #fff;
+            border: 1px solid var(--taupe-dk);
+            border-radius: 2px;
+            box-shadow: 0 8px 40px rgba(98,74,68,0.10), 0 1px 3px rgba(98,74,68,0.06);
+        }
+
+        .login-logo-band {
+            background-color: var(--burgundy);
+            border-radius: 2px 2px 0 0;
+            padding: 28px 36px 22px;
+            text-align: center;
+        }
+
+        .login-divider {
+            width: 40px; height: 1px;
+            background: var(--taupe);
+            margin: 16px auto 0;
+            opacity: 0.6;
+        }
+
+        .login-body { padding: 32px 36px 36px; }
+
+        .field-label {
+            display: block;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text-mid);
+            margin-bottom: 6px;
+        }
+
+        .field-input {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1px solid var(--taupe-dk);
+            border-radius: 2px;
+            background: var(--cream);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            color: var(--text-dark);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .field-input::placeholder { color: var(--text-light); }
+
+        .btn-primary {
+            width: 100%;
+            background-color: var(--burgundy);
+            color: #fff;
+            border: none;
+            border-radius: 2px;
+            padding: 13px 20px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .btn-primary:hover { background-color: var(--burgundy-dk); }
+        .btn-primary:active { transform: scale(0.99); }
+        .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+
+        /* ── APP HEADER ── */
+        #appSection { max-width: 900px; margin: 0 auto; padding: 32px 20px 80px; }
+
+        .app-header {
+            background: var(--burgundy);
+            border-radius: 2px 2px 0 0;
+            padding: 0;
+            display: flex;
+            align-items: stretch;
+            overflow: hidden;
+            margin-bottom: 0;
+        }
+
+        .app-header-logo {
+            background: var(--burgundy);
+            padding: 20px 28px;
+            display: flex;
+            align-items: center;
+            border-right: 1px solid rgba(228,225,220,0.15);
+        }
+
+        .app-header-title {
+            padding: 20px 24px;
+            flex: 1;
+        }
+
+        .app-header-title h1 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--taupe);
+            line-height: 1.2;
+            margin: 0 0 2px;
+        }
+
+        .app-header-title p {
+            font-size: 10px;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: rgba(228,225,220,0.5);
+            margin: 0;
+        }
+
+        .app-header-actions {
+            padding: 20px 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .header-btn {
+            background: none;
+            border: 1px solid rgba(228,225,220,0.25);
+            border-radius: 2px;
+            color: rgba(228,225,220,0.65);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            padding: 5px 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .header-btn:hover { border-color: rgba(228,225,220,0.6); color: var(--taupe); }
+        .header-btn.admin { color: rgba(228,225,220,0.5); }
+        .header-btn.admin:hover { border-color: rgba(228,225,220,0.4); color: rgba(228,225,220,0.9); }
+
+        .status-pill {
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #6ee7b7;
+            background: rgba(16,185,129,0.12);
+            border: 1px solid rgba(16,185,129,0.2);
+            border-radius: 20px;
+            padding: 4px 10px;
+        }
+
+        /* ── TAUPE ACCENT STRIP ── */
+        .accent-strip {
+            background: var(--taupe);
+            padding: 8px 28px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid var(--taupe-dk);
+        }
+
+        .accent-strip span {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--burgundy);
+        }
+
+        .accent-dot {
+            width: 4px; height: 4px;
+            border-radius: 50%;
+            background: var(--burgundy);
+            opacity: 0.4;
+        }
+
+        /* ── FORM CARD ── */
+        .form-card {
+            background: #fff;
+            border: 1px solid var(--taupe-dk);
+            border-top: none;
+            border-radius: 0 0 2px 2px;
+            padding: 32px 32px 28px;
+            margin-bottom: 32px;
+            box-shadow: 0 4px 20px rgba(98,74,68,0.06);
+        }
+
+        .form-section-label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--text-light);
+            margin: 0 0 18px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--cream-dk);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-section-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--cream-dk);
+        }
+
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 24px; }
+        @media (max-width: 640px) { .form-grid { grid-template-columns: 1fr; } }
+
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+
+        select.field-input { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239b8a87' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+
+        .other-details-wrap {
+            background: rgba(98,74,68,0.04);
+            border: 1px solid rgba(98,74,68,0.15);
+            border-radius: 2px;
+            padding: 16px;
+            margin-top: 4px;
+        }
+
+        .staff-strip {
+            background: var(--cream);
+            border: 1px solid var(--taupe-dk);
+            border-radius: 2px;
+            padding: 20px 24px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px 24px;
+            margin-top: 24px;
+        }
+
+        @media (max-width: 640px) { .staff-strip { grid-template-columns: 1fr; } }
+
+        .staff-strip .field-label { color: var(--text-light); }
+
+        /* ── TIME PICKER CUSTOM ── */
+        .time-picker-wrap {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+        }
+
+        .time-picker-wrap select.field-input {
+            text-align: center;
+            font-weight: 500;
+        }
+
+        /* ── SUBMIT BUTTONS ── */
+        .btn-submit {
+            width: 100%;
+            background-color: var(--burgundy);
+            color: #fff;
+            border: none;
+            border-radius: 2px;
+            padding: 15px 20px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-submit:hover { background-color: var(--burgundy-dk); }
+        .btn-submit:disabled { opacity: 0.55; cursor: not-allowed; }
+
+        .btn-reset {
+            width: 100%;
+            background: transparent;
+            color: var(--text-light);
+            border: 1px solid var(--taupe-dk);
+            border-radius: 2px;
+            padding: 11px 20px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-reset:hover { border-color: #c0605a; color: #c0605a; }
+
+        .btn-row { display: flex; flex-direction: column; gap: 10px; margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--taupe-dk); }
+
+        /* ── DASHBOARD ── */
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 0 2px;
+        }
+
+        .dashboard-header h2 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 26px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .view-toggle {
+            display: flex;
+            border: 1px solid var(--taupe-dk);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .view-toggle button {
+            background: #fff;
+            border: none;
+            padding: 9px 18px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all 0.2s;
+            border-right: 1px solid var(--taupe-dk);
+        }
+
+        .view-toggle button:last-child { border-right: none; }
+        .view-toggle button.active-view, .view-toggle button:hover { background: var(--burgundy); color: #fff; }
+
+        #calendar { background: white; padding: 20px; border-radius: 2px; border: 1px solid var(--taupe-dk); }
         .fc-event { cursor: pointer; border: none !important; padding: 2px 5px; }
-        .fc-toolbar-title { font-size: 1.1rem !important; font-weight: 700 !important; color: #0f172a; }
-        .fc-button-primary { background-color: #0f172a !important; border-color: #0f172a !important; }
+        .fc-toolbar-title { font-size: 1rem !important; font-weight: 700 !important; color: var(--text-dark) !important; font-family: 'Cormorant Garamond', serif !important; }
+        .fc-button-primary { background-color: var(--burgundy) !important; border-color: var(--burgundy) !important; border-radius: 2px !important; }
+        .fc-button-primary:hover { background-color: var(--burgundy-dk) !important; }
         .status-finalized { background-color: #d1fae5 !important; border-color: #10b981 !important; color: #065f46 !important; }
+
+        /* ── FOOTER STATUS BAR ── */
+        .status-bar {
+            background: var(--taupe);
+            border: 1px solid var(--taupe-dk);
+            border-radius: 2px;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 16px;
+        }
+
+        .status-bar span {
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            color: var(--text-mid);
+        }
+
+        /* ── MISC ── */
         button:disabled { opacity: 0.6; cursor: not-allowed; }
         .admin-tab { transition: color 0.15s, border-color 0.15s; }
         .admin-tab.active-tab { color: #0f172a !important; border-color: #0f172a !important; }
     </style>
 </head>
-<body class="bg-slate-100 min-h-screen text-slate-800 font-sans">
+<body>
 
     <!-- LOGIN SCREEN -->
-    <div id="loginSection" class="flex items-center justify-center min-h-screen p-4">
-        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-200">
-            <div class="text-center mb-8">
-                <h1 class="text-2xl font-bold text-slate-900">Bareca Peaks Portal</h1>
-                <p class="text-slate-500 font-medium">Internal Secure Access Only</p>
+    <div id="loginSection" class="flex items-center justify-center min-h-screen p-6">
+        <div class="login-card w-full fade-up" style="max-width:400px;">
+            <div class="login-logo-band">
+                <img src="https://framerusercontent.com/images/z1j6LJZfF4uLlPlAZMHc9mP8AtE.png" alt="Bareca Peaks" style="display:block;margin:0 auto;height:44px;object-fit:contain;">
+                <div class="login-divider"></div>
+                <p style="margin:12px 0 0;font-family:'DM Sans',sans-serif;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(228,225,220,0.55);text-align:center;">Staff Portal</p>
             </div>
-            <form id="loginForm" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-semibold mb-1">Staff Email</label>
-                    <input type="email" id="loginEmail" required class="w-full p-3 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-slate-900 transition">
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold mb-1">Password</label>
-                    <input type="password" id="loginPassword" required class="w-full p-3 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-slate-900 transition">
-                </div>
-                <button type="submit" id="loginBtn" class="w-full bg-slate-900 text-white font-bold py-3 rounded-lg hover:bg-slate-800 transition shadow-lg">
-                    Sign In
-                </button>
-                <div id="loginError" class="text-red-500 text-xs text-center mt-2 hidden font-bold">Invalid credentials.</div>
-            </form>
+            <div class="login-body">
+                <p style="font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--text-dark);margin:0 0 24px;font-weight:500;">Welcome back</p>
+                <form id="loginForm" style="display:flex;flex-direction:column;gap:16px;">
+                    <div>
+                        <label class="field-label">Staff Email</label>
+                        <input type="email" id="loginEmail" required class="field-input" placeholder="you@bareca.co.uk">
+                    </div>
+                    <div>
+                        <label class="field-label">Password</label>
+                        <input type="password" id="loginPassword" required class="field-input" placeholder="••••••••••">
+                    </div>
+                    <button type="submit" id="loginBtn" class="btn-primary" style="margin-top:6px;">Sign In</button>
+                    <div id="loginError" class="hidden" style="font-size:12px;color:#c0605a;text-align:center;font-weight:500;">Incorrect email or password.</div>
+                </form>
+            </div>
         </div>
     </div>
 
     <!-- MAIN APPLICATION -->
-    <div id="appSection" class="max-w-4xl mx-auto py-8 px-4 hidden">
-        <div class="bg-white rounded-t-xl shadow-sm border-b p-6 flex justify-between items-center">
-            <div>
-                <h1 class="text-2xl font-bold text-slate-900">Bareca Peaks at Bike and Boot</h1>
-                <p class="text-slate-500 text-sm">Secure Reservation Intake</p>
+    <div id="appSection" class="hidden fade-up">
+        <div id="appSection-inner" class="max-w-4xl mx-auto" style="padding: 32px 20px 80px;">
+
+        <!-- App Header -->
+        <div class="app-header">
+            <div class="app-header-logo">
+                <img src="https://framerusercontent.com/images/z1j6LJZfF4uLlPlAZMHc9mP8AtE.png" alt="Bareca Peaks" style="height:36px;object-fit:contain;background:rgba(228,225,220,0.15);padding:4px 10px;border-radius:2px;">
             </div>
-            <div class="flex flex-col items-end">
-                <div class="flex gap-3 mb-2">
-                    <button id="adminSettingsBtn" class="hidden text-xs text-slate-400 hover:text-indigo-600 font-bold uppercase tracking-wider">⚙ Admin</button>
-                    <button id="logoutBtn" class="text-xs text-slate-400 hover:text-red-500 font-bold uppercase tracking-wider">Logout</button>
+            <div class="app-header-title">
+                <h1>Bareca Peaks at Bike and Boot</h1>
+                <p>Reservation Management</p>
+            </div>
+            <div class="app-header-actions">
+                <div style="display:flex;gap:8px;">
+                    <button id="adminSettingsBtn" class="hidden header-btn admin">⚙ Admin</button>
+                    <button id="logoutBtn" class="header-btn">Sign Out</button>
                 </div>
-                <div id="authStatus" class="text-[10px] font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full uppercase tracking-widest">● Securely Connected</div>
+                <div id="authStatus" class="status-pill">● Securely Connected</div>
             </div>
         </div>
 
-        <div class="bg-white p-6 shadow-sm mb-8">
-            <form id="reservationForm" class="space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-semibold mb-1">Customer Name</label>
-                        <input type="text" name="customerName" placeholder="Full Name" required class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
+        <!-- Accent strip -->
+        <div class="accent-strip">
+            <span>New Reservation</span>
+            <div class="accent-dot"></div>
+            <span style="font-weight:400;opacity:0.7;">Peaks at Bike &amp; Boot · Hope Valley</span>
+        </div>
+
+        <!-- Reservation Form -->
+        <div class="form-card">
+            <form id="reservationForm">
+
+                <!-- Guest Details -->
+                <p class="form-section-label">Guest Details</p>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="field-label">Customer Name</label>
+                        <input type="text" name="customerName" placeholder="Full name" required class="field-input">
                     </div>
-                    <div>
-                        <label class="block text-sm font-semibold mb-1">Customer Email</label>
-                        <input type="email" name="customerEmail" placeholder="email@example.com" class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
+                    <div class="form-group">
+                        <label class="field-label">Customer Email</label>
+                        <input type="email" name="customerEmail" placeholder="email@example.com" class="field-input">
                     </div>
-                    <div>
-                        <label class="block text-sm font-semibold mb-1">Phone Number</label>
-                        <input type="tel" name="customerPhone" placeholder="+44 7..." class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
+                    <div class="form-group">
+                        <label class="field-label">Phone Number</label>
+                        <input type="tel" name="customerPhone" placeholder="+44 7..." class="field-input">
                     </div>
-                    <div>
-                        <label class="block text-sm font-semibold mb-1">Reservation Date</label>
-                        <input type="date" name="resDate" required class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold mb-1">Reservation Time</label>
-                        <input type="time" name="resTime" required class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold mb-1">Menu Arrangements</label>
-                        <select id="menuArrangement" name="menuArrangement" class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
+                    <div class="form-group">
+                        <label class="field-label">Menu Arrangement</label>
+                        <select id="menuArrangement" name="menuArrangement" class="field-input">
                             <option value="Unknown" selected>Unknown</option>
                             <option value="Sharing Menu">Sharing Menu</option>
                             <option value="Choose on the Day">Choose on the Day</option>
                             <option value="Other">Other</option>
                         </select>
                     </div>
-                    <div>
-                        <label class="block text-sm font-semibold mb-1">Adults</label>
-                        <input type="number" name="adultCount" min="1" placeholder="0" class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
+                </div>
+
+                <!-- Other menu detail -->
+                <div id="otherDetailsWrapper" class="other-details-wrap hidden" style="margin-top:16px;">
+                    <label class="field-label" style="color:var(--burgundy);">Specify Arrangement</label>
+                    <input type="text" id="menuOtherDetails" name="menuOtherDetails" placeholder="Provide details…" class="field-input" style="margin-top:6px;">
+                </div>
+
+                <!-- Reservation Details -->
+                <p class="form-section-label" style="margin-top:28px;">Reservation Details</p>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="field-label">Date</label>
+                        <input type="date" name="resDate" required class="field-input">
                     </div>
-                    <div>
-                        <label class="block text-sm font-semibold mb-1">Children</label>
-                        <input type="number" name="childCount" min="0" placeholder="0" class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
+                    <div class="form-group">
+                        <label class="field-label">Time</label>
+                        <!-- 12-hour time picker — hidden native input carries the 24hr value -->
+                        <input type="hidden" name="resTime" id="resTimeHidden">
+                        <div class="time-picker-wrap">
+                            <select id="timeHour" class="field-input" aria-label="Hour">
+                                <option value="">Hr</option>
+                                <option>1</option><option>2</option><option>3</option>
+                                <option>4</option><option>5</option><option>6</option>
+                                <option>7</option><option>8</option><option>9</option>
+                                <option>10</option><option>11</option><option>12</option>
+                            </select>
+                            <select id="timeMin" class="field-input" aria-label="Minute">
+                                <option value="">Min</option>
+                                <option>00</option><option>15</option><option>30</option><option>45</option>
+                            </select>
+                            <select id="timeAmPm" class="field-input" aria-label="AM/PM">
+                                <option value="">—</option>
+                                <option>AM</option>
+                                <option selected>PM</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="field-label">Adults</label>
+                        <input type="number" name="adultCount" min="1" placeholder="0" class="field-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="field-label">Children</label>
+                        <input type="number" name="childCount" min="0" placeholder="0" class="field-input">
                     </div>
                 </div>
 
-                <div id="otherDetailsWrapper" class="hidden">
-                    <label class="block text-sm font-semibold mb-1 text-blue-600 font-bold italic">Specify Other Arrangement</label>
-                    <input type="text" id="menuOtherDetails" name="menuOtherDetails" placeholder="Provide details..." class="w-full p-3 rounded-lg border border-blue-200 outline-none transition bg-blue-50/30">
+                <!-- Special requests -->
+                <div class="form-group" style="margin-top:18px;">
+                    <label class="field-label">Special Requests / Dietary Requirements</label>
+                    <textarea id="notes" name="notes" rows="3" class="field-input" style="resize:vertical;"></textarea>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-semibold mb-1">Special Requests / Dietary Requirements</label>
-                    <textarea id="notes" name="notes" rows="3" class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition"></textarea>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t bg-slate-50/50 p-4 rounded-lg">
-                    <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Enquiry Taken By</label>
-                        <input type="text" id="takenBy" name="takenBy" placeholder="Staff Name" class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition bg-white">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Taken On (Auto)</label>
-                        <input type="text" id="takenAt" name="takenAt" readonly class="w-full p-3 rounded-lg border border-slate-200 outline-none transition bg-slate-100">
+                <!-- Deposit -->
+                <div class="form-grid" style="margin-top:18px;">
+                    <div class="form-group">
+                        <label class="field-label">Deposit Paid (£)</label>
+                        <input type="number" name="depositAmount" min="0" step="0.01" placeholder="0.00" class="field-input">
                     </div>
                 </div>
 
-                <div class="flex flex-col gap-3 pt-4 border-t">
-                    <button type="button" id="sendCloudEmailBtn" class="w-full bg-emerald-600 text-white font-bold py-4 px-6 rounded-lg hover:bg-emerald-700 transition shadow-lg flex items-center justify-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
-                        Send Reservation Request
+                <!-- Staff strip -->
+                <div class="staff-strip">
+                    <div class="form-group">
+                        <label class="field-label">Enquiry Taken By</label>
+                        <input type="text" id="takenBy" name="takenBy" placeholder="Staff name" class="field-input" style="background:#fff;">
+                    </div>
+                    <div class="form-group">
+                        <label class="field-label">Taken On</label>
+                        <input type="text" id="takenAt" name="takenAt" readonly class="field-input" style="background:var(--cream-dk);color:var(--text-light);cursor:default;">
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="btn-row">
+                    <button type="button" id="sendCloudEmailBtn" class="btn-submit">
+                        <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/></svg>
+                        Submit Reservation
                     </button>
-                    <button type="button" id="clearFormBtn" class="w-full bg-slate-100 text-slate-500 font-semibold py-3 px-6 rounded-lg hover:bg-red-50 hover:text-red-500 transition text-sm">
-                        Reset Form
-                    </button>
+                    <button type="button" id="clearFormBtn" class="btn-reset">Clear Form</button>
                 </div>
+
             </form>
         </div>
 
-        <!-- DASHBOARD SECTION -->
-        <div class="mt-8 mb-20">
-            <div class="flex flex-col sm:flex-row justify-between items-end sm:items-center mb-6 px-2 gap-4">
-                <h2 class="text-2xl font-bold text-slate-900">Live Schedule</h2>
-                <div class="inline-flex rounded-md shadow-sm" role="group">
-                    <button id="showCalendarBtn" class="px-4 py-2 text-sm font-medium text-white bg-slate-900 border border-slate-900 rounded-l-lg hover:bg-slate-800 transition">
-                        Calendar View
-                    </button>
-                    <button id="showListBtn" class="px-4 py-2 text-sm font-medium text-slate-900 bg-white border border-slate-200 rounded-r-lg hover:bg-slate-100 transition">
-                        List View
-                    </button>
+        <!-- DASHBOARD -->
+        <div style="margin-top:8px;">
+            <div class="dashboard-header">
+                <h2>Live Schedule</h2>
+                <div class="view-toggle">
+                    <button id="showCalendarBtn" class="active-view">Calendar</button>
+                    <button id="showListBtn">List</button>
                 </div>
             </div>
             <div id="calendarContainer"><div id="calendar"></div></div>
-            <div id="listContainer" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+            <div id="listContainer" class="hidden" style="display:none;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;"></div>
         </div>
 
-        <div class="bg-white rounded-xl border p-4 flex justify-between items-center text-slate-400 text-[10px]">
-            <span id="saveStatus" class="italic">Waiting for sync...</span>
-            <span id="userIdDisplay" class="uppercase tracking-widest font-bold"></span>
+        <!-- Status bar -->
+        <div class="status-bar" style="margin-top:20px;">
+            <span id="saveStatus" style="font-style:italic;">Waiting for sync…</span>
+            <span id="userIdDisplay" style="letter-spacing:0.12em;font-weight:600;"></span>
         </div>
+
+        </div><!-- /appSection-inner -->
     </div>
 
     <!-- Enquiry Details Modal -->
@@ -1404,7 +1860,7 @@
         };
 
         const renderList = (bookings) => {
-            if (!bookings.length) { dom.list.innerHTML = '<div class="col-span-full p-12 text-center bg-white rounded-xl border border-dashed border-slate-300 text-slate-400 italic">No bookings.</div>'; return; }
+            if (!bookings.length) { dom.list.innerHTML = '<div style="grid-column:1/-1;padding:48px;text-align:center;background:#fff;border:1px dashed var(--taupe-dk);border-radius:2px;color:var(--text-light);font-style:italic;">No bookings found.</div>'; return; }
             bookings.sort((a, b) => new Date(`${a.resDate}T${a.resTime}`) - new Date(`${b.resDate}T${b.resTime}`));
             dom.list.innerHTML = '';
             bookings.forEach(b => {
@@ -1586,8 +2042,48 @@
         getEl('logoutBtn').onclick = () => signOut(auth);
         getEl('modalClose').onclick = () => dom.detailModal.classList.add('hidden');
         getEl('confirmFormCancel').onclick = () => dom.confirmModal.classList.add('hidden');
-        getEl('showCalendarBtn').onclick = () => { dom.list.classList.add('hidden'); getEl('calendarContainer').classList.remove('hidden'); setTimeout(() => calendar.updateSize(), 50); };
-        getEl('showListBtn').onclick = () => { getEl('calendarContainer').classList.add('hidden'); dom.list.classList.remove('hidden'); };
+        getEl('showCalendarBtn').onclick = () => {
+            document.getElementById('listContainer').style.display = 'none';
+            document.getElementById('listContainer').classList.add('hidden');
+            getEl('calendarContainer').classList.remove('hidden');
+            getEl('showCalendarBtn').classList.add('active-view');
+            getEl('showListBtn').classList.remove('active-view');
+            setTimeout(() => calendar.updateSize(), 50);
+        };
+        getEl('showListBtn').onclick = () => {
+            getEl('calendarContainer').classList.add('hidden');
+            document.getElementById('listContainer').style.display = 'grid';
+            document.getElementById('listContainer').classList.remove('hidden');
+            getEl('showCalendarBtn').classList.remove('active-view');
+            getEl('showListBtn').classList.add('active-view');
+        };
+
+        // --- 12-hour time picker → hidden resTime field (24hr for storage) ---
+        const syncTimeField = () => {
+            const h = getEl('timeHour').value;
+            const m = getEl('timeMin').value;
+            const ap = getEl('timeAmPm').value;
+            if (!h || !m || !ap) { getEl('resTimeHidden').value = ''; return; }
+            let hour24 = parseInt(h);
+            if (ap === 'AM' && hour24 === 12) hour24 = 0;
+            else if (ap === 'PM' && hour24 !== 12) hour24 += 12;
+            getEl('resTimeHidden').value = `${String(hour24).padStart(2,'0')}:${m}`;
+        };
+        ['timeHour','timeMin','timeAmPm'].forEach(id => getEl(id).addEventListener('change', () => { syncTimeField(); dom.resForm.dispatchEvent(new Event('input')); }));
+
+        // Restore 12hr dropdowns when draft is loaded (resTime is in 24hr format)
+        const set12hrFromValue = (val) => {
+            if (!val) return;
+            const [h24, min] = val.split(':');
+            let hour = parseInt(h24);
+            const ap = hour >= 12 ? 'PM' : 'AM';
+            if (hour === 0) hour = 12;
+            else if (hour > 12) hour -= 12;
+            getEl('timeHour').value = String(hour);
+            getEl('timeMin').value = min;
+            getEl('timeAmPm').value = ap;
+            syncTimeField();
+        };
 
         dom.resForm.addEventListener('input', () => {
             if (!currentUser || isRestoringDraft) return;
@@ -1611,7 +2107,7 @@
                 });
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings'), { ...data, status: 'enquiry', sequence: 0 });
                 await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current'));
-                alert("Enquiry Recorded!"); dom.resForm.reset();
+                alert("Enquiry Recorded!"); dom.resForm.reset(); getEl('timeHour').value=''; getEl('timeMin').value=''; getEl('timeAmPm').value='';
             } catch (e) { alert("Sync Error: " + e.code); } finally { getEl('sendCloudEmailBtn').disabled = false; }
         };
 
@@ -1620,11 +2116,22 @@
             if (e.target.value.trim() && !getEl('takenAt').value) getEl('takenAt').value = new Date().toLocaleString('en-GB');
         });
 
+        getEl('clearFormBtn').onclick = () => {
+            dom.resForm.reset();
+            getEl('timeHour').value = '';
+            getEl('timeMin').value = '';
+            getEl('timeAmPm').value = '';
+            getEl('resTimeHidden').value = '';
+            dom.menuSelect.dispatchEvent(new Event('change'));
+        };
+
         const loadDraft = async () => {
             const snap = await getDoc(doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'drafts', 'current')).catch(() => {});
             if (snap?.exists()) {
                 const data = snap.data();
                 Object.keys(data).forEach(k => { if(dom.resForm.elements[k]) dom.resForm.elements[k].value = data[k]; });
+                // Restore 12hr time selects from stored 24hr value
+                if (data.resTime) set12hrFromValue(data.resTime);
                 dom.menuSelect.dispatchEvent(new Event('change'));
             }
         };
