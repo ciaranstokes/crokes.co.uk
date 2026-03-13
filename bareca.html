@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,155 +12,616 @@
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js" type="module"></script>
     <!-- FullCalendar Library -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
-        .loading-shimmer { opacity: 0.5; pointer-events: none; }
+        :root {
+            --burgundy:    #624A44;
+            --burgundy-dk: #4a3632;
+            --burgundy-lt: #7d5f58;
+            --taupe:       #E4E1DC;
+            --taupe-dk:    #c8c4be;
+            --cream:       #F5F3F0;
+            --cream-dk:    #ede9e4;
+            --text-dark:   #2d1f1c;
+            --text-mid:    #5a4a47;
+            --text-light:  #9b8a87;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            background-color: var(--cream);
+            background-image:
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(98,74,68,0.08) 0%, transparent 70%);
+            min-height: 100vh;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text-dark);
+        }
+
         .hidden { display: none !important; }
-        input:focus, select:focus, textarea:focus { border-color: #2563eb; }
+
+        /* ── Loading shimmer ── */
+        .loading-shimmer { opacity: 0.5; pointer-events: none; }
+
+        /* ── Pulse animation ── */
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
         .syncing-pulse { animation: pulse 1.5s infinite; }
-        #calendar { background: white; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; }
+
+        /* ── Fade-in ── */
+        @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+        .fade-up { animation: fadeUp 0.45s ease both; }
+
+        /* ── Global form element focus ── */
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--burgundy) !important;
+            box-shadow: 0 0 0 3px rgba(98,74,68,0.12);
+        }
+
+        /* ── LOGIN SCREEN ── */
+        #loginSection {
+            background-image:
+                radial-gradient(ellipse 60% 60% at 70% 50%, rgba(98,74,68,0.06) 0%, transparent 70%);
+        }
+
+        .login-card {
+            background: #fff;
+            border: 1px solid var(--taupe-dk);
+            border-radius: 2px;
+            box-shadow: 0 8px 40px rgba(98,74,68,0.10), 0 1px 3px rgba(98,74,68,0.06);
+        }
+
+        .login-logo-band {
+            background-color: var(--burgundy);
+            border-radius: 2px 2px 0 0;
+            padding: 28px 36px 22px;
+            text-align: center;
+        }
+
+        .login-divider {
+            width: 40px; height: 1px;
+            background: var(--taupe);
+            margin: 16px auto 0;
+            opacity: 0.6;
+        }
+
+        .login-body { padding: 32px 36px 36px; }
+
+        .field-label {
+            display: block;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text-mid);
+            margin-bottom: 6px;
+        }
+
+        .field-input {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1px solid var(--taupe-dk);
+            border-radius: 2px;
+            background: var(--cream);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            color: var(--text-dark);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .field-input::placeholder { color: var(--text-light); }
+
+        .btn-primary {
+            width: 100%;
+            background-color: var(--burgundy);
+            color: #fff;
+            border: none;
+            border-radius: 2px;
+            padding: 13px 20px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .btn-primary:hover { background-color: var(--burgundy-dk); }
+        .btn-primary:active { transform: scale(0.99); }
+        .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+
+        /* ── APP HEADER ── */
+        #appSection { max-width: 900px; margin: 0 auto; padding: 32px 20px 80px; }
+
+        .app-header {
+            background: var(--burgundy);
+            border-radius: 2px 2px 0 0;
+            padding: 0;
+            display: flex;
+            align-items: stretch;
+            overflow: hidden;
+            margin-bottom: 0;
+        }
+
+        .app-header-logo {
+            background: var(--burgundy);
+            padding: 20px 28px;
+            display: flex;
+            align-items: center;
+            border-right: 1px solid rgba(228,225,220,0.15);
+        }
+
+        .app-header-title {
+            padding: 20px 24px;
+            flex: 1;
+        }
+
+        .app-header-title h1 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--taupe);
+            line-height: 1.2;
+            margin: 0 0 2px;
+        }
+
+        .app-header-title p {
+            font-size: 10px;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: rgba(228,225,220,0.5);
+            margin: 0;
+        }
+
+        .app-header-actions {
+            padding: 20px 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .header-btn {
+            background: none;
+            border: 1px solid rgba(228,225,220,0.25);
+            border-radius: 2px;
+            color: rgba(228,225,220,0.65);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            padding: 5px 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .header-btn:hover { border-color: rgba(228,225,220,0.6); color: var(--taupe); }
+        .header-btn.admin { color: rgba(228,225,220,0.5); }
+        .header-btn.admin:hover { border-color: rgba(228,225,220,0.4); color: rgba(228,225,220,0.9); }
+
+        .status-pill {
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #6ee7b7;
+            background: rgba(16,185,129,0.12);
+            border: 1px solid rgba(16,185,129,0.2);
+            border-radius: 20px;
+            padding: 4px 10px;
+        }
+
+        /* ── TAUPE ACCENT STRIP ── */
+        .accent-strip {
+            background: var(--taupe);
+            padding: 8px 28px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid var(--taupe-dk);
+        }
+
+        .accent-strip span {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--burgundy);
+        }
+
+        .accent-dot {
+            width: 4px; height: 4px;
+            border-radius: 50%;
+            background: var(--burgundy);
+            opacity: 0.4;
+        }
+
+        /* ── FORM CARD ── */
+        .form-card {
+            background: #fff;
+            border: 1px solid var(--taupe-dk);
+            border-top: none;
+            border-radius: 0 0 2px 2px;
+            padding: 32px 32px 28px;
+            margin-bottom: 32px;
+            box-shadow: 0 4px 20px rgba(98,74,68,0.06);
+        }
+
+        .form-section-label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--text-light);
+            margin: 0 0 18px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--cream-dk);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-section-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--cream-dk);
+        }
+
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 24px; }
+        @media (max-width: 640px) { .form-grid { grid-template-columns: 1fr; } }
+
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+
+        select.field-input { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239b8a87' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+
+        .other-details-wrap {
+            background: rgba(98,74,68,0.04);
+            border: 1px solid rgba(98,74,68,0.15);
+            border-radius: 2px;
+            padding: 16px;
+            margin-top: 4px;
+        }
+
+        .staff-strip {
+            background: var(--cream);
+            border: 1px solid var(--taupe-dk);
+            border-radius: 2px;
+            padding: 20px 24px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px 24px;
+            margin-top: 24px;
+        }
+
+        @media (max-width: 640px) { .staff-strip { grid-template-columns: 1fr; } }
+
+        .staff-strip .field-label { color: var(--text-light); }
+
+        /* ── TIME PICKER CUSTOM ── */
+        .time-picker-wrap {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+        }
+
+        .time-picker-wrap select.field-input {
+            text-align: center;
+            font-weight: 500;
+        }
+
+        /* ── SUBMIT BUTTONS ── */
+        .btn-submit {
+            width: 100%;
+            background-color: var(--burgundy);
+            color: #fff;
+            border: none;
+            border-radius: 2px;
+            padding: 15px 20px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-submit:hover { background-color: var(--burgundy-dk); }
+        .btn-submit:disabled { opacity: 0.55; cursor: not-allowed; }
+
+        .btn-reset {
+            width: 100%;
+            background: transparent;
+            color: var(--text-light);
+            border: 1px solid var(--taupe-dk);
+            border-radius: 2px;
+            padding: 11px 20px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-reset:hover { border-color: #c0605a; color: #c0605a; }
+
+        .btn-row { display: flex; flex-direction: column; gap: 10px; margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--taupe-dk); }
+
+        /* ── DASHBOARD ── */
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 0 2px;
+        }
+
+        .dashboard-header h2 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 26px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .view-toggle {
+            display: flex;
+            border: 1px solid var(--taupe-dk);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .view-toggle button {
+            background: #fff;
+            border: none;
+            padding: 9px 18px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all 0.2s;
+            border-right: 1px solid var(--taupe-dk);
+        }
+
+        .view-toggle button:last-child { border-right: none; }
+        .view-toggle button.active-view, .view-toggle button:hover { background: var(--burgundy); color: #fff; }
+
+        #calendar { background: white; padding: 20px; border-radius: 2px; border: 1px solid var(--taupe-dk); }
         .fc-event { cursor: pointer; border: none !important; padding: 2px 5px; }
-        .fc-toolbar-title { font-size: 1.1rem !important; font-weight: 700 !important; color: #0f172a; }
-        .fc-button-primary { background-color: #0f172a !important; border-color: #0f172a !important; }
+        .fc-toolbar-title { font-size: 1rem !important; font-weight: 700 !important; color: var(--text-dark) !important; font-family: 'Cormorant Garamond', serif !important; }
+        .fc-button-primary { background-color: var(--burgundy) !important; border-color: var(--burgundy) !important; border-radius: 2px !important; }
+        .fc-button-primary:hover { background-color: var(--burgundy-dk) !important; }
         .status-finalized { background-color: #d1fae5 !important; border-color: #10b981 !important; color: #065f46 !important; }
+
+        /* ── FOOTER STATUS BAR ── */
+        .status-bar {
+            background: var(--taupe);
+            border: 1px solid var(--taupe-dk);
+            border-radius: 2px;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 16px;
+        }
+
+        .status-bar span {
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            color: var(--text-mid);
+        }
+
+        /* ── MISC ── */
         button:disabled { opacity: 0.6; cursor: not-allowed; }
+        .admin-tab { transition: color 0.15s, border-color 0.15s; }
+        .admin-tab.active-tab { color: #0f172a !important; border-color: #0f172a !important; }
     </style>
 </head>
-<body class="bg-slate-100 min-h-screen text-slate-800 font-sans">
+<body>
 
     <!-- LOGIN SCREEN -->
-    <div id="loginSection" class="flex items-center justify-center min-h-screen p-4">
-        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-200">
-            <div class="text-center mb-8">
-                <h1 class="text-2xl font-bold text-slate-900">Bareca Peaks Portal</h1>
-                <p class="text-slate-500 font-medium">Internal Secure Access Only</p>
+    <div id="loginSection" class="flex items-center justify-center min-h-screen p-6">
+        <div class="login-card w-full fade-up" style="max-width:400px;">
+            <div class="login-logo-band">
+                <img src="https://framerusercontent.com/images/z1j6LJZfF4uLlPlAZMHc9mP8AtE.png" alt="Bareca Peaks" style="display:block;margin:0 auto;height:44px;object-fit:contain;">
+                <div class="login-divider"></div>
+                <p style="margin:12px 0 0;font-family:'DM Sans',sans-serif;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(228,225,220,0.55);text-align:center;">Staff Portal</p>
             </div>
-            <form id="loginForm" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-semibold mb-1">Staff Email</label>
-                    <input type="email" id="loginEmail" required class="w-full p-3 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-slate-900 transition">
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold mb-1">Password</label>
-                    <input type="password" id="loginPassword" required class="w-full p-3 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-slate-900 transition">
-                </div>
-                <button type="submit" id="loginBtn" class="w-full bg-slate-900 text-white font-bold py-3 rounded-lg hover:bg-slate-800 transition shadow-lg">
-                    Sign In
-                </button>
-                <div id="loginError" class="text-red-500 text-xs text-center mt-2 hidden font-bold">Invalid credentials.</div>
-            </form>
+            <div class="login-body">
+                <p style="font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--text-dark);margin:0 0 24px;font-weight:500;">Welcome back</p>
+                <form id="loginForm" style="display:flex;flex-direction:column;gap:16px;">
+                    <div>
+                        <label class="field-label">Staff Email</label>
+                        <input type="email" id="loginEmail" required class="field-input" placeholder="you@bareca.co.uk">
+                    </div>
+                    <div>
+                        <label class="field-label">Password</label>
+                        <input type="password" id="loginPassword" required class="field-input" placeholder="••••••••••">
+                    </div>
+                    <button type="submit" id="loginBtn" class="btn-primary" style="margin-top:6px;">Sign In</button>
+                    <div id="loginError" class="hidden" style="font-size:12px;color:#c0605a;text-align:center;font-weight:500;">Incorrect email or password.</div>
+                </form>
+            </div>
         </div>
     </div>
 
     <!-- MAIN APPLICATION -->
-    <div id="appSection" class="max-w-4xl mx-auto py-8 px-4 hidden">
-        <div class="bg-white rounded-t-xl shadow-sm border-b p-6 flex justify-between items-center">
-            <div>
-                <h1 class="text-2xl font-bold text-slate-900">Bareca Peaks at Bike and Boot</h1>
-                <p class="text-slate-500 text-sm">Secure Reservation Intake</p>
+    <div id="appSection" class="hidden fade-up">
+        <div id="appSection-inner" class="max-w-4xl mx-auto" style="padding: 32px 20px 80px;">
+
+        <!-- App Header -->
+        <div class="app-header">
+            <div class="app-header-logo">
+                <img src="https://framerusercontent.com/images/z1j6LJZfF4uLlPlAZMHc9mP8AtE.png" alt="Bareca Peaks" style="height:36px;object-fit:contain;background:rgba(228,225,220,0.15);padding:4px 10px;border-radius:2px;">
             </div>
-            <div class="flex flex-col items-end">
-                <button id="logoutBtn" class="text-xs text-slate-400 hover:text-red-500 font-bold uppercase tracking-wider mb-2">Logout</button>
-                <div id="authStatus" class="text-[10px] font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full uppercase tracking-widest">● Securely Connected</div>
+            <div class="app-header-title">
+                <h1>Bareca Peaks at Bike and Boot</h1>
+                <p>Reservation Management</p>
+            </div>
+            <div class="app-header-actions">
+                <div style="display:flex;gap:8px;">
+                    <button id="adminSettingsBtn" class="hidden header-btn admin">⚙ Admin</button>
+                    <button id="logoutBtn" class="header-btn">Sign Out</button>
+                </div>
+                <div id="authStatus" class="status-pill">● Securely Connected</div>
             </div>
         </div>
 
-        <div class="bg-white p-6 shadow-sm mb-8">
-            <form id="reservationForm" class="space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-semibold mb-1">Customer Name</label>
-                        <input type="text" name="customerName" placeholder="Full Name" required class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
+        <!-- Accent strip -->
+        <div class="accent-strip">
+            <span>New Reservation</span>
+            <div class="accent-dot"></div>
+            <span style="font-weight:400;opacity:0.7;">Peaks at Bike &amp; Boot · Hope Valley</span>
+        </div>
+
+        <!-- Reservation Form -->
+        <div class="form-card">
+            <form id="reservationForm">
+
+                <!-- Guest Details -->
+                <p class="form-section-label">Guest Details</p>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="field-label">Customer Name</label>
+                        <input type="text" name="customerName" placeholder="Full name" required class="field-input">
                     </div>
-                    <div>
-                        <label class="block text-sm font-semibold mb-1">Customer Email</label>
-                        <input type="email" name="customerEmail" placeholder="email@example.com" class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
+                    <div class="form-group">
+                        <label class="field-label">Customer Email</label>
+                        <input type="email" name="customerEmail" placeholder="email@example.com" class="field-input">
                     </div>
-                    <div>
-                        <label class="block text-sm font-semibold mb-1">Phone Number</label>
-                        <input type="tel" name="customerPhone" placeholder="+44 7..." class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
+                    <div class="form-group">
+                        <label class="field-label">Phone Number</label>
+                        <input type="tel" name="customerPhone" placeholder="+44 7..." class="field-input">
                     </div>
-                    <div>
-                        <label class="block text-sm font-semibold mb-1">Reservation Date</label>
-                        <input type="date" name="resDate" required class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold mb-1">Reservation Time</label>
-                        <input type="time" name="resTime" required class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold mb-1">Menu Arrangements</label>
-                        <select id="menuArrangement" name="menuArrangement" class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
+                    <div class="form-group">
+                        <label class="field-label">Menu Arrangement</label>
+                        <select id="menuArrangement" name="menuArrangement" class="field-input">
                             <option value="Unknown" selected>Unknown</option>
                             <option value="Sharing Menu">Sharing Menu</option>
                             <option value="Choose on the Day">Choose on the Day</option>
                             <option value="Other">Other</option>
                         </select>
                     </div>
-                    <div>
-                        <label class="block text-sm font-semibold mb-1">Adults</label>
-                        <input type="number" name="adultCount" min="1" placeholder="0" class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
+                </div>
+
+                <!-- Other menu detail -->
+                <div id="otherDetailsWrapper" class="other-details-wrap hidden" style="margin-top:16px;">
+                    <label class="field-label" style="color:var(--burgundy);">Specify Arrangement</label>
+                    <input type="text" id="menuOtherDetails" name="menuOtherDetails" placeholder="Provide details…" class="field-input" style="margin-top:6px;">
+                </div>
+
+                <!-- Reservation Details -->
+                <p class="form-section-label" style="margin-top:28px;">Reservation Details</p>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="field-label">Date</label>
+                        <input type="date" name="resDate" required class="field-input">
                     </div>
-                    <div>
-                        <label class="block text-sm font-semibold mb-1">Children</label>
-                        <input type="number" name="childCount" min="0" placeholder="0" class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
+                    <div class="form-group">
+                        <label class="field-label">Time</label>
+                        <!-- 12-hour time picker — hidden native input carries the 24hr value -->
+                        <input type="hidden" name="resTime" id="resTimeHidden">
+                        <div class="time-picker-wrap">
+                            <select id="timeHour" class="field-input" aria-label="Hour">
+                                <option value="">Hr</option>
+                                <option>1</option><option>2</option><option>3</option>
+                                <option>4</option><option>5</option><option>6</option>
+                                <option>7</option><option>8</option><option>9</option>
+                                <option>10</option><option>11</option><option>12</option>
+                            </select>
+                            <select id="timeMin" class="field-input" aria-label="Minute">
+                                <option value="">Min</option>
+                                <option>00</option><option>15</option><option>30</option><option>45</option>
+                            </select>
+                            <select id="timeAmPm" class="field-input" aria-label="AM/PM">
+                                <option value="">—</option>
+                                <option>AM</option>
+                                <option selected>PM</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="field-label">Adults</label>
+                        <input type="number" name="adultCount" min="1" placeholder="0" class="field-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="field-label">Children</label>
+                        <input type="number" name="childCount" min="0" placeholder="0" class="field-input">
                     </div>
                 </div>
 
-                <div id="otherDetailsWrapper" class="hidden">
-                    <label class="block text-sm font-semibold mb-1 text-blue-600 font-bold italic">Specify Other Arrangement</label>
-                    <input type="text" id="menuOtherDetails" name="menuOtherDetails" placeholder="Provide details..." class="w-full p-3 rounded-lg border border-blue-200 outline-none transition bg-blue-50/30">
+                <!-- Special requests -->
+                <div class="form-group" style="margin-top:18px;">
+                    <label class="field-label">Special Requests / Dietary Requirements</label>
+                    <textarea id="notes" name="notes" rows="3" class="field-input" style="resize:vertical;"></textarea>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-semibold mb-1">Special Requests / Dietary Requirements</label>
-                    <textarea id="notes" name="notes" rows="3" class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition"></textarea>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t bg-slate-50/50 p-4 rounded-lg">
-                    <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Enquiry Taken By</label>
-                        <input type="text" id="takenBy" name="takenBy" placeholder="Staff Name" class="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition bg-white">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Taken On (Auto)</label>
-                        <input type="text" id="takenAt" name="takenAt" readonly class="w-full p-3 rounded-lg border border-slate-200 outline-none transition bg-slate-100">
+                <!-- Deposit -->
+                <div class="form-grid" style="margin-top:18px;">
+                    <div class="form-group">
+                        <label class="field-label">Deposit Paid (£)</label>
+                        <input type="number" name="depositAmount" min="0" step="0.01" placeholder="0.00" class="field-input">
                     </div>
                 </div>
 
-                <div class="flex flex-col gap-3 pt-4 border-t">
-                    <button type="button" id="sendCloudEmailBtn" class="w-full bg-emerald-600 text-white font-bold py-4 px-6 rounded-lg hover:bg-emerald-700 transition shadow-lg flex items-center justify-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
-                        Send Reservation Request
+                <!-- Staff strip -->
+                <div class="staff-strip">
+                    <div class="form-group">
+                        <label class="field-label">Enquiry Taken By</label>
+                        <input type="text" id="takenBy" name="takenBy" placeholder="Staff name" class="field-input" style="background:#fff;">
+                    </div>
+                    <div class="form-group">
+                        <label class="field-label">Taken On</label>
+                        <input type="text" id="takenAt" name="takenAt" readonly class="field-input" style="background:var(--cream-dk);color:var(--text-light);cursor:default;">
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="btn-row">
+                    <button type="button" id="sendCloudEmailBtn" class="btn-submit">
+                        <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/></svg>
+                        Submit Reservation
                     </button>
-                    <button type="button" id="clearFormBtn" class="w-full bg-slate-100 text-slate-500 font-semibold py-3 px-6 rounded-lg hover:bg-red-50 hover:text-red-500 transition text-sm">
-                        Reset Form
-                    </button>
+                    <button type="button" id="clearFormBtn" class="btn-reset">Clear Form</button>
                 </div>
+
             </form>
         </div>
 
-        <!-- DASHBOARD SECTION -->
-        <div class="mt-8 mb-20">
-            <div class="flex flex-col sm:flex-row justify-between items-end sm:items-center mb-6 px-2 gap-4">
-                <h2 class="text-2xl font-bold text-slate-900">Live Schedule</h2>
-                <div class="inline-flex rounded-md shadow-sm" role="group">
-                    <button id="showCalendarBtn" class="px-4 py-2 text-sm font-medium text-white bg-slate-900 border border-slate-900 rounded-l-lg hover:bg-slate-800 transition">
-                        Calendar View
-                    </button>
-                    <button id="showListBtn" class="px-4 py-2 text-sm font-medium text-slate-900 bg-white border border-slate-200 rounded-r-lg hover:bg-slate-100 transition">
-                        List View
-                    </button>
+        <!-- DASHBOARD -->
+        <div style="margin-top:8px;">
+            <div class="dashboard-header">
+                <h2>Live Schedule</h2>
+                <div class="view-toggle">
+                    <button id="showCalendarBtn" class="active-view">Calendar</button>
+                    <button id="showListBtn">List</button>
                 </div>
             </div>
             <div id="calendarContainer"><div id="calendar"></div></div>
-            <div id="listContainer" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+            <div id="listContainer" class="hidden" style="display:none;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;"></div>
         </div>
 
-        <div class="bg-white rounded-xl border p-4 flex justify-between items-center text-slate-400 text-[10px]">
-            <span id="saveStatus" class="italic">Waiting for sync...</span>
-            <span id="userIdDisplay" class="uppercase tracking-widest font-bold"></span>
+        <!-- Status bar -->
+        <div class="status-bar" style="margin-top:20px;">
+            <span id="saveStatus" style="font-style:italic;">Waiting for sync…</span>
+            <span id="userIdDisplay" style="letter-spacing:0.12em;font-weight:600;"></span>
         </div>
+
+        </div><!-- /appSection-inner -->
     </div>
 
     <!-- Enquiry Details Modal -->
@@ -248,6 +710,351 @@
         </div>
     </div>
 
+    <!-- Email Preview Modal -->
+    <div id="emailPreviewModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 z-[70] hidden">
+        <div class="bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col" style="max-height: 92vh; width: 100%; max-width: 960px;">
+            <!-- Header -->
+            <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between flex-shrink-0">
+                <div>
+                    <h3 class="text-base font-bold">Email Preview & Edit</h3>
+                    <p class="text-slate-400 text-xs mt-0.5">Make any changes, then confirm to send</p>
+                </div>
+                <span class="text-[10px] font-bold uppercase tracking-widest bg-amber-400 text-amber-900 px-3 py-1 rounded-full">Not Sent Yet</span>
+            </div>
+
+            <!-- Two-column body: edit panel left, preview right -->
+            <div class="flex flex-1 min-h-0 overflow-hidden">
+
+                <!-- LEFT: Edit panel -->
+                <div class="w-80 flex-shrink-0 border-r border-slate-200 bg-slate-50 flex flex-col overflow-y-auto">
+                    <div class="p-4 border-b border-slate-200 bg-white space-y-3">
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Sending To</label>
+                            <input type="email" id="previewToAddress" class="w-full p-2 text-sm font-semibold border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-400 outline-none bg-white" placeholder="guest@example.com">
+                            <p id="emailValidationMsg" class="text-[10px] text-red-500 mt-1 hidden">Please enter a valid email address.</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Subject</p>
+                            <p id="previewSubjectLine" class="text-xs text-slate-600 italic mt-1"></p>
+                        </div>
+                    </div>
+
+                    <div class="p-4 space-y-4 flex-1">
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Edit Email Fields</p>
+                        <p class="text-xs text-slate-500">Changes update the preview instantly. Nothing is sent until you click Confirm & Send.</p>
+
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Greeting Name</label>
+                            <input type="text" id="edit_customerName" class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-400 outline-none bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Date</label>
+                            <input type="date" id="edit_resDate" class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-400 outline-none bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Time</label>
+                            <input type="time" id="edit_resTime" class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-400 outline-none bg-white">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Adults</label>
+                                <input type="number" id="edit_adultCount" min="0" class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-400 outline-none bg-white">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Children</label>
+                                <input type="number" id="edit_childCount" min="0" class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-400 outline-none bg-white">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Menu</label>
+                            <input type="text" id="edit_menuDisplay" class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-400 outline-none bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Deposit Paid</label>
+                            <input type="text" id="edit_depositAmount" placeholder="e.g. £50.00 or N/A" class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-400 outline-none bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Special Arrangements</label>
+                            <textarea id="edit_notes" rows="3" class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-400 outline-none bg-white resize-none"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT: Live iframe preview -->
+                <div class="flex-1 overflow-auto bg-slate-200 p-4 min-h-0">
+                    <iframe id="emailPreviewFrame" class="w-full rounded-xl border border-slate-300 shadow bg-white" style="min-height: 700px;" frameborder="0" sandbox="allow-same-origin"></iframe>
+                </div>
+            </div>
+
+            <!-- Footer actions -->
+            <div class="border-t bg-white px-6 py-4 flex gap-3 flex-shrink-0">
+                <button id="previewCancelBtn" class="flex-1 py-3 font-bold text-slate-600 hover:bg-slate-100 rounded-lg transition border border-slate-200">
+                    Back
+                </button>
+                <button id="previewSendBtn" class="flex-1 py-3 font-bold text-white rounded-lg transition shadow flex items-center justify-center gap-2" style="background-color:#624A44;">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
+                    Confirm & Send to Guest
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cancellation Email Preview Modal -->
+    <div id="cancelPreviewModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 z-[70] hidden">
+        <div class="bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col" style="max-height: 92vh; width: 100%; max-width: 960px;">
+            <!-- Header -->
+            <div class="px-6 py-4 flex items-center justify-between flex-shrink-0" style="background-color:#7f1d1d;">
+                <div>
+                    <h3 class="text-base font-bold text-white">Cancellation Email Preview & Edit</h3>
+                    <p class="text-red-200 text-xs mt-0.5">Review before sending — this cannot be undone</p>
+                </div>
+                <span class="text-[10px] font-bold uppercase tracking-widest bg-red-200 text-red-900 px-3 py-1 rounded-full">Not Sent Yet</span>
+            </div>
+
+            <!-- Two-column body -->
+            <div class="flex flex-1 min-h-0 overflow-hidden">
+
+                <!-- LEFT: Edit panel -->
+                <div class="w-80 flex-shrink-0 border-r border-slate-200 bg-slate-50 flex flex-col overflow-y-auto">
+                    <div class="p-4 border-b border-slate-200 bg-white space-y-3">
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Sending To</label>
+                            <input type="email" id="cancelPreviewToAddress" class="w-full p-2 text-sm font-semibold border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-300 outline-none bg-white" placeholder="guest@example.com">
+                            <p id="cancelEmailValidationMsg" class="text-[10px] text-red-500 mt-1 hidden">Please enter a valid email address.</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Subject</p>
+                            <p id="cancelPreviewSubjectLine" class="text-xs text-slate-600 italic mt-1"></p>
+                        </div>
+                    </div>
+
+                    <div class="p-4 space-y-4 flex-1">
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Edit Email Fields</p>
+                        <p class="text-xs text-slate-500">Adjust any details before sending. The booking will be deleted after you send.</p>
+
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Guest Name</label>
+                            <input type="text" id="cancel_customerName" class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-300 outline-none bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Original Date</label>
+                            <input type="date" id="cancel_resDate" class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-300 outline-none bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Original Time</label>
+                            <input type="time" id="cancel_resTime" class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-300 outline-none bg-white">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Adults</label>
+                                <input type="number" id="cancel_adultCount" min="0" class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-300 outline-none bg-white">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Children</label>
+                                <input type="number" id="cancel_childCount" min="0" class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-300 outline-none bg-white">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Deposit Refund Note</label>
+                            <input type="text" id="cancel_depositNote" placeholder="e.g. Refund processed or N/A" class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-300 outline-none bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Additional Message (optional)</label>
+                            <textarea id="cancel_additionalMsg" rows="3" placeholder="e.g. We hope to welcome you again soon." class="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-300 outline-none bg-white resize-none"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT: Live iframe preview -->
+                <div class="flex-1 overflow-auto bg-slate-200 p-4 min-h-0">
+                    <iframe id="cancelPreviewFrame" class="w-full rounded-xl border border-slate-300 shadow bg-white" style="min-height: 700px;" frameborder="0" sandbox="allow-same-origin"></iframe>
+                </div>
+            </div>
+
+            <!-- Footer actions -->
+            <div class="border-t bg-white px-6 py-4 flex gap-3 flex-shrink-0">
+                <button id="cancelPreviewBackBtn" class="flex-1 py-3 font-bold text-slate-600 hover:bg-slate-100 rounded-lg transition border border-slate-200">
+                    Back
+                </button>
+                <button id="cancelPreviewSendBtn" class="flex-1 py-3 font-bold text-white rounded-lg transition shadow flex items-center justify-center gap-2" style="background-color:#991b1b;">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
+                    Send Cancellation & Delete Booking
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         ADMIN SETTINGS MODAL
+         Only visible to admin emails. Settings saved to Firestore
+         and loaded at runtime — no code edits needed.
+    ============================================================ -->
+    <div id="adminModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 z-[80] hidden">
+        <div class="bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col" style="max-height:92vh;width:100%;max-width:880px;">
+
+            <!-- Header -->
+            <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between flex-shrink-0">
+                <div>
+                    <h3 class="text-base font-bold">⚙ Admin Settings</h3>
+                    <p class="text-slate-400 text-xs mt-0.5">Changes save to Firestore and apply immediately to all email previews</p>
+                </div>
+                <button id="adminModalClose" class="text-slate-400 hover:text-white text-xl font-bold leading-none">✕</button>
+            </div>
+
+            <!-- Tab bar -->
+            <div class="flex border-b border-slate-200 bg-slate-50 flex-shrink-0">
+                <button data-tab="colours"  class="admin-tab active-tab px-5 py-3 text-sm font-bold text-slate-700 border-b-2 border-slate-900">Colours</button>
+                <button data-tab="confirm"  class="admin-tab px-5 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-700">Confirmation Email</button>
+                <button data-tab="cancel"   class="admin-tab px-5 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-700">Cancellation Email</button>
+                <button data-tab="contact"  class="admin-tab px-5 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-700">Contact &amp; Footer</button>
+            </div>
+
+            <!-- Tab panels -->
+            <div class="flex-1 overflow-y-auto p-6">
+
+                <!-- COLOURS TAB -->
+                <div id="tab-colours" class="admin-panel space-y-6">
+                    <p class="text-xs text-slate-500">These colours apply to both the confirmation and cancellation emails. Use hex codes e.g. <code class="bg-slate-100 px-1 rounded">#624A44</code></p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Header / Footer Background</label>
+                            <p class="text-[10px] text-slate-400">The top and bottom bar behind the logo</p>
+                            <div class="flex gap-2 items-center">
+                                <input type="color" id="cfg_headerBg" class="h-10 w-14 rounded border border-slate-200 cursor-pointer p-0.5">
+                                <input type="text"  id="cfg_headerBg_hex" maxlength="7" class="flex-1 p-2 text-sm border border-slate-200 rounded-lg font-mono outline-none focus:ring-2 focus:ring-indigo-400">
+                            </div>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Confirmation Accent Band</label>
+                            <p class="text-[10px] text-slate-400">The strip below the logo on confirmation emails</p>
+                            <div class="flex gap-2 items-center">
+                                <input type="color" id="cfg_confirmAccent" class="h-10 w-14 rounded border border-slate-200 cursor-pointer p-0.5">
+                                <input type="text"  id="cfg_confirmAccent_hex" maxlength="7" class="flex-1 p-2 text-sm border border-slate-200 rounded-lg font-mono outline-none focus:ring-2 focus:ring-indigo-400">
+                            </div>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Cancellation Accent Band</label>
+                            <p class="text-[10px] text-slate-400">The strip below the logo on cancellation emails</p>
+                            <div class="flex gap-2 items-center">
+                                <input type="color" id="cfg_cancelAccent" class="h-10 w-14 rounded border border-slate-200 cursor-pointer p-0.5">
+                                <input type="text"  id="cfg_cancelAccent_hex" maxlength="7" class="flex-1 p-2 text-sm border border-slate-200 rounded-lg font-mono outline-none focus:ring-2 focus:ring-indigo-400">
+                            </div>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Table Label Background</label>
+                            <p class="text-[10px] text-slate-400">The left-hand column of the details table</p>
+                            <div class="flex gap-2 items-center">
+                                <input type="color" id="cfg_labelBg" class="h-10 w-14 rounded border border-slate-200 cursor-pointer p-0.5">
+                                <input type="text"  id="cfg_labelBg_hex" maxlength="7" class="flex-1 p-2 text-sm border border-slate-200 rounded-lg font-mono outline-none focus:ring-2 focus:ring-indigo-400">
+                            </div>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Table Label Text</label>
+                            <p class="text-[10px] text-slate-400">The colour of the field labels e.g. "Reservation Name:"</p>
+                            <div class="flex gap-2 items-center">
+                                <input type="color" id="cfg_labelText" class="h-10 w-14 rounded border border-slate-200 cursor-pointer p-0.5">
+                                <input type="text"  id="cfg_labelText_hex" maxlength="7" class="flex-1 p-2 text-sm border border-slate-200 rounded-lg font-mono outline-none focus:ring-2 focus:ring-indigo-400">
+                            </div>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Logo Background</label>
+                            <p class="text-[10px] text-slate-400">The pill behind the logo image</p>
+                            <div class="flex gap-2 items-center">
+                                <input type="color" id="cfg_logoBg" class="h-10 w-14 rounded border border-slate-200 cursor-pointer p-0.5">
+                                <input type="text"  id="cfg_logoBg_hex" maxlength="7" class="flex-1 p-2 text-sm border border-slate-200 rounded-lg font-mono outline-none focus:ring-2 focus:ring-indigo-400">
+                            </div>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Page Background</label>
+                            <p class="text-[10px] text-slate-400">The area surrounding the email card</p>
+                            <div class="flex gap-2 items-center">
+                                <input type="color" id="cfg_pageBg" class="h-10 w-14 rounded border border-slate-200 cursor-pointer p-0.5">
+                                <input type="text"  id="cfg_pageBg_hex" maxlength="7" class="flex-1 p-2 text-sm border border-slate-200 rounded-lg font-mono outline-none focus:ring-2 focus:ring-indigo-400">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONFIRMATION EMAIL TAB -->
+                <div id="tab-confirm" class="admin-panel hidden space-y-5">
+                    <p class="text-xs text-slate-500">Default text shown in the confirmation email body. Use the edit panel in the preview modal to make per-booking adjustments.</p>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Intro Paragraph</label>
+                        <textarea id="cfg_confirmIntro" rows="3" class="w-full p-3 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-400 resize-none"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Sign-off Text</label>
+                        <input type="text" id="cfg_confirmSignoff" class="w-full p-3 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-400">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">"Things to Note" Policy Text</label>
+                        <p class="text-[10px] text-slate-400 mb-1">Plain text only. Separate paragraphs with a blank line — they will be bolded at the start automatically.</p>
+                        <textarea id="cfg_thingsToNote" rows="8" class="w-full p-3 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-400 resize-none font-mono"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Accent Band Label Text</label>
+                        <input type="text" id="cfg_confirmBandText" class="w-full p-3 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-400">
+                    </div>
+                </div>
+
+                <!-- CANCELLATION EMAIL TAB -->
+                <div id="tab-cancel" class="admin-panel hidden space-y-5">
+                    <p class="text-xs text-slate-500">Default text for cancellation emails. Per-booking notes can still be added in the cancellation preview modal.</p>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Intro Paragraph</label>
+                        <textarea id="cfg_cancelIntro" rows="3" class="w-full p-3 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-400 resize-none"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Closing Paragraph</label>
+                        <textarea id="cfg_cancelClosing" rows="3" class="w-full p-3 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-400 resize-none"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Sign-off Text</label>
+                        <input type="text" id="cfg_cancelSignoff" class="w-full p-3 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-400">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Accent Band Label Text</label>
+                        <input type="text" id="cfg_cancelBandText" class="w-full p-3 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-400">
+                    </div>
+                </div>
+
+                <!-- CONTACT & FOOTER TAB -->
+                <div id="tab-contact" class="admin-panel hidden space-y-5">
+                    <p class="text-xs text-slate-500">These details appear in the footer and body of both email templates.</p>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Restaurant Name</label>
+                        <input type="text" id="cfg_restaurantName" class="w-full p-3 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-400">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Phone Number</label>
+                        <input type="text" id="cfg_phone" class="w-full p-3 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-400">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Address (one line)</label>
+                        <input type="text" id="cfg_address" class="w-full p-3 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-400">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Footer Sub-line</label>
+                        <input type="text" id="cfg_footerNote" class="w-full p-3 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-400">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Admin Email Addresses</label>
+                        <p class="text-[10px] text-slate-400 mb-1">Comma-separated. These accounts will see the ⚙ Admin button after login.</p>
+                        <input type="text" id="cfg_adminEmails" placeholder="you@example.com, other@example.com" class="w-full p-3 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-400">
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Footer actions -->
+            <div class="border-t bg-white px-6 py-4 flex gap-3 items-center flex-shrink-0">
+                <span id="adminSaveStatus" class="text-xs text-slate-400 italic flex-1"></span>
+                <button id="adminResetBtn" class="px-4 py-2 text-xs font-bold text-slate-500 hover:text-red-500 border border-slate-200 rounded-lg transition">Reset to Defaults</button>
+                <button id="adminSaveBtn" class="px-6 py-2 text-sm font-bold text-white rounded-lg transition shadow" style="background-color:#624A44;">Save Settings</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -270,7 +1077,7 @@
         // Internal State
         let currentUser = null;
         let calendar = null;
-        let currentViewingBooking = null; 
+        let currentViewingBooking = null;
         let isRestoringDraft = true;
 
         const getEl = (id) => document.getElementById(id);
@@ -321,7 +1128,7 @@
             const start = formatICSDate(d.resDate, d.resTime);
             const stamp = getDTStamp();
             const pax = (parseInt(d.adultCount)||0) + (parseInt(d.childCount)||0);
-            
+
             return [
                 'BEGIN:VCALENDAR',
                 'VERSION:2.0',
@@ -342,6 +1149,223 @@
             ].join('\r\n');
         };
 
+        // ---------------------------------------------------------------
+        // GUEST EMAIL TEMPLATE — Bareca branded
+        // Mirrors the structure of the uploaded Word template with the
+        // brand palette: #624A44 (burgundy), #E4E1DC (warm taupe),
+        // #F5F3F0 (off-white), Metropolis/Georgia fonts.
+        // d.menuDisplay is an override field set from the edit panel.
+        // ---------------------------------------------------------------
+        const generateGuestEmailHTML = (d) => {
+            const adults  = parseInt(d.adultCount)  || 0;
+            const children = parseInt(d.childCount) || 0;
+            const pax = adults + children;
+
+            const [y, m, day] = (d.resDate || "2000-01-01").split('-');
+            const dateFormatted = `${day}/${m}/${y}`;
+
+            const [h, min] = (d.resTime || "12:00").split(':');
+            const hour = parseInt(h);
+            const timeFormatted = `${hour > 12 ? hour - 12 : (hour === 0 ? 12 : hour)}:${min} ${hour >= 12 ? 'PM' : 'AM'}`;
+
+            const menuDisplay = d.menuDisplay ||
+                (d.menuArrangement === 'Other' ? (d.menuOtherDetails || 'Special Arrangement') : (d.menuArrangement || 'To Be Confirmed'));
+
+            const depositDisplay = d.depositAmount ? `£${parseFloat(d.depositAmount).toFixed(2)}` : 'N/A';
+
+            const row = (label, value, last = false) => `
+              <tr>
+                <td width="38%" style="background-color:${cfg.labelBg};padding:12px 14px;border:1px solid #c8c4be;${last?'':'border-bottom:none;'}text-align:right;vertical-align:middle;">
+                  <span style="font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;font-weight:700;color:${cfg.labelText};">${label}</span>
+                </td>
+                <td width="62%" style="background-color:#ffffff;padding:12px 16px;border:1px solid #c8c4be;border-left:none;${last?'':'border-bottom:none;'}vertical-align:middle;">
+                  <span style="font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;color:#2d1f1c;">${value}</span>
+                </td>
+              </tr>`;
+
+            // Build "Things to Note" paragraphs from cfg, replacing {{phone}} placeholder
+            const noteParas = (cfg.thingsToNote || '')
+                .replace(/\{\{phone\}\}/g, cfg.phone)
+                .split(/\n\n+/)
+                .filter(p => p.trim())
+                .map(p => {
+                    const [bold, ...rest] = p.split(/(?<=\.|—)\s/);
+                    return `<p style="margin:0 0 8px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;color:#2d1f1c;line-height:1.6;">${p.trim()}</p>`;
+                }).join('');
+
+            return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>${cfg.restaurantName} – Reservation Confirmation</title>
+</head>
+<body style="margin:0;padding:0;background-color:${cfg.pageBg};font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;">
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:${cfg.pageBg};padding:32px 16px;">
+  <tr><td align="center">
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;">
+
+      <tr>
+        <td style="background-color:${cfg.headerBg};padding:32px 40px 24px;text-align:center;border-radius:4px 4px 0 0;">
+          <img src="https://framerusercontent.com/images/z1j6LJZfF4uLlPlAZMHc9mP8AtE.png" alt="${cfg.restaurantName}" width="220" style="display:block;margin:0 auto;max-width:220px;background-color:${cfg.logoBg};padding:10px 16px;border-radius:4px;">
+          <div style="width:48px;height:2px;background-color:#E4E1DC;margin:20px auto 0;opacity:0.6;"></div>
+          <p style="margin:12px 0 0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:rgba(228,225,220,0.7);font-weight:400;">Reservation Confirmation</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td style="background-color:${cfg.confirmAccent};padding:10px 40px;text-align:center;">
+          <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:${cfg.labelText};font-weight:700;">${cfg.confirmBandText}</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td style="background-color:#ffffff;padding:36px 40px 28px;">
+          <p style="margin:0 0 6px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:17px;color:#2d1f1c;">Dear ${d.customerName},</p>
+          <p style="margin:0 0 28px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#5a4a47;line-height:1.7;">${cfg.confirmIntro}</p>
+
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+            ${row('Reservation Name:', d.customerName)}
+            ${row('Time of Reservation:', `${dateFormatted} at ${timeFormatted}`)}
+            ${row('Number of Guests:', `${pax} (${adults} adult${adults!==1?'s':''} ${children>0?'&amp; '+children+' child'+(children!==1?'ren':''):''})`)}
+            ${row('Chosen Menu:', menuDisplay)}
+            ${row('Special Arrangements:', d.notes || 'None')}
+            ${row('Deposit Paid:', depositDisplay)}
+            <tr>
+              <td width="38%" style="background-color:${cfg.labelBg};padding:14px 14px;border:1px solid #c8c4be;border-top:none;text-align:right;vertical-align:top;">
+                <span style="font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;font-weight:700;color:${cfg.labelText};">Things to Note:</span>
+              </td>
+              <td width="62%" style="background-color:#ffffff;padding:14px 16px;border:1px solid #c8c4be;border-left:none;border-top:none;vertical-align:top;">
+                ${noteParas}
+              </td>
+            </tr>
+          </table>
+
+          <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#2d1f1c;line-height:1.7;">
+            Warm regards,<br><strong>${cfg.confirmSignoff}</strong>
+          </p>
+        </td>
+      </tr>
+
+      <tr>
+        <td style="background-color:${cfg.headerBg};padding:20px 40px;text-align:center;border-radius:0 0 4px 4px;">
+          <p style="margin:0 0 4px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:12px;color:rgba(228,225,220,0.85);">
+            ${cfg.restaurantName} &nbsp;·&nbsp; ${cfg.address}
+          </p>
+          <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;color:rgba(228,225,220,0.5);letter-spacing:0.5px;">${cfg.footerNote}</p>
+        </td>
+      </tr>
+
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>`;
+        };
+
+        // ---------------------------------------------------------------
+        // CANCELLATION EMAIL TEMPLATE — same brand palette as confirmation
+        // Uses a muted red accent to signal cancellation clearly whilst
+        // keeping the Bareca warmth and Metropolis typography.
+        // ---------------------------------------------------------------
+        const generateCancellationEmailHTML = (d) => {
+            const adults   = parseInt(d.adultCount)  || 0;
+            const children = parseInt(d.childCount)  || 0;
+            const pax      = adults + children;
+
+            const [y, m, day] = (d.resDate || "2000-01-01").split('-');
+            const dateFormatted = `${day}/${m}/${y}`;
+
+            const [h, min] = (d.resTime || "12:00").split(':');
+            const hour = parseInt(h);
+            const timeFormatted = `${hour > 12 ? hour - 12 : (hour === 0 ? 12 : hour)}:${min} ${hour >= 12 ? 'PM' : 'AM'}`;
+
+            const depositNote = d.depositNote || 'N/A';
+            const additionalMsg = d.additionalMsg
+                ? `<p style="margin:0 0 20px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#5a4a47;line-height:1.7;">${d.additionalMsg}</p>`
+                : '';
+
+            const cancelRow = (label, value, isLast = false) => `
+              <tr>
+                <td width="38%" style="background-color:${cfg.labelBg};padding:12px 14px;border:1px solid #c8c4be;${isLast?'':'border-bottom:none;'}text-align:right;vertical-align:middle;">
+                  <span style="font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;font-weight:700;color:${cfg.labelText};">${label}</span>
+                </td>
+                <td width="62%" style="background-color:#ffffff;padding:12px 16px;border:1px solid #c8c4be;border-left:none;${isLast?'':'border-bottom:none;'}vertical-align:middle;">
+                  <span style="font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;color:#2d1f1c;">${value}</span>
+                </td>
+              </tr>`;
+
+            return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>${cfg.restaurantName} – Cancellation Confirmation</title>
+</head>
+<body style="margin:0;padding:0;background-color:${cfg.pageBg};font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;">
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:${cfg.pageBg};padding:32px 16px;">
+  <tr><td align="center">
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;">
+
+      <tr>
+        <td style="background-color:${cfg.headerBg};padding:32px 40px 24px;text-align:center;border-radius:4px 4px 0 0;">
+          <img src="https://framerusercontent.com/images/z1j6LJZfF4uLlPlAZMHc9mP8AtE.png" alt="${cfg.restaurantName}" width="220" style="display:block;margin:0 auto;max-width:220px;background-color:${cfg.logoBg};padding:10px 16px;border-radius:4px;">
+          <div style="width:48px;height:2px;background-color:#E4E1DC;margin:20px auto 0;opacity:0.6;"></div>
+          <p style="margin:12px 0 0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:rgba(228,225,220,0.7);font-weight:400;">Cancellation Notice</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td style="background-color:${cfg.cancelAccent};padding:10px 40px;text-align:center;">
+          <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#fecaca;font-weight:700;">${cfg.cancelBandText}</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td style="background-color:#ffffff;padding:36px 40px 28px;">
+          <p style="margin:0 0 6px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:17px;color:#2d1f1c;">Dear ${d.customerName},</p>
+          <p style="margin:0 0 28px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#5a4a47;line-height:1.7;">${cfg.cancelIntro}</p>
+
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+            ${cancelRow('Reservation Name:', d.customerName)}
+            ${cancelRow('Original Date:', dateFormatted)}
+            ${cancelRow('Original Time:', timeFormatted)}
+            ${cancelRow('Number of Guests:', `${pax} (${adults} adult${adults!==1?'s':''} ${children>0?'&amp; '+children+' child'+(children!==1?'ren':''):''})`)}
+            ${cancelRow('Deposit:', depositNote, true)}
+          </table>
+
+          ${additionalMsg}
+
+          <p style="margin:0 0 16px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#5a4a47;line-height:1.7;">${cfg.cancelClosing}</p>
+          <p style="margin:0 0 28px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#5a4a47;line-height:1.7;">
+            You can reach us on <strong>${cfg.phone}</strong> or visit us at <strong>${cfg.address}</strong>.
+          </p>
+          <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#2d1f1c;line-height:1.7;">
+            Warm regards,<br><strong>${cfg.cancelSignoff}</strong>
+          </p>
+        </td>
+      </tr>
+
+      <tr>
+        <td style="background-color:${cfg.headerBg};padding:20px 40px;text-align:center;border-radius:0 0 4px 4px;">
+          <p style="margin:0 0 4px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:12px;color:rgba(228,225,220,0.85);">
+            ${cfg.restaurantName} &nbsp;·&nbsp; ${cfg.address}
+          </p>
+          <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;color:rgba(228,225,220,0.5);letter-spacing:0.5px;">
+            This email confirms your cancellation. Please retain for your records.
+          </p>
+        </td>
+      </tr>
+
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>`;
+        };
+
         // --- Action: Download ICS ---
         dom.modalDownloadICSBtn.onclick = () => {
             if (!currentViewingBooking) return;
@@ -356,46 +1380,264 @@
             document.body.removeChild(link);
         };
 
-        // --- Action: Send to Guest ---
-        getEl('modalSendGuestBtn').onclick = () => {
-            if (!currentViewingBooking || !currentViewingBooking.customerEmail) {
-                alert("No email address found for this guest.");
-                return;
-            }
-            const email = currentViewingBooking.customerEmail;
-            const subject = encodeURIComponent("Bareca Peaks Booking Confirmation");
-            window.location.href = `mailto:${email}?subject=${subject}`;
+        // ---------------------------------------------------------------
+        // EMAIL PREVIEW — editable panel with live iframe refresh
+        // ---------------------------------------------------------------
+
+        // Holds the working copy of booking data while the preview is open.
+        // Edits update this object and re-render the iframe.
+        let previewData = {};
+
+        const refreshPreviewFrame = () => {
+            const frame = getEl('emailPreviewFrame');
+            frame.srcdoc = generateGuestEmailHTML(previewData);
         };
 
-        // --- Cancellation Logic ---
+        // Wire all edit fields to update previewData and refresh on input
+        const editFieldMap = {
+            edit_customerName: 'customerName',
+            edit_resDate:      'resDate',
+            edit_resTime:      'resTime',
+            edit_adultCount:   'adultCount',
+            edit_childCount:   'childCount',
+            edit_menuDisplay:  'menuDisplay',
+            edit_depositAmount:'depositAmount',
+            edit_notes:        'notes'
+        };
+
+        Object.entries(editFieldMap).forEach(([elId, key]) => {
+            getEl(elId).addEventListener('input', (e) => {
+                previewData[key] = e.target.value;
+                refreshPreviewFrame();
+            });
+        });
+
+        // --- Action: Open Preview Modal ---
+        getEl('modalSendGuestBtn').onclick = () => {
+            const d = currentViewingBooking;
+            if (!d?.customerEmail) {
+                alert("No email address found for this guest. Please update their record first.");
+                return;
+            }
+
+            // Build working copy — resolve menu display upfront
+            const resolvedMenu = d.menuArrangement === 'Other'
+                ? (d.menuOtherDetails || 'Special Arrangement')
+                : (d.menuArrangement || 'To Be Confirmed');
+
+            previewData = {
+                ...d,
+                menuDisplay: resolvedMenu,
+                depositAmount: d.depositAmount ? `${parseFloat(d.depositAmount).toFixed(2)}` : ''
+            };
+
+            // Populate edit fields
+            getEl('edit_customerName').value  = previewData.customerName  || '';
+            getEl('edit_resDate').value       = previewData.resDate       || '';
+            getEl('edit_resTime').value       = previewData.resTime       || '';
+            getEl('edit_adultCount').value    = previewData.adultCount    || '';
+            getEl('edit_childCount').value    = previewData.childCount    || '';
+            getEl('edit_menuDisplay').value   = previewData.menuDisplay   || '';
+            getEl('edit_depositAmount').value = previewData.depositAmount || '';
+            getEl('edit_notes').value         = previewData.notes         || '';
+
+            // Populate meta bar
+            const [y, m, day] = (d.resDate || '').split('-');
+            getEl('previewToAddress').value        = d.customerEmail;
+            getEl('emailValidationMsg').classList.add('hidden');
+            getEl('previewSubjectLine').textContent = `Your Bareca Peaks Reservation – ${day}/${m}/${y}`;
+
+            // Render iframe
+            refreshPreviewFrame();
+
+            getEl('emailPreviewModal').classList.remove('hidden');
+        };
+
+        // Close preview — go back to detail modal
+        getEl('previewCancelBtn').onclick = () => {
+            getEl('emailPreviewModal').classList.add('hidden');
+        };
+
+        // --- Action: Confirmed Send from Preview ---
+        getEl('previewSendBtn').onclick = async () => {
+            const d = currentViewingBooking;
+            if (!d?.customerEmail) return;
+
+            // Read the (possibly edited) email address from the input
+            const recipientEmail = getEl('previewToAddress').value.trim();
+            const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipientEmail);
+            if (!recipientEmail || !emailValid) {
+                getEl('emailValidationMsg').classList.remove('hidden');
+                getEl('previewToAddress').focus();
+                return;
+            }
+            getEl('emailValidationMsg').classList.add('hidden');
+
+            const sendBtn = getEl('previewSendBtn');
+            sendBtn.disabled = true;
+            sendBtn.textContent = "Sending...";
+            sendBtn.classList.add('syncing-pulse');
+
+            try {
+                const [y, m, day] = (previewData.resDate || "").split('-');
+                const pax = (parseInt(previewData.adultCount)||0) + (parseInt(previewData.childCount)||0);
+
+                // Plain text fallback
+                const plainText = [
+                    `Dear ${previewData.customerName},`,
+                    ``,
+                    `Thank you for your reservation at Bareca Peaks. We look forward to welcoming your party.`,
+                    ``,
+                    `BOOKING DETAILS`,
+                    `---------------`,
+                    `Reservation Name: ${previewData.customerName}`,
+                    `Date & Time:      ${day}/${m}/${y} at ${previewData.resTime}`,
+                    `Number of Guests: ${pax}`,
+                    `Chosen Menu:      ${previewData.menuDisplay}`,
+                    previewData.notes ? `Special Arrangements: ${previewData.notes}` : null,
+                    `Deposit Paid:     ${previewData.depositAmount ? '£'+previewData.depositAmount : 'N/A'}`,
+                    ``,
+                    `Please note your reservation is for a specific time. If you are running late please call 01433 440 777.`,
+                    ``,
+                    `Warm regards,`,
+                    `The Bareca Peaks Team`,
+                    `Hope Road, Hope Valley, S33 0AL · 01433 440 777`
+                ].filter(l => l !== null).join('\n');
+
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
+                    to: [recipientEmail],
+                    message: {
+                        subject: `Your Bareca Peaks Reservation – ${day}/${m}/${y}`,
+                        text: plainText,
+                        html: generateGuestEmailHTML(previewData)
+                    }
+                });
+
+                getEl('emailPreviewModal').classList.add('hidden');
+                dom.detailModal.classList.add('hidden');
+                alert(`Confirmation email sent to ${recipientEmail}`);
+
+            } catch (err) {
+                alert(`Failed to send email: ${err.message}`);
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg> Confirm & Send to Guest`;
+                sendBtn.classList.remove('syncing-pulse');
+            }
+        };
+
+        // ---------------------------------------------------------------
+        // CANCELLATION PREVIEW FLOW
+        // Cancel Group button now opens a preview modal first.
+        // The actual delete + email only fires on "Send Cancellation".
+        // ---------------------------------------------------------------
+        let cancelPreviewData = {};
+
+        const refreshCancelFrame = () => {
+            getEl('cancelPreviewFrame').srcdoc = generateCancellationEmailHTML(cancelPreviewData);
+        };
+
+        const cancelEditFieldMap = {
+            cancel_customerName:  'customerName',
+            cancel_resDate:       'resDate',
+            cancel_resTime:       'resTime',
+            cancel_adultCount:    'adultCount',
+            cancel_childCount:    'childCount',
+            cancel_depositNote:   'depositNote',
+            cancel_additionalMsg: 'additionalMsg'
+        };
+
+        Object.entries(cancelEditFieldMap).forEach(([elId, key]) => {
+            getEl(elId).addEventListener('input', (e) => {
+                cancelPreviewData[key] = e.target.value;
+                refreshCancelFrame();
+            });
+        });
+
         const handleBookingCancellation = async () => {
             if (!currentUser || !currentViewingBooking?.id) return;
 
-            const bId = currentViewingBooking.id;
-            const bName = currentViewingBooking.customerName || "this booking";
-            const isBooking = currentViewingBooking.status === 'finalized';
+            const d = currentViewingBooking;
+            const isBooking = d.status === 'finalized';
             const subjectType = isBooking ? 'BOOKING' : 'ENQUIRY';
 
-            if (!confirm(`Are you sure you want to cancel the ${subjectType.toLowerCase()} for ${bName}?`)) return;
+            if (!confirm(`Are you sure you want to cancel the ${subjectType.toLowerCase()} for ${d.customerName}? You will be able to preview and edit a guest email before anything is deleted.`)) return;
 
-            dom.modalCancelBtn.disabled = true;
-            dom.modalCancelBtn.textContent = "Cancelling...";
-            dom.modalCancelBtn.classList.add('syncing-pulse');
+            // Build cancel preview data
+            cancelPreviewData = {
+                id:           d.id,
+                customerName: d.customerName || '',
+                customerEmail: d.customerEmail || '',
+                resDate:      d.resDate || '',
+                resTime:      d.resTime || '',
+                adultCount:   d.adultCount || 0,
+                childCount:   d.childCount || 0,
+                depositNote:  d.depositAmount ? `Your deposit of £${parseFloat(d.depositAmount).toFixed(2)} will be refunded within 5–10 working days.` : 'N/A',
+                additionalMsg: '',
+                isBooking,
+                subjectType
+            };
+
+            // Populate cancel edit fields
+            getEl('cancel_customerName').value  = cancelPreviewData.customerName;
+            getEl('cancel_resDate').value       = cancelPreviewData.resDate;
+            getEl('cancel_resTime').value       = cancelPreviewData.resTime;
+            getEl('cancel_adultCount').value    = cancelPreviewData.adultCount;
+            getEl('cancel_childCount').value    = cancelPreviewData.childCount;
+            getEl('cancel_depositNote').value   = cancelPreviewData.depositNote;
+            getEl('cancel_additionalMsg').value = '';
+
+            // Populate meta bar
+            const [y, m, day] = (d.resDate || '').split('-');
+            getEl('cancelPreviewToAddress').value         = d.customerEmail || '';
+            getEl('cancelEmailValidationMsg').classList.add('hidden');
+            getEl('cancelPreviewSubjectLine').textContent = `Bareca Peaks – Cancellation Confirmation`;
+
+            refreshCancelFrame();
+            dom.detailModal.classList.add('hidden');
+            getEl('cancelPreviewModal').classList.remove('hidden');
+        };
+
+        getEl('cancelPreviewBackBtn').onclick = () => {
+            getEl('cancelPreviewModal').classList.add('hidden');
+            dom.detailModal.classList.remove('hidden');
+        };
+
+        getEl('cancelPreviewSendBtn').onclick = async () => {
+            const recipientEmail = getEl('cancelPreviewToAddress').value.trim();
+            const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipientEmail);
+
+            // Allow send without email (enquiries may have no address) but validate if one is entered
+            if (recipientEmail && !emailValid) {
+                getEl('cancelEmailValidationMsg').classList.remove('hidden');
+                getEl('cancelPreviewToAddress').focus();
+                return;
+            }
+            getEl('cancelEmailValidationMsg').classList.add('hidden');
+
+            const sendBtn = getEl('cancelPreviewSendBtn');
+            sendBtn.disabled = true;
+            sendBtn.textContent = 'Processing...';
+            sendBtn.classList.add('syncing-pulse');
 
             try {
+                const { id: bId, isBooking, subjectType } = cancelPreviewData;
+                const bName = cancelPreviewData.customerName;
+
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings', bId);
                 const checkSnap = await getDoc(docRef);
-                
+
                 if (!checkSnap.exists()) {
                     alert("Record no longer exists.");
-                    dom.detailModal.classList.add('hidden');
+                    getEl('cancelPreviewModal').classList.add('hidden');
                     return;
                 }
 
                 const data = checkSnap.data();
                 const seq = (data.sequence || 0) + 1;
-                const icsCancel = generateICSContent({id: bId, ...data}, seq, true);
+                const icsCancel = generateICSContent({ id: bId, ...data }, seq, true);
 
+                // 1. Internal team notification
                 try {
                     await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
                         toUids: ['reservation_team'],
@@ -410,18 +1652,59 @@
                             }] : []
                         }
                     });
-                } catch (e) { console.error("Email queue error:", e); }
+                } catch (e) { console.error("Internal email error:", e); }
 
+                // 2. Guest cancellation email (only if address provided)
+                if (recipientEmail) {
+                    const [y, m, day] = (cancelPreviewData.resDate || '').split('-');
+                    const pax = (parseInt(cancelPreviewData.adultCount)||0) + (parseInt(cancelPreviewData.childCount)||0);
+
+                    const plainText = [
+                        `Dear ${cancelPreviewData.customerName},`,
+                        ``,
+                        `We're writing to confirm that your reservation at Bareca Peaks has been successfully cancelled.`,
+                        ``,
+                        `CANCELLED BOOKING DETAILS`,
+                        `-------------------------`,
+                        `Reservation Name: ${cancelPreviewData.customerName}`,
+                        `Original Date:    ${day}/${m}/${y}`,
+                        `Original Time:    ${cancelPreviewData.resTime}`,
+                        `Number of Guests: ${pax}`,
+                        `Deposit:          ${cancelPreviewData.depositNote}`,
+                        cancelPreviewData.additionalMsg ? `\n${cancelPreviewData.additionalMsg}` : null,
+                        ``,
+                        `We're sorry we won't be seeing you this time. Please call 01433 440 777 to make a future reservation.`,
+                        ``,
+                        `Warm regards,`,
+                        `The Bareca Peaks Team`,
+                        `Hope Road, Hope Valley, S33 0AL · 01433 440 777`
+                    ].filter(l => l !== null).join('\n');
+
+                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
+                        to: [recipientEmail],
+                        message: {
+                            subject: `Bareca Peaks – Cancellation Confirmation`,
+                            text: plainText,
+                            html: generateCancellationEmailHTML(cancelPreviewData)
+                        }
+                    });
+                }
+
+                // 3. Delete the booking record
                 await deleteDoc(docRef);
-                dom.detailModal.classList.add('hidden');
-                alert(`The ${subjectType.toLowerCase()} for ${bName} has been removed.`);
+
+                getEl('cancelPreviewModal').classList.add('hidden');
+                alert(recipientEmail
+                    ? `Booking cancelled and confirmation email sent to ${recipientEmail}.`
+                    : `Booking cancelled. No guest email sent (no address on record).`
+                );
 
             } catch (err) {
                 alert(`Error: ${err.message}`);
             } finally {
-                dom.modalCancelBtn.disabled = false;
-                dom.modalCancelBtn.textContent = "Cancel Group";
-                dom.modalCancelBtn.classList.remove('syncing-pulse');
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg> Send Cancellation & Delete Booking`;
+                sendBtn.classList.remove('syncing-pulse');
             }
         };
 
@@ -436,6 +1719,8 @@
                 getEl('userIdDisplay').textContent = `Staff ID: ${user.uid.substring(0, 8)}`;
                 initCalendar();
                 startDataSync();
+                await loadSettings();
+                syncAdminButton();
                 await loadDraft();
                 isRestoringDraft = false;
             } else {
@@ -485,12 +1770,12 @@
             getEl('modalPhone').textContent = data.customerPhone || 'N/A';
             getEl('modalEmail').textContent = data.customerEmail || 'N/A';
             getEl('modalNotes').textContent = data.notes || 'None provided.';
-            
+
             const isFinal = data.status === 'finalized';
             getEl('finalizedBadge').classList.toggle('hidden', !isFinal);
             getEl('confirmedActions').classList.toggle('hidden', !isFinal);
             getEl('modalConfirmTrigger').textContent = isFinal ? "Edit Confirmation" : "Confirm Reservation";
-            
+
             const notesWrap = getEl('modalConfirmedNotesWrapper');
             if (isFinal && data.confirmedNotes) {
                 notesWrap.classList.remove('hidden');
@@ -530,7 +1815,7 @@
 
             try {
                 await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings', currentViewingBooking.id), updates, { merge: true });
-                
+
                 const label = generateKitchenLabel({ ...currentViewingBooking, ...updates });
                 const pax = (parseInt(updates.adultCount)||0) + (parseInt(updates.childCount)||0);
                 const icsContent = generateICSContent({id: currentViewingBooking.id, ...currentViewingBooking, ...updates}, updates.sequence);
@@ -576,7 +1861,7 @@
         };
 
         const renderList = (bookings) => {
-            if (!bookings.length) { dom.list.innerHTML = '<div class="col-span-full p-12 text-center bg-white rounded-xl border border-dashed border-slate-300 text-slate-400 italic">No bookings.</div>'; return; }
+            if (!bookings.length) { dom.list.innerHTML = '<div style="grid-column:1/-1;padding:48px;text-align:center;background:#fff;border:1px dashed var(--taupe-dk);border-radius:2px;color:var(--text-light);font-style:italic;">No bookings found.</div>'; return; }
             bookings.sort((a, b) => new Date(`${a.resDate}T${a.resTime}`) - new Date(`${b.resDate}T${b.resTime}`));
             dom.list.innerHTML = '';
             bookings.forEach(b => {
@@ -590,6 +1875,166 @@
             });
         };
 
+        // ===============================================================
+        // ADMIN SETTINGS SYSTEM
+        // Settings live in Firestore at:
+        //   artifacts/{appId}/public/data/settings/emailConfig
+        // Loaded once on login; applied to all email generators at runtime.
+        // ===============================================================
+
+        const ADMIN_EMAILS_FALLBACK = ['stokes.ciaran@gmail.com']; // initial bootstrap admin
+
+        const DEFAULT_CFG = {
+            // Colours
+            headerBg:      '#624A44',
+            confirmAccent: '#E4E1DC',
+            cancelAccent:  '#991b1b',
+            labelBg:       '#E4E1DC',
+            labelText:     '#624A44',
+            logoBg:        '#e4e1dc',
+            pageBg:        '#F5F3F0',
+            // Confirmation text
+            confirmIntro:    "Thank you for your reservation at Bareca Peaks. We look forward to welcoming your party and hope you have a wonderful visit.",
+            confirmSignoff:  "The Bareca Peaks Team",
+            confirmBandText: "Peaks at Bike & Boot · Hope Valley",
+            thingsToNote:    "Please note that your reservation is for a specific time. If you don't arrive in time, please note that we reserve the right to allocate the table to another guest.\n\nIf you believe you will be late, please let us know by calling {{phone}}\n\nIf you need to change the number of diners, please let us know as soon as you are able by calling {{phone}}\n\nDietary requirements and allergies — we have allergen information to accompany our menu. Please let us know of any allergies as soon as you can and we will provide the allergen information.",
+            // Cancellation text
+            cancelIntro:    "We're writing to confirm that your reservation at Bareca Peaks has been successfully cancelled. The details of the cancelled reservation are shown below for your reference.",
+            cancelClosing:  "We're sorry we won't be seeing you this time. If you'd like to make a future reservation, please don't hesitate to get in touch.",
+            cancelSignoff:  "The Bareca Peaks Team",
+            cancelBandText: "Reservation Cancelled · Peaks at Bike & Boot",
+            // Contact
+            restaurantName: "Bareca Peaks at Bike & Boot",
+            phone:          "01433 440 777",
+            address:        "Hope Road, Hope Valley, S33 0AL",
+            footerNote:     "This email confirms your reservation. Please retain for your records.",
+            adminEmails:    ADMIN_EMAILS_FALLBACK.join(', ')
+        };
+
+        // Live config — starts as defaults, gets overwritten by Firestore on load
+        let cfg = { ...DEFAULT_CFG };
+
+        const settingsDocRef = () => doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'emailConfig');
+
+        const loadSettings = async () => {
+            try {
+                const snap = await getDoc(settingsDocRef());
+                if (snap.exists()) cfg = { ...DEFAULT_CFG, ...snap.data() };
+            } catch (e) { console.warn("Settings load failed, using defaults:", e); }
+        };
+
+        const saveSettings = async () => {
+            getEl('adminSaveStatus').textContent = "Saving…";
+            try {
+                await setDoc(settingsDocRef(), cfg, { merge: true });
+                getEl('adminSaveStatus').textContent = "Saved ✓";
+                setTimeout(() => getEl('adminSaveStatus').textContent = '', 3000);
+            } catch (e) {
+                getEl('adminSaveStatus').textContent = "Save failed: " + e.message;
+            }
+        };
+
+        // --- Admin UI helpers ---
+        const isAdmin = () => {
+            if (!currentUser) return false;
+            const adminList = cfg.adminEmails.split(',').map(e => e.trim().toLowerCase());
+            return adminList.includes(currentUser.email.toLowerCase()) ||
+                   ADMIN_EMAILS_FALLBACK.map(e => e.toLowerCase()).includes(currentUser.email.toLowerCase());
+        };
+
+        const syncAdminButton = () => {
+            getEl('adminSettingsBtn').classList.toggle('hidden', !isAdmin());
+        };
+
+        // Sync a colour picker + hex input pair, both ways
+        const bindColourPair = (id, cfgKey) => {
+            const picker = getEl(`cfg_${id}`);
+            const hex    = getEl(`cfg_${id}_hex`);
+            picker.addEventListener('input', () => { hex.value = picker.value; cfg[cfgKey] = picker.value; });
+            hex.addEventListener('input', () => {
+                if (/^#[0-9a-fA-F]{6}$/.test(hex.value)) { picker.value = hex.value; cfg[cfgKey] = hex.value; }
+            });
+        };
+
+        const populateAdminForm = () => {
+            // Colours
+            [
+                ['headerBg','headerBg'], ['confirmAccent','confirmAccent'], ['cancelAccent','cancelAccent'],
+                ['labelBg','labelBg'], ['labelText','labelText'], ['logoBg','logoBg'], ['pageBg','pageBg']
+            ].forEach(([id, key]) => {
+                getEl(`cfg_${id}`).value     = cfg[key];
+                getEl(`cfg_${id}_hex`).value = cfg[key];
+            });
+            // Text fields
+            getEl('cfg_confirmIntro').value    = cfg.confirmIntro;
+            getEl('cfg_confirmSignoff').value  = cfg.confirmSignoff;
+            getEl('cfg_confirmBandText').value = cfg.confirmBandText;
+            getEl('cfg_thingsToNote').value    = cfg.thingsToNote;
+            getEl('cfg_cancelIntro').value     = cfg.cancelIntro;
+            getEl('cfg_cancelClosing').value   = cfg.cancelClosing;
+            getEl('cfg_cancelSignoff').value   = cfg.cancelSignoff;
+            getEl('cfg_cancelBandText').value  = cfg.cancelBandText;
+            getEl('cfg_restaurantName').value  = cfg.restaurantName;
+            getEl('cfg_phone').value           = cfg.phone;
+            getEl('cfg_address').value         = cfg.address;
+            getEl('cfg_footerNote').value      = cfg.footerNote;
+            getEl('cfg_adminEmails').value     = cfg.adminEmails;
+        };
+
+        const readAdminForm = () => {
+            cfg.confirmIntro    = getEl('cfg_confirmIntro').value;
+            cfg.confirmSignoff  = getEl('cfg_confirmSignoff').value;
+            cfg.confirmBandText = getEl('cfg_confirmBandText').value;
+            cfg.thingsToNote    = getEl('cfg_thingsToNote').value;
+            cfg.cancelIntro     = getEl('cfg_cancelIntro').value;
+            cfg.cancelClosing   = getEl('cfg_cancelClosing').value;
+            cfg.cancelSignoff   = getEl('cfg_cancelSignoff').value;
+            cfg.cancelBandText  = getEl('cfg_cancelBandText').value;
+            cfg.restaurantName  = getEl('cfg_restaurantName').value;
+            cfg.phone           = getEl('cfg_phone').value;
+            cfg.address         = getEl('cfg_address').value;
+            cfg.footerNote      = getEl('cfg_footerNote').value;
+            cfg.adminEmails     = getEl('cfg_adminEmails').value;
+        };
+
+        // Admin modal open/close
+        getEl('adminSettingsBtn').onclick = () => {
+            populateAdminForm();
+            getEl('adminSaveStatus').textContent = '';
+            getEl('adminModal').classList.remove('hidden');
+        };
+        getEl('adminModalClose').onclick = () => getEl('adminModal').classList.add('hidden');
+
+        // Tab switching
+        document.querySelectorAll('.admin-tab').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active-tab'));
+                document.querySelectorAll('.admin-panel').forEach(p => p.classList.add('hidden'));
+                btn.classList.add('active-tab');
+                getEl(`tab-${btn.dataset.tab}`).classList.remove('hidden');
+            });
+        });
+
+        // Colour pair bindings
+        bindColourPair('headerBg', 'headerBg');
+        bindColourPair('confirmAccent', 'confirmAccent');
+        bindColourPair('cancelAccent', 'cancelAccent');
+        bindColourPair('labelBg', 'labelBg');
+        bindColourPair('labelText', 'labelText');
+        bindColourPair('logoBg', 'logoBg');
+        bindColourPair('pageBg', 'pageBg');
+
+        // Save button
+        getEl('adminSaveBtn').onclick = () => { readAdminForm(); saveSettings(); };
+
+        // Reset to defaults
+        getEl('adminResetBtn').onclick = () => {
+            if (!confirm("Reset all settings to defaults? This cannot be undone.")) return;
+            cfg = { ...DEFAULT_CFG };
+            populateAdminForm();
+            saveSettings();
+        };
+
         // --- Standard UI Handlers ---
         dom.loginForm.onsubmit = async (e) => {
             e.preventDefault();
@@ -598,8 +2043,48 @@
         getEl('logoutBtn').onclick = () => signOut(auth);
         getEl('modalClose').onclick = () => dom.detailModal.classList.add('hidden');
         getEl('confirmFormCancel').onclick = () => dom.confirmModal.classList.add('hidden');
-        getEl('showCalendarBtn').onclick = () => { dom.list.classList.add('hidden'); getEl('calendarContainer').classList.remove('hidden'); setTimeout(() => calendar.updateSize(), 50); };
-        getEl('showListBtn').onclick = () => { getEl('calendarContainer').classList.add('hidden'); dom.list.classList.remove('hidden'); };
+        getEl('showCalendarBtn').onclick = () => {
+            document.getElementById('listContainer').style.display = 'none';
+            document.getElementById('listContainer').classList.add('hidden');
+            getEl('calendarContainer').classList.remove('hidden');
+            getEl('showCalendarBtn').classList.add('active-view');
+            getEl('showListBtn').classList.remove('active-view');
+            setTimeout(() => calendar.updateSize(), 50);
+        };
+        getEl('showListBtn').onclick = () => {
+            getEl('calendarContainer').classList.add('hidden');
+            document.getElementById('listContainer').style.display = 'grid';
+            document.getElementById('listContainer').classList.remove('hidden');
+            getEl('showCalendarBtn').classList.remove('active-view');
+            getEl('showListBtn').classList.add('active-view');
+        };
+
+        // --- 12-hour time picker → hidden resTime field (24hr for storage) ---
+        const syncTimeField = () => {
+            const h = getEl('timeHour').value;
+            const m = getEl('timeMin').value;
+            const ap = getEl('timeAmPm').value;
+            if (!h || !m || !ap) { getEl('resTimeHidden').value = ''; return; }
+            let hour24 = parseInt(h);
+            if (ap === 'AM' && hour24 === 12) hour24 = 0;
+            else if (ap === 'PM' && hour24 !== 12) hour24 += 12;
+            getEl('resTimeHidden').value = `${String(hour24).padStart(2,'0')}:${m}`;
+        };
+        ['timeHour','timeMin','timeAmPm'].forEach(id => getEl(id).addEventListener('change', () => { syncTimeField(); dom.resForm.dispatchEvent(new Event('input')); }));
+
+        // Restore 12hr dropdowns when draft is loaded (resTime is in 24hr format)
+        const set12hrFromValue = (val) => {
+            if (!val) return;
+            const [h24, min] = val.split(':');
+            let hour = parseInt(h24);
+            const ap = hour >= 12 ? 'PM' : 'AM';
+            if (hour === 0) hour = 12;
+            else if (hour > 12) hour -= 12;
+            getEl('timeHour').value = String(hour);
+            getEl('timeMin').value = min;
+            getEl('timeAmPm').value = ap;
+            syncTimeField();
+        };
 
         dom.resForm.addEventListener('input', () => {
             if (!currentUser || isRestoringDraft) return;
@@ -616,14 +2101,14 @@
                 const [y, m, day] = data.resDate.split('-');
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
                     toUids: ['reservation_team'],
-                    message: { 
-                        subject: `BARECA PEAKS ENQUIRY: ${data.customerName} ${day}/${m}/${y}`, 
-                        text: `NEW ENQUIRY\nCustomer: ${data.customerName}\nDate: ${day}-${m}-${y}\nTime: ${data.resTime}\nMenu: ${data.menuArrangement}\nDietary: ${data.notes}\n\nTaken by: ${data.takenBy}` 
+                    message: {
+                        subject: `BARECA PEAKS ENQUIRY: ${data.customerName} ${day}/${m}/${y}`,
+                        text: `NEW ENQUIRY\nCustomer: ${data.customerName}\nDate: ${day}-${m}-${y}\nTime: ${data.resTime}\nMenu: ${data.menuArrangement}\nDietary: ${data.notes}\n\nTaken by: ${data.takenBy}`
                     }
                 });
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings'), { ...data, status: 'enquiry', sequence: 0 });
                 await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current'));
-                alert("Enquiry Recorded!"); dom.resForm.reset();
+                alert("Enquiry Recorded!"); dom.resForm.reset(); getEl('timeHour').value=''; getEl('timeMin').value=''; getEl('timeAmPm').value='';
             } catch (e) { alert("Sync Error: " + e.code); } finally { getEl('sendCloudEmailBtn').disabled = false; }
         };
 
@@ -631,12 +2116,23 @@
         getEl('takenBy').addEventListener('input', (e) => {
             if (e.target.value.trim() && !getEl('takenAt').value) getEl('takenAt').value = new Date().toLocaleString('en-GB');
         });
-        
+
+        getEl('clearFormBtn').onclick = () => {
+            dom.resForm.reset();
+            getEl('timeHour').value = '';
+            getEl('timeMin').value = '';
+            getEl('timeAmPm').value = '';
+            getEl('resTimeHidden').value = '';
+            dom.menuSelect.dispatchEvent(new Event('change'));
+        };
+
         const loadDraft = async () => {
             const snap = await getDoc(doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'drafts', 'current')).catch(() => {});
             if (snap?.exists()) {
                 const data = snap.data();
                 Object.keys(data).forEach(k => { if(dom.resForm.elements[k]) dom.resForm.elements[k].value = data[k]; });
+                // Restore 12hr time selects from stored 24hr value
+                if (data.resTime) set12hrFromValue(data.resTime);
                 dom.menuSelect.dispatchEvent(new Event('change'));
             }
         };
