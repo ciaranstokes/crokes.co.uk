@@ -203,7 +203,7 @@
                         </button>
                     </div>
                     <button id="modalKitchenBtn" class="w-full bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold py-3 rounded-lg hover:bg-emerald-200 transition flex items-center justify-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" /></svg>
                         Send to Kitchen Diary
                     </button>
                 </div>
@@ -356,7 +356,7 @@
             document.body.removeChild(link);
         };
 
-        // --- Action: Send to Guest ---
+        // --- Action: Send to Guest (EML Draft Generator) ---
         getEl('modalSendGuestBtn').onclick = () => {
             if (!currentViewingBooking || !currentViewingBooking.customerEmail) {
                 alert("No email address found for this guest.");
@@ -364,24 +364,75 @@
             }
             const d = currentViewingBooking;
             const email = d.customerEmail;
-            const subject = "Bareca Peaks Booking Confirmation";
-            const pax = (parseInt(d.adultCount)||0) + (parseInt(d.childCount)||0);
             const firstName = d.customerName.split(' ')[0] || "Guest";
-            
-            const bodyText = `Dear ${firstName},\r\n\r\n` +
-                `Reservation Name: ${d.customerName}\r\n` +
-                `Time of Reservation: ${d.resDate} @ ${d.resTime}\r\n` +
-                `Number of Guests: ${pax}\r\n` +
-                `Chosen Menu: ${d.menuArrangement}\r\n` +
-                `Special Arrangements: ${d.notes || 'None'}\r\n` +
-                `Deposit Paid: £${d.depositAmount || '0.00'}\r\n\r\n` +
-                `Things to Note:\r\n` +
-                `Please note that your reservation is for a specific time. If you don't arrive in time, please note that we reserve the right to allocate the table to another guest.\r\n\r\n` +
-                `If you believe you will be late, please let us know by calling 01433 440 777\r\n\r\n` +
-                `If you need to change the number of diners, please let us know as soon as you are able by calling 01433 440 777\r\n\r\n` +
-                `Dietary requirements and allergies – we have allergen information to accompany our menu. Please let us know of any allergies as soon as you can and we will provide the allergen information.`;
+            const pax = (parseInt(d.adultCount)||0) + (parseInt(d.childCount)||0);
 
-            window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyText)}`;
+            // Using EML format allows us to inject a fully styled HTML table (matching the Word doc) directly into an Outlook/Apple Mail draft.
+            const emlContent = [
+                `To: ${email}`,
+                `Subject: Bareca Peaks Booking Confirmation`,
+                `X-Unsent: 1`,
+                `Content-Type: text/html; charset=utf-8`,
+                ``,
+                `<!DOCTYPE html>`,
+                `<html>`,
+                `<head>`,
+                `<style>`,
+                `  .label-cell { background-color: #E4E1DC; color: #624A44; font-weight: bold; text-align: right; width: 30%; padding: 10px; border: 1px solid black; font-family: 'Arial', sans-serif; font-size: 14px; }`,
+                `  .value-cell { padding: 10px; border: 1px solid black; font-family: 'Arial', sans-serif; font-size: 14px; }`,
+                `  p { font-family: 'Arial', sans-serif; font-size: 14px; }`,
+                `</style>`,
+                `</head>`,
+                `<body>`,
+                `<p>Dear ${firstName},</p>`,
+                `<br>`,
+                `<table style="border-collapse: collapse; width: 100%; max-width: 700px; border: 1px solid black;">`,
+                `  <tr>`,
+                `    <td class="label-cell">Reservation Name:</td>`,
+                `    <td class="value-cell">${d.customerName}</td>`,
+                `  </tr>`,
+                `  <tr>`,
+                `    <td class="label-cell">Time of Reservation:</td>`,
+                `    <td class="value-cell">${d.resDate} @ ${d.resTime}</td>`,
+                `  </tr>`,
+                `  <tr>`,
+                `    <td class="label-cell">Number of Guests:</td>`,
+                `    <td class="value-cell">${pax}</td>`,
+                `  </tr>`,
+                `  <tr>`,
+                `    <td class="label-cell">Chosen Menu:</td>`,
+                `    <td class="value-cell">${d.menuArrangement}</td>`,
+                `  </tr>`,
+                `  <tr>`,
+                `    <td class="label-cell">Special Arrangements:</td>`,
+                `    <td class="value-cell">${d.notes || ''}</td>`,
+                `  </tr>`,
+                `  <tr>`,
+                `    <td class="label-cell">Deposit Paid:</td>`,
+                `    <td class="value-cell">£${d.depositAmount || '0.00'}</td>`,
+                `  </tr>`,
+                `  <tr>`,
+                `    <td class="label-cell" style="vertical-align: top;">Things to Note:</td>`,
+                `    <td class="value-cell">`,
+                `      <p style="margin-top: 0;"><b>Please note that your reservation is for a specific time.</b> If you don’t arrive in time, please note that we reserve the right to allocate the table to another guest.</p>`,
+                `      <p><b>If you believe you will be late,</b> please let us know by calling 01433 440 777</p>`,
+                `      <p><b>If you need to change the number of diners,</b> please let us know as soon as you are able by calling 01433 440 777</p>`,
+                `      <p style="margin-bottom: 0;"><b>Dietary requirements and allergies –</b> we have allergen information to accompany our menu. Please let us know of any allergies as soon as you can and we will provide the allergen information.</p>`,
+                `    </td>`,
+                `  </tr>`,
+                `</table>`,
+                `</body>`,
+                `</html>`
+            ].join('\r\n');
+
+            const blob = new Blob([emlContent], { type: 'message/rfc822' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `Draft_Confirmation_${firstName.replace(/\s+/g,'_')}.eml`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         };
 
         // --- Cancellation Logic ---
