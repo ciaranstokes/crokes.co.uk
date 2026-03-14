@@ -6,27 +6,19 @@
     <title>Breakfast List Generator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* CSS Variables for Dynamic Theming */
         :root {
-            /* Default Theme (Slate-ish) */
             --theme-hue: 215;
             --theme-sat: 25%;
-            
-            --color-text-main: hsl(var(--theme-hue), var(--theme-sat), 20%);    /* Dark text */
-            --color-text-sub: hsl(var(--theme-hue), var(--theme-sat), 40%);     /* Muted text */
-            --color-bg-header: hsl(var(--theme-hue), var(--theme-sat), 96%);    /* Light header bg */
-            --color-border: hsl(var(--theme-hue), var(--theme-sat), 80%);       /* Borders */
-            --color-accent: hsl(var(--theme-hue), var(--theme-sat), 50%);       /* Accents */
-
-            /* Typography & Layout */
-            --doc-font-size: 9pt; /* Default Size */
-            --table-padding: 2px; /* Default Density */
+            --color-text-main: hsl(var(--theme-hue), var(--theme-sat), 20%);
+            --color-text-sub: hsl(var(--theme-hue), var(--theme-sat), 40%);
+            --color-bg-header: hsl(var(--theme-hue), var(--theme-sat), 96%);
+            --color-border: hsl(var(--theme-hue), var(--theme-sat), 80%);
+            --color-accent: hsl(var(--theme-hue), var(--theme-sat), 50%);
+            --doc-font-size: 9pt;
+            --table-padding: 2px;
         }
 
-        /* Shared Styles */
-        body {
-            color: var(--color-text-main);
-        }
+        body { color: var(--color-text-main); }
 
         .columns-container {
             display: flex;
@@ -34,12 +26,8 @@
             gap: 10px;
             align-items: flex-start;
         }
-        .floor-column {
-            flex: 1;
-            width: 49%;
-        }
-        
-        /* Themed Components */
+        .floor-column { flex: 1; }
+
         .floor-card {
             margin-bottom: 10px;
             border: 1px solid var(--color-border);
@@ -47,7 +35,7 @@
             overflow: hidden;
             background: white;
         }
-        
+
         .floor-header-bg {
             background-color: var(--color-bg-header);
             border-bottom: 1px solid var(--color-border);
@@ -60,46 +48,67 @@
             background: white;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
+        table { width: 100%; border-collapse: collapse; }
+
         th, td {
             border-bottom: 1px solid var(--color-border);
-            padding: var(--table-padding) 6px; /* Dynamic Padding */
+            padding: var(--table-padding) 6px;
             line-height: 1.25;
             font-size: var(--doc-font-size);
             color: var(--color-text-main);
             transition: padding 0.2s ease;
         }
-        
+
         tr:last-child td { border-bottom: none; }
 
-        /* Print Styles */
+        /* Toast notification */
+        #toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(60px);
+            background: #1e293b;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 9999;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        #toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Error message */
+        .error-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 48px 24px;
+            gap: 8px;
+            border: 2px dashed var(--color-border);
+            border-radius: 16px;
+            width: 100%;
+        }
+
         @media print {
-            @page {
-                size: A4 portrait;
-                margin: 4mm; /* Keeping tight margins */
-            }
-            .no-print {
-                display: none !important;
-            }
+            @page { size: A4 portrait; margin: 4mm; }
+            .no-print { display: none !important; }
             body {
                 background: white;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
             .print-container {
-                padding: 0;
-                margin: 0;
-                width: 100%;
-                max-width: none;
-                border: none;
-                box-shadow: none;
+                padding: 0; margin: 0; width: 100%; max-width: none;
+                border: none; box-shadow: none;
             }
-            
-            /* Compact Header for Print */
             .print-header {
                 display: flex !important;
                 justify-content: space-between;
@@ -108,11 +117,9 @@
                 padding-bottom: 5px;
                 margin-bottom: 10px;
             }
-            
             .input-section { display: none; }
         }
 
-        /* Screen Specifics */
         @media screen {
             .print-container {
                 width: 210mm;
@@ -137,18 +144,19 @@
 </head>
 <body class="bg-slate-100 min-h-screen font-sans">
 
-    <!-- Control Panel (Hidden on Print) -->
+    <div id="toast"></div>
+
+    <!-- Control Panel -->
     <div class="no-print input-section max-w-4xl mx-auto p-6">
         <div class="bg-white rounded-2xl shadow-sm p-6 mb-8 border border-slate-200">
-            
-            <!-- Header & Main Actions -->
+
             <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
                 <div class="flex items-center gap-3">
                     <span class="text-3xl">🍳</span>
                     <h1 class="text-2xl font-bold text-slate-800">Breakfast Generator</h1>
                 </div>
                 <div class="flex gap-3">
-                     <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 text-white font-semibold py-2 px-6 rounded-lg transition shadow-sm flex items-center gap-2">
+                    <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 text-white font-semibold py-2 px-6 rounded-lg transition shadow-sm flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clip-rule="evenodd" />
                         </svg>
@@ -159,54 +167,57 @@
 
             <!-- Customization Toolbar -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 p-4 bg-slate-50 rounded-xl border border-slate-100">
-                
-                <!-- Font Size Control -->
+
+                <!-- Font Size -->
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Font Size</label>
                     <div class="flex items-center gap-4">
-                        <input type="range" id="fontSizeSlider" min="7.5" max="11" step="0.5" value="9" 
+                        <input type="range" id="fontSizeSlider" min="7.5" max="11" step="0.5" value="9"
                                class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-slate-600"
                                oninput="updateSettings()">
                         <span id="fontSizeLabel" class="text-sm font-mono font-bold text-slate-700 min-w-[3rem]">9pt</span>
                     </div>
                 </div>
 
-                <!-- Table Density Control -->
+                <!-- Table Density -->
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Table Spacing</label>
                     <div class="flex items-center gap-4">
-                        <input type="range" id="densitySlider" min="1" max="6" step="0.5" value="2" 
+                        <input type="range" id="densitySlider" min="1" max="6" step="0.5" value="2"
                                class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-slate-600"
                                oninput="updateSettings()">
                         <span id="densityLabel" class="text-xs font-bold text-slate-500 min-w-[3rem]">Tight</span>
                     </div>
                 </div>
+                <p class="text-[10px] text-slate-400 mt-1">Offset from data date</p>
+                </div>
 
-                <!-- Theme Color Control -->
+                <!-- Theme Color -->
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Theme Color</label>
-                    <div class="flex gap-3 items-center">
-                        <!-- Slate (Default) -->
-                        <button onclick="setTheme(215, '25%')" class="w-8 h-8 rounded-full bg-slate-500 border-2 border-white shadow-sm ring-2 ring-transparent focus:ring-slate-400 hover:scale-110 transition" title="Default Slate"></button>
-                        <!-- Blue -->
-                        <button onclick="setTheme(220, '90%')" class="w-8 h-8 rounded-full bg-blue-600 border-2 border-white shadow-sm ring-2 ring-transparent focus:ring-blue-400 hover:scale-110 transition" title="Blue"></button>
-                        <!-- Emerald -->
-                        <button onclick="setTheme(160, '84%')" class="w-8 h-8 rounded-full bg-emerald-600 border-2 border-white shadow-sm ring-2 ring-transparent focus:ring-emerald-400 hover:scale-110 transition" title="Emerald"></button>
-                        <!-- Random -->
-                        <button onclick="randomizeTheme()" class="w-8 h-8 rounded-full bg-white border-2 border-slate-200 shadow-sm flex items-center justify-center hover:bg-slate-50 hover:scale-110 transition text-lg" title="Random Color">🎲</button>
+                    <div class="flex gap-3 items-center flex-wrap">
+                        <button onclick="setTheme(215, '25%')" class="w-8 h-8 rounded-full bg-slate-500 border-2 border-white shadow-sm hover:scale-110 transition" title="Slate"></button>
+                        <button onclick="setTheme(220, '90%')" class="w-8 h-8 rounded-full bg-blue-600 border-2 border-white shadow-sm hover:scale-110 transition" title="Blue"></button>
+                        <button onclick="setTheme(160, '84%')" class="w-8 h-8 rounded-full bg-emerald-600 border-2 border-white shadow-sm hover:scale-110 transition" title="Emerald"></button>
+                        <button onclick="randomizeTheme()" class="w-8 h-8 rounded-full bg-white border-2 border-slate-200 shadow-sm flex items-center justify-center hover:scale-110 transition text-lg" title="Random">🎲</button>
                     </div>
                 </div>
             </div>
-            
-            <p class="text-sm text-slate-500 mb-2">Paste your report data below:</p>
-            <textarea id="inputData" oninput="processData()" class="w-full h-32 p-4 border border-slate-200 rounded-xl font-mono text-xs focus:ring-2 focus:ring-slate-400 focus:border-transparent outline-none bg-slate-50 text-slate-600 shadow-inner" placeholder="Paste data here..."></textarea>
+
+            <!-- Keyboard hint -->
+            <p class="text-xs text-slate-400 mb-2 flex items-center gap-2">
+                <span class="bg-slate-100 border border-slate-200 rounded px-1.5 py-0.5 font-mono text-slate-500">Ctrl+Enter</span>
+                to reprocess &nbsp;·&nbsp;
+                <span class="bg-slate-100 border border-slate-200 rounded px-1.5 py-0.5 font-mono text-slate-500">Paste</span>
+                auto-processes
+            </p>
+            <textarea id="inputData" class="w-full h-32 p-4 border border-slate-200 rounded-xl font-mono text-xs focus:ring-2 focus:ring-slate-400 focus:border-transparent outline-none bg-slate-50 text-slate-600 shadow-inner" placeholder="Paste your report data here..."></textarea>
         </div>
     </div>
 
-    <!-- Printable Output Area -->
+    <!-- Printable Output -->
     <div class="print-container">
-        
-        <!-- Header -->
+
         <div class="print-header">
             <div class="flex items-baseline gap-4">
                 <h1 class="text-2xl font-bold uppercase tracking-tight" style="color: var(--color-text-main)">Breakfast List</h1>
@@ -218,180 +229,405 @@
             </div>
         </div>
 
-        <!-- 2-Column Layout Container -->
         <div id="outputContainer" class="columns-container">
-            
             <div class="w-full text-center py-24 italic border-2 border-dashed rounded-2xl no-print" style="border-color: var(--color-border); color: var(--color-text-sub)">
                 Waiting for data...
             </div>
-
         </div>
 
     </div>
 
     <script>
-        // --- Settings Management ---
-        function updateSettings() {
-            // Font Size
+        // ─── State ───────────────────────────────────────────────────────────────
+        const DATE_OFFSET = 1; // always show next day
+
+        // ─── Persistence ─────────────────────────────────────────────────────────
+        const STORAGE_KEY = 'breakfastGen_prefs';
+
+        function savePrefs() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                    fontSize: document.getElementById('fontSizeSlider').value,
+                    density:  document.getElementById('densitySlider').value,
+                    hue:      getComputedStyle(document.documentElement).getPropertyValue('--theme-hue').trim(),
+                    sat:      getComputedStyle(document.documentElement).getPropertyValue('--theme-sat').trim(),
+                }));
+            } catch(e) {}
+        }
+
+        function loadPrefs() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return;
+                const p = JSON.parse(raw);
+                if (p.fontSize) { document.getElementById('fontSizeSlider').value = p.fontSize; }
+                if (p.density)  { document.getElementById('densitySlider').value  = p.density; }
+                if (p.hue && p.sat) { setTheme(p.hue, p.sat, true); }
+                updateSettings(true);
+            } catch(e) {}
+        }
+
+        // ─── Settings ────────────────────────────────────────────────────────────
+        function updateSettings(silent = false) {
             const size = document.getElementById('fontSizeSlider').value;
             document.getElementById('fontSizeLabel').textContent = size + "pt";
             document.documentElement.style.setProperty('--doc-font-size', size + "pt");
 
-            // Table Density
             const density = document.getElementById('densitySlider').value;
             let densityText = "Normal";
             if (density < 2) densityText = "Tight";
             if (density > 4) densityText = "Relaxed";
-            
             document.getElementById('densityLabel').textContent = densityText;
             document.documentElement.style.setProperty('--table-padding', density + "px");
+
+            if (!silent) savePrefs();
         }
 
-        function setTheme(hue, sat) {
+        function setTheme(hue, sat, silent = false) {
             document.documentElement.style.setProperty('--theme-hue', hue);
             document.documentElement.style.setProperty('--theme-sat', sat);
+            if (!silent) savePrefs();
         }
 
         function randomizeTheme() {
             const hue = Math.floor(Math.random() * 360);
-            // Keep saturation reasonably high for visibility, between 50% and 90%
             const sat = Math.floor(Math.random() * 40) + 50 + '%';
             setTheme(hue, sat);
         }
 
-        // --- Data Processing ---
-        const ROW_REGEX = /(\d{3})\s+(BK[^\s]+(?:\s+\d+)?)\s+(.+?)\s+(?:BREAKFAST|KIDS_BFAST|SALE_BFAST)\s+(.*?)\s+(\d+)\s+(\d{1,2}\/[A-Za-z]{3}\/\d{4})\s+(\d+(?:\.\d+)?)/gi;
+
+        // ─── Toast ───────────────────────────────────────────────────────────────
+        let toastTimer;
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+        }
+
+        // ─── Line-by-line Parser ─────────────────────────────────────────────────
+        //
+        // The report format (verified against real data):
+        //
+        //   [room]  [ref]  [guest name]  [PRODUCT_CODE]  [description...]  [qty]  [dd/Mon/yyyy]  [value]
+        //
+        // Where:
+        //   • Room is always exactly 3 digits
+        //   • Ref is BK followed by non-whitespace chars (e.g. BK001008/1)
+        //   • Product code is one of BREAKFAST | KIDS_BFAST | SALE_BFAST
+        //   • Description may span a continuation line ("Bareca Buffet\nBreakfast")
+        //   • Qty is a single integer immediately BEFORE the date
+        //   • Date is dd/Mon/yyyy — the most reliable right-hand anchor
+        //   • Value follows the date
+        //   • The report prints every line TWICE — deduplication removes the copy
+        //
+        // Steps:
+        //   1. Strip noise lines (headers, page markers, totals)
+        //   2. Merge continuation lines into their parent row
+        //   3. Tokenise each merged line; use product code as the left split
+        //      and date as the right split — qty is the token just before the date
+        //   4. Deduplicate on room + ref + productCode (exact duplicate = second print)
+
+        const NOISE_RE = [
+            /^Bike & Boot Peaks Product Distribution Report/,
+            /^Page \d+ of \d+/,
+            /^Room ID\s+BookRef\s+Guest Name/,
+            /^BREAKFAST\s*$/,
+            /^KIDS_BFAST\s*$/,
+            /^SALE_BFAST\s*$/,
+            /^Public Notes\s*:/i,
+            /^Total\s+BREAKFAST/i,
+        ];
+
+        const PRODUCT_CODES = new Set(['BREAKFAST', 'KIDS_BFAST', 'SALE_BFAST']);
+
+        // Matches the exact date format used in the report: 14/Mar/2026
+        const DATE_RE = /^\d{1,2}\/[A-Za-z]{3}\/\d{4}$/;
+
+        // A row anchor: 3-digit room number + booking ref
+        const ROW_ANCHOR_RE = /^\d{3}\s+BK/;
+
+        function parseRawData(raw) {
+
+            // ── Step 1: strip noise ───────────────────────────────────────────────
+            const lines = raw
+                .split('\n')
+                .map(l => l.trim())
+                .filter(l => l.length > 0)
+                .filter(l => !NOISE_RE.some(re => re.test(l)));
+
+            // ── Step 2: merge continuation lines ─────────────────────────────────
+            // Any line that does NOT start with "NNN BK" is a continuation of the
+            // previous data row (e.g. the split description "Bareca Buffet / Breakfast").
+            const merged = [];
+            for (const line of lines) {
+                if (ROW_ANCHOR_RE.test(line)) {
+                    merged.push(line);
+                } else if (merged.length > 0) {
+                    // Append to previous row, separated by a space
+                    merged[merged.length - 1] += ' ' + line;
+                }
+                // Lines before the first data row that aren't noise are dropped silently
+            }
+
+            // ── Step 3: tokenise & extract fields ────────────────────────────────
+            const entries = [];
+
+            for (const line of merged) {
+                const tokens = line.split(/\s+/);
+
+                // tokens[0] = room (3 digits), tokens[1] = ref (BKxxxxxx)
+                if (tokens.length < 5) continue;
+                const room = tokens[0];
+                const ref  = tokens[1];
+
+                // Find the product code — it sits between the guest name and description
+                let productIdx = -1;
+                let productCode = null;
+                for (let i = 2; i < tokens.length; i++) {
+                    if (PRODUCT_CODES.has(tokens[i].toUpperCase())) {
+                        productIdx  = i;
+                        productCode = tokens[i].toUpperCase();
+                        break;
+                    }
+                }
+                if (productIdx === -1) continue; // no recognised product code
+
+                // Guest name = tokens between ref and product code
+                const name = tokens.slice(2, productIdx).join(' ').trim();
+                if (!name) continue;
+
+                // Find the date — the most reliable right-hand boundary
+                // Search rightward from after the product code
+                let dateIdx = -1;
+                for (let i = productIdx + 1; i < tokens.length; i++) {
+                    if (DATE_RE.test(tokens[i])) { dateIdx = i; break; }
+                }
+                if (dateIdx === -1) continue; // no date found
+
+                const date = tokens[dateIdx];
+
+                // Qty is the single integer token immediately before the date.
+                // The description sits between the product code and qty; we don't
+                // need it for display but it's parsed out implicitly.
+                const qty = parseInt(tokens[dateIdx - 1], 10);
+                if (isNaN(qty) || qty < 1) continue;
+
+                entries.push({ room, ref, name, productCode, qty, date });
+            }
+
+            // Each row is one cover — no deduplication.
+            // Two identical rows means two breakfasts booked for that room.
+            return entries;
+        }
 
         function processData() {
             const rawInput = document.getElementById('inputData').value;
-            
+
             if (!rawInput.trim()) {
-                document.getElementById('outputContainer').innerHTML = `
-                    <div class="w-full text-center py-24 italic border-2 border-dashed rounded-2xl no-print" style="border-color: var(--color-border); color: var(--color-text-sub)">
-                        Waiting for data...
-                    </div>`;
+                showEmpty();
+                return;
+            }
+
+            const entries = parseRawData(rawInput);
+
+            if (entries.length === 0) {
+                showError();
                 document.getElementById('totalCovers').textContent = "0";
                 document.getElementById('dateDisplay').textContent = "--/--/----";
                 return;
             }
 
-            // 1. Clean Data
-            let cleaned = rawInput
-                .replace(/Bike & Boot Peaks Product Distribution Report/g, '')
-                .replace(/Page \d+ of \d+.*$/gm, '') 
-                .replace(/Room ID BookRef Guest Name.*/g, '') 
-                .replace(/Public Notes :/g, '') 
-                .replace(/\n/g, ' '); 
+            // ── Date (from first entry, with offset) ─────────────────────────────
+            try {
+                const rawDate = entries[0].date.replace(/\//g, ' ');
+                const dateObj = new Date(rawDate);
+                dateObj.setDate(dateObj.getDate() + DATE_OFFSET);
+                const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+                document.getElementById('dateDisplay').textContent =
+                    dateObj.toLocaleDateString('en-GB', options);
+            } catch (e) {
+                document.getElementById('dateDisplay').textContent = entries[0].date;
+            }
 
-            // 2. Extract Data
-            const matches = [...cleaned.matchAll(ROW_REGEX)];
-            const guests = [];
+            // ── Group by room ─────────────────────────────────────────────────────
+            // Each entry is one booking ref, so multiple refs in the same room are
+            // genuinely different guests — names are shown joined.
+            const rooms = {};
+            let totalAdult = 0;
+            let totalKids  = 0;
 
-            if (matches.length === 0) return;
+            entries.forEach(e => {
+                if (!rooms[e.room]) {
+                    rooms[e.room] = {
+                        room: e.room, names: new Set(),
+                        adult: 0, kids: 0, duplicate: false
+                    };
+                }
+                rooms[e.room].names.add(e.name);
 
-            // Date Processing
-            if(matches[0] && matches[0][6]) {
-                try {
-                    const rawDateString = matches[0][6].replace(/\//g, ' ');
-                    const dateObj = new Date(rawDateString);
-                    dateObj.setDate(dateObj.getDate() + 1);
-                    const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-                    document.getElementById('dateDisplay').textContent = dateObj.toLocaleDateString('en-GB', options);
-                } catch (e) {
-                    document.getElementById('dateDisplay').textContent = matches[0][6];
+                if (e.productCode === 'KIDS_BFAST') {
+                    rooms[e.room].kids += e.qty;
+                    totalKids += e.qty;
+                } else {
+                    rooms[e.room].adult += e.qty;
+                    totalAdult += e.qty;
+                }
+            });
+
+            Object.values(rooms).forEach(r => {
+                r.duplicate = r.names.size > 1;
+                r.name = [...r.names].join(' / ');
+            });
+
+            // Update totals — show kids breakdown if any exist
+            const totalEl = document.getElementById('totalCovers');
+            if (totalKids > 0) {
+                totalEl.innerHTML =
+                    `${totalAdult + totalKids} <span style="font-size:11px;font-weight:500;opacity:0.7">(${totalAdult}A + ${totalKids}K)</span>`;
+            } else {
+                totalEl.textContent = totalAdult;
+            }
+
+            // Validate our parsed total against the report footer total.
+            const reportTotalMatch = rawInput.match(/Total\s+BREAKFAST\s+(\d+)/i);
+            if (reportTotalMatch) {
+                const reportTotal = parseInt(reportTotalMatch[1]);
+                const ourTotal    = totalAdult + totalKids;
+                if (reportTotal !== ourTotal) {
+                    console.warn(`Cover count mismatch: report=${reportTotal}, parsed=${ourTotal}`);
+                    showToast(`⚠ Cover count mismatch — report says ${reportTotal}, parsed ${ourTotal}`);
                 }
             }
 
-            matches.forEach(m => {
-                let ref = m[2].replace(/\s+/g, '');
-                guests.push({
-                    room: m[1],
-                    ref: ref,
-                    name: m[3].trim(),
-                    description: m[4].trim(),
-                    qty: parseInt(m[5]),
-                    date: m[6],
-                    value: m[7]
-                });
-            });
-
-            // 3. Group by Room
-            const rooms = {};
-            let totalQty = 0;
-
-            guests.forEach(guest => {
-                totalQty += guest.qty;
-                if (!rooms[guest.room]) {
-                    rooms[guest.room] = { room: guest.room, name: guest.name, qty: 0 };
-                }
-                rooms[guest.room].qty += guest.qty;
-            });
-
-            document.getElementById('totalCovers').textContent = totalQty;
-
-            // 4. Distribute into Floors
+            // ── Smart column balancing ──────────────────────────────────────────
+            // Distribute floors across two columns by row count, not fixed assignment
             const floors = { ground: [], first: [], second: [] };
-
-            Object.values(rooms).sort((a,b) => a.room.localeCompare(b.room)).forEach(r => {
-                const roomNum = parseInt(r.room);
-                if (roomNum < 100) floors.ground.push(r);
-                else if (roomNum < 200) floors.first.push(r);
-                else floors.second.push(r);
+            Object.values(rooms).sort((a, b) => a.room.localeCompare(b.room)).forEach(r => {
+                const n = parseInt(r.room);
+                if (n < 100)       floors.ground.push(r);
+                else if (n < 200)  floors.first.push(r);
+                else               floors.second.push(r);
             });
 
-            renderColumns(floors);
+            // Each "card" costs: 1 header row + N data rows. Greedily assign to shortest column.
+            const sections = [
+                { title: 'Ground Floor', list: floors.ground },
+                { title: 'First Floor',  list: floors.first  },
+                { title: 'Second Floor', list: floors.second }
+            ].filter(s => s.list.length > 0);
+
+            const col1 = [], col2 = [];
+            let h1 = 0, h2 = 0;
+            sections.forEach(s => {
+                const cost = 1 + s.list.length;
+                if (h1 <= h2) { col1.push(s); h1 += cost; }
+                else           { col2.push(s); h2 += cost; }
+            });
+
+            renderColumns(col1, col2);
         }
 
-        function renderColumns(floors) {
+        // ─── Render ──────────────────────────────────────────────────────────────
+        function showEmpty() {
+            document.getElementById('outputContainer').innerHTML = `
+                <div class="w-full text-center py-24 italic border-2 border-dashed rounded-2xl no-print"
+                     style="border-color: var(--color-border); color: var(--color-text-sub)">
+                    Waiting for data...
+                </div>`;
+            document.getElementById('totalCovers').textContent = "0";
+            document.getElementById('dateDisplay').textContent = "--/--/----";
+        }
+
+        function showError() {
+            document.getElementById('outputContainer').innerHTML = `
+                <div class="error-state no-print">
+                    <span style="font-size:2rem">⚠️</span>
+                    <p style="color: var(--color-text-main); font-weight: 700; font-size: 14px;">No matching rows found</p>
+                    <p style="color: var(--color-text-sub); font-size: 12px; max-width: 320px; text-align:center">
+                        Check that the pasted data includes room numbers, booking references, and BREAKFAST/KIDS_BFAST/SALE_BFAST entries.
+                    </p>
+                </div>`;
+        }
+
+        function createTableHtml(title, roomList) {
+            if (roomList.length === 0) return '';
+
+            let rows = '';
+            roomList.forEach(r => {
+                const dupWarning = r.duplicate
+                    ? `<span title="Multiple guests / booking refs in this room" style="color:hsl(38,90%,48%);font-size:10px;margin-left:4px;">&#9888;</span>`
+                    : '';
+
+                let qtyDisplay = r.adult;
+                if (r.kids > 0) {
+                    qtyDisplay = `${r.adult}<span style="font-size:0.75em;opacity:0.65">+${r.kids}k</span>`;
+                }
+
+                rows += `
+                    <tr class="group hover:bg-slate-50 transition-colors">
+                        <td class="text-center font-bold align-middle w-12">${r.room}</td>
+                        <td class="font-medium align-middle" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+                            ${r.name}${dupWarning}
+                        </td>
+                        <td class="text-center font-bold align-middle w-10">${qtyDisplay}</td>
+                    </tr>`;
+            });
+
+            return `
+                <div class="floor-card break-inside-avoid shadow-sm">
+                    <div class="floor-header-bg p-1.5 text-center font-bold uppercase tracking-widest text-[10px]">${title}</div>
+                    <table class="w-full text-left">
+                        <thead class="table-header text-[9px] uppercase tracking-wider">
+                            <tr>
+                                <th class="w-12 text-center font-semibold py-1">Room</th>
+                                <th class="font-semibold py-1">Guest Name</th>
+                                <th class="w-10 text-center font-semibold py-1">Covers</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y" style="border-color: var(--color-border)">
+                            ${rows}
+                        </tbody>
+                    </table>
+                </div>`;
+        }
+
+        function renderColumns(col1, col2) {
             const container = document.getElementById('outputContainer');
-            container.innerHTML = '';
 
-            const createTableHtml = (title, roomList) => {
-                if (roomList.length === 0) return '';
-                
-                let rows = '';
-                roomList.forEach((r, idx) => {
-                    // Removed specific tailwind colors, relying on CSS vars inherited from body/th/td
-                    rows += `
-                        <tr class="group hover:bg-slate-50 transition-colors">
-                            <td class="text-center font-bold align-middle w-12">${r.room}</td>
-                            <td class="font-medium truncate max-w-[200px] align-middle">${r.name}</td>
-                            <td class="text-center font-bold align-middle w-10">${r.qty}</td>
-                        </tr>
-                    `;
-                });
+            const buildCol = sections => sections.map(s => createTableHtml(s.title, s.list)).join('');
 
-                // Using new theme classes
-                return `
-                    <div class="floor-card break-inside-avoid shadow-sm">
-                        <div class="floor-header-bg p-1.5 text-center font-bold uppercase tracking-widest text-[10px]">
-                            ${title}
-                        </div>
-                        <table class="w-full text-left">
-                            <thead class="table-header text-[9px] uppercase tracking-wider">
-                                <tr>
-                                    <th class="w-12 text-center font-semibold py-1">Room</th>
-                                    <th class="font-semibold py-1">Guest Name</th>
-                                    <th class="w-10 text-center font-semibold py-1">Qty</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y" style="border-color: var(--color-border)">
-                                ${rows}
-                            </tbody>
-                        </table>
-                    </div>
-                `;
-            };
-
-            const groundHtml = createTableHtml("Ground Floor", floors.ground);
-            const firstHtml = createTableHtml("First Floor", floors.first);
-            const secondHtml = createTableHtml("Second Floor", floors.second);
-            
             container.innerHTML = `
-                <div class="floor-column">${groundHtml}${firstHtml}</div>
-                <div class="floor-column">${secondHtml}</div>
-            `;
+                <div class="floor-column">${buildCol(col1)}</div>
+                <div class="floor-column">${buildCol(col2)}</div>`;
         }
+
+        // ─── Events ──────────────────────────────────────────────────────────────
+        const textarea = document.getElementById('inputData');
+
+        // Paste: auto-process after browser fills the textarea
+        textarea.addEventListener('paste', () => {
+            setTimeout(() => {
+                processData();
+                showToast('✓ Data processed');
+            }, 0);
+        });
+
+        // Ctrl+Enter to reprocess
+        document.addEventListener('keydown', e => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                processData();
+                showToast('✓ Reprocessed');
+            }
+        });
+
+        // oninput fallback for manual edits
+        textarea.addEventListener('input', processData);
+
+        // ─── Init ─────────────────────────────────────────────────────────────────
+        loadPrefs();
     </script>
 </body>
 </html>
