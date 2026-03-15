@@ -470,6 +470,7 @@
             <div class="app-header-title">
                 <h1>Bareca Peaks at Bike and Boot</h1>
                 <p>Reservation Management</p>
+                <p id="loggedInEmail" style="font-size:10px;letter-spacing:0.1em;color:rgba(228,225,220,0.4);margin-top:2px;"></p>
             </div>
             <div class="app-header-actions">
                 <div style="display:flex;gap:8px;">
@@ -484,7 +485,7 @@
         <div class="accent-strip">
             <span>New Reservation</span>
             <div class="accent-dot"></div>
-            <span style="font-weight:400;opacity:0.7;">Peaks at Bike &amp; Boot · Hope Valley</span>
+            <span id="accentSiteLabel" style="font-weight:400;opacity:0.7;">Peaks at Bike &amp; Boot · Hope Valley</span>
         </div>
 
         <!-- Reservation Form -->
@@ -494,6 +495,12 @@
                 <!-- Guest Details -->
                 <p class="form-section-label">Guest Details</p>
                 <div class="form-grid">
+                    <div class="form-group">
+                        <label class="field-label">Site</label>
+                        <select id="siteSelect" name="site" required class="field-input">
+                            <option value="">Select site…</option>
+                        </select>
+                    </div>
                     <div class="form-group">
                         <label class="field-label">Customer Name</label>
                         <input type="text" name="customerName" placeholder="Full name" required class="field-input">
@@ -647,15 +654,20 @@
             </div>
 
             <!-- Taupe accent strip -->
-            <div style="background:var(--taupe);border-bottom:1px solid var(--taupe-dk);padding:8px 28px;display:flex;gap:16px;">
+            <div style="background:var(--taupe);border-bottom:1px solid var(--taupe-dk);padding:8px 28px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
                 <div>
                     <span style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-light);">Covers</span>
                     <span id="modalPax" style="font-size:13px;font-weight:600;color:var(--burgundy);margin-left:6px;font-family:'DM Sans',sans-serif;"></span>
                 </div>
-                <div style="width:1px;background:var(--taupe-dk);"></div>
+                <div style="width:1px;background:var(--taupe-dk);height:14px;"></div>
                 <div>
                     <span style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-light);">Menu</span>
                     <span id="modalMenu" style="font-size:13px;font-weight:600;color:var(--burgundy);margin-left:6px;font-family:'DM Sans',sans-serif;"></span>
+                </div>
+                <div id="modalSiteBadge" style="display:none;width:1px;background:var(--taupe-dk);height:14px;"></div>
+                <div id="modalSiteWrap" style="display:none;">
+                    <span style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-light);">Site</span>
+                    <span id="modalSite" style="font-size:13px;font-weight:600;color:var(--burgundy);margin-left:6px;font-family:'DM Sans',sans-serif;"></span>
                 </div>
             </div>
 
@@ -682,6 +694,15 @@
                 <div id="modalConfirmedNotesWrapper" class="hidden" style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);border-radius:2px;padding:12px 14px;">
                     <p style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#059669;margin:0 0 4px;">Kitchen Notes</p>
                     <p id="modalConfirmedNotes" style="font-size:13px;color:#065f46;font-style:italic;margin:0;"></p>
+                </div>
+
+                <!-- Guest email sent status -->
+                <div id="modalEmailSentWrapper" class="hidden" style="background:rgba(98,74,68,0.05);border:1px solid rgba(98,74,68,0.18);border-radius:2px;padding:11px 14px;display:flex;align-items:center;gap:10px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;flex-shrink:0;color:#624A44;" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/></svg>
+                    <div>
+                        <p style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--burgundy);margin:0 0 2px;">Guest Email Sent</p>
+                        <p id="modalEmailSentDetails" style="font-size:11px;color:var(--text-mid);margin:0;"></p>
+                    </div>
                 </div>
             </div>
 
@@ -760,6 +781,14 @@
                     </div>
                 </div>
 
+                <!-- Site -->
+                <div class="form-group">
+                    <label class="field-label">Site</label>
+                    <select name="site" id="confirmSiteSelect" class="field-input">
+                        <option value="">Select site…</option>
+                    </select>
+                </div>
+
                 <!-- Adults & Children -->
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
                     <div class="form-group">
@@ -810,6 +839,17 @@
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Notify team option -->
+                <div style="background:var(--cream);border:1px solid var(--taupe-dk);border-radius:2px;padding:12px 14px;">
+                    <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+                        <input type="checkbox" id="notifyTeamCheck" name="notifyTeam" checked style="width:16px;height:16px;accent-color:var(--burgundy);cursor:pointer;flex-shrink:0;">
+                        <div>
+                            <span style="font-size:12px;font-weight:600;color:var(--text-dark);font-family:'DM Sans',sans-serif;">Notify team by email</span>
+                            <p style="font-size:10px;color:var(--text-light);margin:1px 0 0;">Send confirmation email with calendar invite to the team</p>
+                        </div>
+                    </label>
                 </div>
 
                 <!-- Footer buttons -->
@@ -963,11 +1003,12 @@
             </div>
 
             <!-- Tab bar -->
-            <div class="flex border-b border-slate-200 bg-slate-50 flex-shrink-0">
-                <button data-tab="colours"  class="admin-tab active-tab px-5 py-3 text-sm font-bold text-slate-700 border-b-2 border-slate-900">Colours</button>
-                <button data-tab="confirm"  class="admin-tab px-5 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-700">Confirmation Email</button>
-                <button data-tab="cancel"   class="admin-tab px-5 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-700">Cancellation Email</button>
-                <button data-tab="contact"  class="admin-tab px-5 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-700">Contact &amp; Footer</button>
+            <div class="flex border-b border-slate-200 bg-slate-50 flex-shrink-0" style="overflow-x:auto;">
+                <button data-tab="colours"  class="admin-tab active-tab px-5 py-3 text-sm font-bold text-slate-700 border-b-2 border-slate-900 white-space:nowrap">Colours</button>
+                <button data-tab="confirm"  class="admin-tab px-5 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-700 whitespace-nowrap">Confirmation Email</button>
+                <button data-tab="cancel"   class="admin-tab px-5 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-700 whitespace-nowrap">Cancellation Email</button>
+                <button data-tab="contact"  class="admin-tab px-5 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-700 whitespace-nowrap">Contact &amp; Footer</button>
+                <button data-tab="sites"    class="admin-tab px-5 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-700 whitespace-nowrap">Sites &amp; Access</button>
             </div>
 
             <!-- Tab panels -->
@@ -1105,9 +1146,31 @@
                     </div>
                 </div>
 
-            </div>
+                <!-- SITES & ACCESS TAB -->
+                <div id="tab-sites" class="admin-panel hidden space-y-6">
+                    <p class="text-xs text-slate-500">Define your sites, their email routing UIDs, and which staff members can see each site's bookings.</p>
 
-            <!-- Footer actions -->
+                    <!-- Sites list (rendered by JS) -->
+                    <div id="sitesAdminList" class="space-y-4"></div>
+
+                    <button id="addSiteBtn" class="flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-600 border border-dashed border-slate-300 rounded-lg hover:border-slate-500 hover:text-slate-800 transition w-full justify-center">
+                        + Add Site
+                    </button>
+
+                    <div style="height:1px;background:#e2e8f0;margin:8px 0;"></div>
+
+                    <!-- Staff access section -->
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Staff Site Access</p>
+                        <p class="text-xs text-slate-400 mb-3">Enter each staff member's Firebase Auth UID and choose which sites they can view. Leave sites blank to grant access to all.</p>
+                        <div id="staffAccessList" class="space-y-3"></div>
+                        <button id="addStaffBtn" class="flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-600 border border-dashed border-slate-300 rounded-lg hover:border-slate-500 hover:text-slate-800 transition w-full justify-center mt-3">
+                            + Add Staff Member
+                        </button>
+                    </div>
+                </div>
+
+            </div>
             <div class="border-t bg-white px-6 py-4 flex gap-3 items-center flex-shrink-0">
                 <span id="adminSaveStatus" class="text-xs text-slate-400 italic flex-1"></span>
                 <button id="adminResetBtn" class="px-4 py-2 text-xs font-bold text-slate-500 hover:text-red-500 border border-slate-200 rounded-lg transition">Reset to Defaults</button>
@@ -1219,7 +1282,8 @@
         // #F5F3F0 (off-white), Metropolis/Georgia fonts.
         // d.menuDisplay is an override field set from the edit panel.
         // ---------------------------------------------------------------
-        const generateGuestEmailHTML = (d) => {
+        const generateGuestEmailHTML = (d, resolvedCfg) => {
+            const rc = resolvedCfg || getSiteCfg(d.site || '');
             const adults  = parseInt(d.adultCount)  || 0;
             const children = parseInt(d.childCount) || 0;
             const pax = adults + children;
@@ -1238,17 +1302,17 @@
 
             const row = (label, value, last = false) => `
               <tr>
-                <td width="38%" style="background-color:${cfg.labelBg};padding:12px 14px;border:1px solid #c8c4be;${last?'':'border-bottom:none;'}text-align:right;vertical-align:middle;">
-                  <span style="font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;font-weight:700;color:${cfg.labelText};">${label}</span>
+                <td width="38%" style="background-color:${rc.labelBg};padding:12px 14px;border:1px solid #c8c4be;${last?'':'border-bottom:none;'}text-align:right;vertical-align:middle;">
+                  <span style="font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;font-weight:700;color:${rc.labelText};">${label}</span>
                 </td>
                 <td width="62%" style="background-color:#ffffff;padding:12px 16px;border:1px solid #c8c4be;border-left:none;${last?'':'border-bottom:none;'}vertical-align:middle;">
                   <span style="font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;color:#2d1f1c;">${value}</span>
                 </td>
               </tr>`;
 
-            // Build "Things to Note" paragraphs from cfg, replacing {{phone}} placeholder
-            const noteParas = (cfg.thingsToNote || '')
-                .replace(/\{\{phone\}\}/g, cfg.phone)
+            // Build "Things to Note" paragraphs from rc, replacing {{phone}} placeholder
+            const noteParas = (rc.thingsToNote || '')
+                .replace(/\{\{phone\}\}/g, rc.phone)
                 .split(/\n\n+/)
                 .filter(p => p.trim())
                 .map(p => {
@@ -1261,32 +1325,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>${cfg.restaurantName} – Reservation Confirmation</title>
+<title>${rc.restaurantName} – Reservation Confirmation</title>
 </head>
-<body style="margin:0;padding:0;background-color:${cfg.pageBg};font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;">
+<body style="margin:0;padding:0;background-color:${rc.pageBg};font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;">
 
-<table width="100%" cellpadding="0" cellspacing="0" style="background-color:${cfg.pageBg};padding:32px 16px;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:${rc.pageBg};padding:32px 16px;">
   <tr><td align="center">
     <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;">
 
       <tr>
-        <td style="background-color:${cfg.headerBg};padding:32px 40px 24px;text-align:center;border-radius:4px 4px 0 0;">
-          <img src="https://framerusercontent.com/images/z1j6LJZfF4uLlPlAZMHc9mP8AtE.png" alt="${cfg.restaurantName}" width="220" style="display:block;margin:0 auto;max-width:220px;background-color:${cfg.logoBg};padding:10px 16px;border-radius:4px;">
+        <td style="background-color:${rc.headerBg};padding:32px 40px 24px;text-align:center;border-radius:4px 4px 0 0;">
+          <img src="https://framerusercontent.com/images/z1j6LJZfF4uLlPlAZMHc9mP8AtE.png" alt="${rc.restaurantName}" width="220" style="display:block;margin:0 auto;max-width:220px;background-color:${rc.logoBg};padding:10px 16px;border-radius:4px;">
           <div style="width:48px;height:2px;background-color:#E4E1DC;margin:20px auto 0;opacity:0.6;"></div>
           <p style="margin:12px 0 0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:rgba(228,225,220,0.7);font-weight:400;">Reservation Confirmation</p>
         </td>
       </tr>
 
       <tr>
-        <td style="background-color:${cfg.confirmAccent};padding:10px 40px;text-align:center;">
-          <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:${cfg.labelText};font-weight:700;">${cfg.confirmBandText}</p>
+        <td style="background-color:${rc.confirmAccent};padding:10px 40px;text-align:center;">
+          <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:${rc.labelText};font-weight:700;">${rc.confirmBandText}</p>
         </td>
       </tr>
 
       <tr>
         <td style="background-color:#ffffff;padding:36px 40px 28px;">
           <p style="margin:0 0 6px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:17px;color:#2d1f1c;">Dear ${d.customerName},</p>
-          <p style="margin:0 0 28px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#5a4a47;line-height:1.7;">${cfg.confirmIntro}</p>
+          <p style="margin:0 0 28px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#5a4a47;line-height:1.7;">${rc.confirmIntro}</p>
 
           <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
             ${row('Reservation Name:', d.customerName)}
@@ -1296,8 +1360,8 @@
             ${row('Special Arrangements:', d.notes || 'None')}
             ${row('Deposit Paid:', depositDisplay)}
             <tr>
-              <td width="38%" style="background-color:${cfg.labelBg};padding:14px 14px;border:1px solid #c8c4be;border-top:none;text-align:right;vertical-align:top;">
-                <span style="font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;font-weight:700;color:${cfg.labelText};">Things to Note:</span>
+              <td width="38%" style="background-color:${rc.labelBg};padding:14px 14px;border:1px solid #c8c4be;border-top:none;text-align:right;vertical-align:top;">
+                <span style="font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;font-weight:700;color:${rc.labelText};">Things to Note:</span>
               </td>
               <td width="62%" style="background-color:#ffffff;padding:14px 16px;border:1px solid #c8c4be;border-left:none;border-top:none;vertical-align:top;">
                 ${noteParas}
@@ -1306,17 +1370,17 @@
           </table>
 
           <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#2d1f1c;line-height:1.7;">
-            Warm regards,<br><strong>${cfg.confirmSignoff}</strong>
+            Warm regards,<br><strong>${rc.confirmSignoff}</strong>
           </p>
         </td>
       </tr>
 
       <tr>
-        <td style="background-color:${cfg.headerBg};padding:20px 40px;text-align:center;border-radius:0 0 4px 4px;">
+        <td style="background-color:${rc.headerBg};padding:20px 40px;text-align:center;border-radius:0 0 4px 4px;">
           <p style="margin:0 0 4px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:12px;color:rgba(228,225,220,0.85);">
-            ${cfg.restaurantName} &nbsp;·&nbsp; ${cfg.address}
+            ${rc.restaurantName} &nbsp;·&nbsp; ${rc.address}
           </p>
-          <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;color:rgba(228,225,220,0.5);letter-spacing:0.5px;">${cfg.footerNote}</p>
+          <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;color:rgba(228,225,220,0.5);letter-spacing:0.5px;">${rc.footerNote}</p>
         </td>
       </tr>
 
@@ -1332,7 +1396,8 @@
         // Uses a muted red accent to signal cancellation clearly whilst
         // keeping the Bareca warmth and Metropolis typography.
         // ---------------------------------------------------------------
-        const generateCancellationEmailHTML = (d) => {
+        const generateCancellationEmailHTML = (d, resolvedCfg) => {
+            const rc = resolvedCfg || getSiteCfg(d.site || '');
             const adults   = parseInt(d.adultCount)  || 0;
             const children = parseInt(d.childCount)  || 0;
             const pax      = adults + children;
@@ -1351,8 +1416,8 @@
 
             const cancelRow = (label, value, isLast = false) => `
               <tr>
-                <td width="38%" style="background-color:${cfg.labelBg};padding:12px 14px;border:1px solid #c8c4be;${isLast?'':'border-bottom:none;'}text-align:right;vertical-align:middle;">
-                  <span style="font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;font-weight:700;color:${cfg.labelText};">${label}</span>
+                <td width="38%" style="background-color:${rc.labelBg};padding:12px 14px;border:1px solid #c8c4be;${isLast?'':'border-bottom:none;'}text-align:right;vertical-align:middle;">
+                  <span style="font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;font-weight:700;color:${rc.labelText};">${label}</span>
                 </td>
                 <td width="62%" style="background-color:#ffffff;padding:12px 16px;border:1px solid #c8c4be;border-left:none;${isLast?'':'border-bottom:none;'}vertical-align:middle;">
                   <span style="font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;color:#2d1f1c;">${value}</span>
@@ -1364,32 +1429,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>${cfg.restaurantName} – Cancellation Confirmation</title>
+<title>${rc.restaurantName} – Cancellation Confirmation</title>
 </head>
-<body style="margin:0;padding:0;background-color:${cfg.pageBg};font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;">
+<body style="margin:0;padding:0;background-color:${rc.pageBg};font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;">
 
-<table width="100%" cellpadding="0" cellspacing="0" style="background-color:${cfg.pageBg};padding:32px 16px;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:${rc.pageBg};padding:32px 16px;">
   <tr><td align="center">
     <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;">
 
       <tr>
-        <td style="background-color:${cfg.headerBg};padding:32px 40px 24px;text-align:center;border-radius:4px 4px 0 0;">
-          <img src="https://framerusercontent.com/images/z1j6LJZfF4uLlPlAZMHc9mP8AtE.png" alt="${cfg.restaurantName}" width="220" style="display:block;margin:0 auto;max-width:220px;background-color:${cfg.logoBg};padding:10px 16px;border-radius:4px;">
+        <td style="background-color:${rc.headerBg};padding:32px 40px 24px;text-align:center;border-radius:4px 4px 0 0;">
+          <img src="https://framerusercontent.com/images/z1j6LJZfF4uLlPlAZMHc9mP8AtE.png" alt="${rc.restaurantName}" width="220" style="display:block;margin:0 auto;max-width:220px;background-color:${rc.logoBg};padding:10px 16px;border-radius:4px;">
           <div style="width:48px;height:2px;background-color:#E4E1DC;margin:20px auto 0;opacity:0.6;"></div>
           <p style="margin:12px 0 0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:rgba(228,225,220,0.7);font-weight:400;">Cancellation Notice</p>
         </td>
       </tr>
 
       <tr>
-        <td style="background-color:${cfg.cancelAccent};padding:10px 40px;text-align:center;">
-          <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#fecaca;font-weight:700;">${cfg.cancelBandText}</p>
+        <td style="background-color:${rc.cancelAccent};padding:10px 40px;text-align:center;">
+          <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#fecaca;font-weight:700;">${rc.cancelBandText}</p>
         </td>
       </tr>
 
       <tr>
         <td style="background-color:#ffffff;padding:36px 40px 28px;">
           <p style="margin:0 0 6px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:17px;color:#2d1f1c;">Dear ${d.customerName},</p>
-          <p style="margin:0 0 28px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#5a4a47;line-height:1.7;">${cfg.cancelIntro}</p>
+          <p style="margin:0 0 28px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#5a4a47;line-height:1.7;">${rc.cancelIntro}</p>
 
           <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
             ${cancelRow('Reservation Name:', d.customerName)}
@@ -1401,20 +1466,20 @@
 
           ${additionalMsg}
 
-          <p style="margin:0 0 16px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#5a4a47;line-height:1.7;">${cfg.cancelClosing}</p>
+          <p style="margin:0 0 16px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#5a4a47;line-height:1.7;">${rc.cancelClosing}</p>
           <p style="margin:0 0 28px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#5a4a47;line-height:1.7;">
-            You can reach us on <strong>${cfg.phone}</strong> or visit us at <strong>${cfg.address}</strong>.
+            You can reach us on <strong>${rc.phone}</strong> or visit us at <strong>${rc.address}</strong>.
           </p>
           <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#2d1f1c;line-height:1.7;">
-            Warm regards,<br><strong>${cfg.cancelSignoff}</strong>
+            Warm regards,<br><strong>${rc.cancelSignoff}</strong>
           </p>
         </td>
       </tr>
 
       <tr>
-        <td style="background-color:${cfg.headerBg};padding:20px 40px;text-align:center;border-radius:0 0 4px 4px;">
+        <td style="background-color:${rc.headerBg};padding:20px 40px;text-align:center;border-radius:0 0 4px 4px;">
           <p style="margin:0 0 4px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:12px;color:rgba(228,225,220,0.85);">
-            ${cfg.restaurantName} &nbsp;·&nbsp; ${cfg.address}
+            ${rc.restaurantName} &nbsp;·&nbsp; ${rc.address}
           </p>
           <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;color:rgba(228,225,220,0.5);letter-spacing:0.5px;">
             This email confirms your cancellation. Please retain for your records.
@@ -1506,9 +1571,10 @@
 
             // Populate meta bar
             const [y, m, day] = (d.resDate || '').split('-');
+            const siteCfgForSubject = getSiteCfg(d.site || '');
             getEl('previewToAddress').value        = d.customerEmail;
             getEl('emailValidationMsg').classList.add('hidden');
-            getEl('previewSubjectLine').textContent = `Your Bareca Peaks Reservation – ${day}/${m}/${y}`;
+            getEl('previewSubjectLine').textContent = `Your ${siteCfgForSubject.restaurantName} Reservation – ${day}/${m}/${y}`;
 
             // Render iframe
             refreshPreviewFrame();
@@ -1543,14 +1609,15 @@
             sendBtn.classList.add('syncing-pulse');
 
             try {
+                const rc = getSiteCfg(previewData.site || '');
                 const [y, m, day] = (previewData.resDate || "").split('-');
                 const pax = (parseInt(previewData.adultCount)||0) + (parseInt(previewData.childCount)||0);
 
-                // Plain text fallback
+                // Plain text fallback using site-resolved branding
                 const plainText = [
                     `Dear ${previewData.customerName},`,
                     ``,
-                    `Thank you for your reservation at Bareca Peaks. We look forward to welcoming your party.`,
+                    rc.confirmIntro || `Thank you for your reservation at ${rc.restaurantName}. We look forward to welcoming your party.`,
                     ``,
                     `BOOKING DETAILS`,
                     `---------------`,
@@ -1561,24 +1628,32 @@
                     previewData.notes ? `Special Arrangements: ${previewData.notes}` : null,
                     `Deposit Paid:     ${previewData.depositAmount ? '£'+previewData.depositAmount : 'N/A'}`,
                     ``,
-                    `Please note your reservation is for a specific time. If you are running late please call 01433 440 777.`,
+                    rc.phone ? `Please note your reservation is for a specific time. If you are running late please call ${rc.phone}.` : `Please note your reservation is for a specific time.`,
                     ``,
                     `Warm regards,`,
-                    `The Bareca Peaks Team`,
-                    `Hope Road, Hope Valley, S33 0AL · 01433 440 777`
-                ].filter(l => l !== null).join('\n');
+                    rc.confirmSignoff || `The ${rc.restaurantName} Team`,
+                    rc.address ? `${rc.address}${rc.phone ? ' · ' + rc.phone : ''}` : ''
+                ].filter(l => l !== null && l !== '').join('\n');
 
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
                     to: [recipientEmail],
                     message: {
-                        subject: `Your Bareca Peaks Reservation – ${day}/${m}/${y}`,
+                        subject: `Your ${rc.restaurantName} Reservation – ${day}/${m}/${y}`,
                         text: plainText,
-                        html: generateGuestEmailHTML(previewData)
+                        html: generateGuestEmailHTML(previewData, rc)
                     }
                 });
 
                 closeModal(getEl('emailPreviewModal'));
                 closeModal(dom.detailModal);
+
+                // Record the send on the booking document
+                await setDoc(
+                    doc(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings', currentViewingBooking.id),
+                    { guestEmailSentAt: new Date().toISOString(), guestEmailSentTo: recipientEmail },
+                    { merge: true }
+                );
+
                 alert(`Confirmation email sent to ${recipientEmail}`);
 
             } catch (err) {
@@ -1630,6 +1705,7 @@
             // Build cancel preview data
             cancelPreviewData = {
                 id:           d.id,
+                site:         d.site || '',
                 customerName: d.customerName || '',
                 customerEmail: d.customerEmail || '',
                 resDate:      d.resDate || '',
@@ -1653,9 +1729,10 @@
 
             // Populate meta bar
             const [y, m, day] = (d.resDate || '').split('-');
+            const cancelSiteCfg = getSiteCfg(d.site || '');
             getEl('cancelPreviewToAddress').value         = d.customerEmail || '';
             getEl('cancelEmailValidationMsg').classList.add('hidden');
-            getEl('cancelPreviewSubjectLine').textContent = `Bareca Peaks – Cancellation Confirmation`;
+            getEl('cancelPreviewSubjectLine').textContent = `${cancelSiteCfg.restaurantName} – Cancellation Confirmation`;
 
             refreshCancelFrame();
             closeModal(dom.detailModal);
@@ -1720,13 +1797,14 @@
 
                 // 2. Guest cancellation email (only if address provided)
                 if (recipientEmail) {
+                    const rc = getSiteCfg(cancelPreviewData.site || '');
                     const [y, m, day] = (cancelPreviewData.resDate || '').split('-');
                     const pax = (parseInt(cancelPreviewData.adultCount)||0) + (parseInt(cancelPreviewData.childCount)||0);
 
                     const plainText = [
                         `Dear ${cancelPreviewData.customerName},`,
                         ``,
-                        `We're writing to confirm that your reservation at Bareca Peaks has been successfully cancelled.`,
+                        rc.cancelIntro || `We're writing to confirm that your reservation at ${rc.restaurantName} has been successfully cancelled.`,
                         ``,
                         `CANCELLED BOOKING DETAILS`,
                         `-------------------------`,
@@ -1737,19 +1815,19 @@
                         `Deposit:          ${cancelPreviewData.depositNote}`,
                         cancelPreviewData.additionalMsg ? `\n${cancelPreviewData.additionalMsg}` : null,
                         ``,
-                        `We're sorry we won't be seeing you this time. Please call 01433 440 777 to make a future reservation.`,
+                        rc.cancelClosing || `We're sorry we won't be seeing you this time.${rc.phone ? ' Please call ' + rc.phone + ' to make a future reservation.' : ''}`,
                         ``,
                         `Warm regards,`,
-                        `The Bareca Peaks Team`,
-                        `Hope Road, Hope Valley, S33 0AL · 01433 440 777`
-                    ].filter(l => l !== null).join('\n');
+                        rc.cancelSignoff || `The ${rc.restaurantName} Team`,
+                        rc.address ? `${rc.address}${rc.phone ? ' · ' + rc.phone : ''}` : ''
+                    ].filter(l => l !== null && l !== '').join('\n');
 
                     await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
                         to: [recipientEmail],
                         message: {
-                            subject: `Bareca Peaks – Cancellation Confirmation`,
+                            subject: `${rc.restaurantName} – Cancellation Confirmation`,
                             text: plainText,
-                            html: generateCancellationEmailHTML(cancelPreviewData)
+                            html: generateCancellationEmailHTML(cancelPreviewData, rc)
                         }
                     });
                 }
@@ -1781,6 +1859,7 @@
                 dom.loginSection.classList.add('hidden');
                 dom.appSection.classList.remove('hidden');
                 getEl('userIdDisplay').textContent = `Staff ID: ${user.uid.substring(0, 8)}`;
+                getEl('loggedInEmail').textContent = user.email;
                 initCalendar();
                 startDataSync();
                 await loadSettings();
@@ -1794,11 +1873,17 @@
         });
 
         const initCalendar = () => {
+            let lastEventClick = 0;
             calendar = new FullCalendar.Calendar(getEl('calendar'), {
                 initialView: 'dayGridMonth',
                 headerToolbar: { left: 'prev,next today', center: 'title', right: '' },
-                eventClick: (info) => showBookingDetails(info.event.id, info.event.extendedProps),
+                eventClick: (info) => {
+                    lastEventClick = Date.now();
+                    showBookingDetails(info.event.id, info.event.extendedProps);
+                },
                 dateClick: (info) => {
+                    // Don't trigger day view if an event was just clicked
+                    if (Date.now() - lastEventClick < 300) return;
                     dayViewDate = new Date(info.date);
                     showDayView();
                 }
@@ -1825,17 +1910,39 @@
                     });
                 });
                 allBookingsCache = bookings;
-                renderList(bookings);
+                const visibleBookings = filterBySite(bookings);
+                renderList(visibleBookings);
                 // Refresh day view if it's currently visible
                 if (getEl('dayViewContainer').style.display !== 'none') renderDayView();
-                if (calendar) { calendar.removeAllEvents(); calendar.addEventSource(events); }
+                if (calendar) {
+                    calendar.removeAllEvents();
+                    calendar.addEventSource(visibleBookings.map(data => ({
+                        id: data.id,
+                        title: `${data.customerName} (${(parseInt(data.adultCount)||0) + (parseInt(data.childCount)||0)})`,
+                        start: `${data.resDate}T${data.resTime}`,
+                        backgroundColor: data.status === 'finalized' ? '#d1fae5' : '#624A44',
+                        borderColor: data.status === 'finalized' ? '#10b981' : '#624A44',
+                        textColor: data.status === 'finalized' ? '#065f46' : '#ffffff',
+                        extendedProps: { ...data }
+                    })));
+                }
             });
         };
 
         const showBookingDetails = (id, data) => {
             currentViewingBooking = { id, ...data };
             getEl('modalTitle').textContent = data.customerName;
-            getEl('modalSubtitle').textContent = `${data.resDate} @ ${data.resTime}`;
+
+            // Format date and time for subtitle
+            const [sy, sm, sd] = (data.resDate || '').split('-');
+            const formattedDate = sy ? `${sd}/${sm}/${sy.slice(-2)}` : '';
+            let formattedTime = data.resTime || '';
+            if (formattedTime) {
+                const [hh, mm] = formattedTime.split(':');
+                const h = parseInt(hh);
+                formattedTime = `${h > 12 ? h - 12 : (h === 0 ? 12 : h)}:${mm} ${h >= 12 ? 'PM' : 'AM'}`;
+            }
+            getEl('modalSubtitle').textContent = formattedDate && formattedTime ? `${formattedDate} at ${formattedTime}` : formattedDate || formattedTime;
             getEl('modalPax').textContent = `${(parseInt(data.adultCount)||0) + (parseInt(data.childCount)||0)} Total`;
             getEl('modalMenu').textContent = data.menuArrangement === 'Other' ? data.menuOtherDetails : data.menuArrangement;
             getEl('modalPhone').textContent = data.customerPhone || 'N/A';
@@ -1847,20 +1954,60 @@
             getEl('confirmedActions').style.display = isFinal ? 'flex' : 'none';
             getEl('modalConfirmTrigger').textContent = isFinal ? "Edit Confirmation" : "Confirm Reservation";
 
+            // Update Email Guest button label
+            if (isFinal) {
+                const emailBtn = getEl('modalSendGuestBtn');
+                const hasSent = !!data.guestEmailSentAt;
+                emailBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" style="width:13px;height:13px;" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/></svg>${hasSent ? 'Resend Email' : 'Email Guest'}`;
+            }
+
             const notesWrap = getEl('modalConfirmedNotesWrapper');
             if (isFinal && data.confirmedNotes) {
                 notesWrap.classList.remove('hidden');
                 getEl('modalConfirmedNotes').textContent = data.confirmedNotes;
             } else notesWrap.classList.add('hidden');
 
+            // Guest email sent status
+            const emailSentWrap = getEl('modalEmailSentWrapper');
+            if (data.guestEmailSentAt) {
+                const sentDate = new Date(data.guestEmailSentAt);
+                const formatted = sentDate.toLocaleString('en-GB', {
+                    day: '2-digit', month: 'short', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                });
+                getEl('modalEmailSentDetails').textContent = `${data.guestEmailSentTo} · ${formatted}`;
+                emailSentWrap.classList.remove('hidden');
+            } else {
+                emailSentWrap.classList.add('hidden');
+            }
+
+            // Site badge
+            if (data.site) {
+                const siteName = (cfg.sites||[]).find(s => s.id === data.site)?.name || data.site;
+                getEl('modalSite').textContent = siteName;
+                getEl('modalSiteBadge').style.display = '';
+                getEl('modalSiteWrap').style.display = '';
+            } else {
+                getEl('modalSiteBadge').style.display = 'none';
+                getEl('modalSiteWrap').style.display = 'none';
+            }
+
             openModal(dom.detailModal);
         };
 
         getEl('modalConfirmTrigger').onclick = () => {
+            const isFinalised = currentViewingBooking.status === 'finalized';
+            getEl('confirmFormTitle').textContent = isFinalised ? 'Edit Confirmation' : 'Finalise Reservation';
+            getEl('confirmFormTitle').nextElementSibling.textContent = isFinalised ? 'Update the confirmed details' : 'Verify details before confirming';
+            const saveBtn = getEl('finalConfirmForm').querySelector('[type="submit"]');
+            if (saveBtn) saveBtn.textContent = isFinalised ? 'Update Confirmation' : 'Save & Confirm';
+
+            // Default notify checkbox: on for first confirm, off for edits
+            getEl('notifyTeamCheck').checked = !isFinalised;
+
             const f = getEl('finalConfirmForm');
             const d = currentViewingBooking;
             f.resDate.value = d.resDate;
-            // Populate 12hr confirm time picker
             if (d.resTime) {
                 const [hh, mm] = d.resTime.split(':');
                 let h = parseInt(hh);
@@ -1869,6 +2016,15 @@
                 getEl('confirmTimeMin').value = mm;
                 syncConfirmTime();
             }
+            const confirmSiteSel = getEl('confirmSiteSelect');
+            confirmSiteSel.innerHTML = '<option value="">Select site…</option>';
+            (cfg.sites || []).forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.id;
+                opt.textContent = s.name;
+                confirmSiteSel.appendChild(opt);
+            });
+            confirmSiteSel.value = d.site || '';
             f.adultCount.value = d.adultCount; f.childCount.value = d.childCount;
             f.menuArrangement.value = (d.menuArrangement === 'Unknown' || !d.menuArrangement) ? 'Choose on the Day' : d.menuArrangement;
             f.confirmedNotes.value = d.confirmedNotes || '';
@@ -1893,31 +2049,37 @@
             updates.status = 'finalized';
             updates.isResident = fd.has('isResident');
             updates.nraSetup = fd.has('nraSetup');
+            const notifyTeam = fd.has('notifyTeam');
             updates.sequence = (currentViewingBooking.sequence || 0) + (currentViewingBooking.status === 'finalized' ? 1 : 0);
 
             try {
                 await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings', currentViewingBooking.id), updates, { merge: true });
 
-                const label = generateKitchenLabel({ ...currentViewingBooking, ...updates });
-                const pax = (parseInt(updates.adultCount)||0) + (parseInt(updates.childCount)||0);
-                const icsContent = generateICSContent({id: currentViewingBooking.id, ...currentViewingBooking, ...updates}, updates.sequence);
+                if (notifyTeam) {
+                    const label = generateKitchenLabel({ ...currentViewingBooking, ...updates });
+                    const pax = (parseInt(updates.adultCount)||0) + (parseInt(updates.childCount)||0);
+                    const icsContent = generateICSContent({id: currentViewingBooking.id, ...currentViewingBooking, ...updates}, updates.sequence);
+                    const siteId = updates.site || currentViewingBooking.site || '';
+                    const siteName = (cfg.sites||[]).find(s => s.id === siteId)?.name || siteId;
+                    const confirmUids = getSiteUids(siteId, 'confirmUids');
 
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
-                    toUids: ['reservation_team_confirm'],
-                    message: {
-                        subject: `BARECA PEAKS CONFIRMATION - ${updates.customerName || currentViewingBooking.customerName}`,
-                        text: `RESERVATION CONFIRMED\n------------------\nGroup Label: ${label}\nCustomer: ${currentViewingBooking.customerName}\nDate: ${updates.resDate}\nTime: ${updates.resTime}\nGuests: ${pax}\nMenu: ${updates.menuArrangement}\n\nResident: ${updates.isResident ? 'Yes' : 'No'}\nDeposit Paid: £${updates.depositAmount || '0.00'}\nNRA Setup: ${updates.nraSetup ? 'Yes' : 'No'}\n\nNotes: ${updates.confirmedNotes || 'None'}\n\nConfirmed by: ${currentUser.email}`,
-                        attachments: [{
-                            filename: `Invite_${label.replace(/\s+/g,'_')}.ics`,
-                            content: btoa(icsContent),
-                            encoding: 'base64',
-                            contentType: 'text/calendar'
-                        }]
-                    }
-                });
+                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
+                        toUids: confirmUids,
+                        message: {
+                            subject: `BARECA PEAKS CONFIRMATION${siteName ? ' ['+siteName+']' : ''} - ${updates.customerName || currentViewingBooking.customerName}`,
+                            text: `RESERVATION CONFIRMED\n------------------\n${siteName ? 'Site: '+siteName+'\n' : ''}Group Label: ${label}\nCustomer: ${currentViewingBooking.customerName}\nDate: ${updates.resDate}\nTime: ${updates.resTime}\nGuests: ${pax}\nMenu: ${updates.menuArrangement}\n\nResident: ${updates.isResident ? 'Yes' : 'No'}\nDeposit Paid: £${updates.depositAmount || '0.00'}\nNRA Setup: ${updates.nraSetup ? 'Yes' : 'No'}\n\nNotes: ${updates.confirmedNotes || 'None'}\n\nConfirmed by: ${currentUser.email}`,
+                            attachments: [{
+                                filename: `Invite_${label.replace(/\s+/g,'_')}.ics`,
+                                content: btoa(icsContent),
+                                encoding: 'base64',
+                                contentType: 'text/calendar'
+                            }]
+                        }
+                    });
+                }
 
                 closeModal(dom.confirmModal);
-                alert("Reservation Confirmed and Team Notified with Calendar Link!");
+                alert(notifyTeam ? "Reservation saved and team notified." : "Reservation saved.");
             } catch (err) { alert("Save Failed: " + err.message); }
         };
 
@@ -1927,13 +2089,16 @@
             const label = generateKitchenLabel(d);
             const seq = d.sequence || 0;
             const ics = generateICSContent(d, seq);
+            const siteId = d.site || '';
+            const siteName = (cfg.sites||[]).find(s => s.id === siteId)?.name || siteId;
+            const kitchenUids = getSiteUids(siteId, 'kitchenUids');
 
             try {
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
-                    toUids: ['reservation_team_kitchen'],
+                    toUids: kitchenUids,
                     message: {
-                        subject: `${seq > 0 ? 'UPDATED: ' : ''}BARECA PEAKS KITCHEN DIARY: ${label}`,
-                        text: `KITCHEN NOTIFICATION\n------------------\nLabel: ${label}\nGuests: ${(parseInt(d.adultCount)||0) + (parseInt(d.childCount)||0)}\nMenu: ${d.menuArrangement}\nDeposit: £${d.depositAmount||0}\n\nExtra Details: ${d.confirmedNotes||'None'}\nOriginal Dietary: ${d.notes}`,
+                        subject: `${seq > 0 ? 'UPDATED: ' : ''}BARECA PEAKS KITCHEN DIARY${siteName ? ' ['+siteName+']' : ''}: ${label}`,
+                        text: `KITCHEN NOTIFICATION\n------------------\n${siteName ? 'Site: '+siteName+'\n' : ''}Label: ${label}\nGuests: ${(parseInt(d.adultCount)||0) + (parseInt(d.childCount)||0)}\nMenu: ${d.menuArrangement}\nDeposit: £${d.depositAmount||0}\n\nExtra Details: ${d.confirmedNotes||'None'}\nOriginal Dietary: ${d.notes}`,
                         attachments: [{ filename: `Reservation_${label.replace(/\s+/g,'_')}.ics`, content: btoa(ics), encoding: 'base64', contentType: 'text/calendar' }]
                     }
                 });
@@ -1975,7 +2140,48 @@
             phone:          "01433 440 777",
             address:        "Hope Road, Hope Valley, S33 0AL",
             footerNote:     "This email confirms your reservation. Please retain for your records.",
-            adminEmails:    ADMIN_EMAILS_FALLBACK.join(', ')
+            adminEmails:    ADMIN_EMAILS_FALLBACK.join(', '),
+            // Sites — array of {id, name, enquiryUids, confirmUids, kitchenUids}
+            sites: [
+                {
+                    id: 'peak-district',
+                    name: 'Peak District',
+                    enquiryUids: 'reservation_team',
+                    confirmUids: 'reservation_team_confirm',
+                    kitchenUids: 'reservation_team_kitchen',
+                    restaurantName: 'Bareca Peaks at Bike & Boot',
+                    phone:          '01433 440 777',
+                    address:        'Hope Road, Hope Valley, S33 0AL',
+                    footerNote:     'This email confirms your reservation. Please retain for your records.',
+                    confirmBandText:'Peaks at Bike & Boot · Hope Valley',
+                    cancelBandText: 'Reservation Cancelled · Peaks at Bike & Boot',
+                    confirmIntro:   '',
+                    cancelIntro:    '',
+                    cancelClosing:  '',
+                    confirmSignoff: '',
+                    cancelSignoff:  ''
+                },
+                {
+                    id: 'scarborough',
+                    name: 'Scarborough',
+                    enquiryUids: 'reservation_team',
+                    confirmUids: 'reservation_team_confirm',
+                    kitchenUids: 'reservation_team_kitchen',
+                    restaurantName: 'Bareca Scarborough',
+                    phone:          '',
+                    address:        '',
+                    footerNote:     'This email confirms your reservation. Please retain for your records.',
+                    confirmBandText:'Bareca · Scarborough',
+                    cancelBandText: 'Reservation Cancelled · Bareca Scarborough',
+                    confirmIntro:   '',
+                    cancelIntro:    '',
+                    cancelClosing:  '',
+                    confirmSignoff: '',
+                    cancelSignoff:  ''
+                }
+            ],
+            // staffAccess — array of {uid, name, sites: ['all'] or ['peak-district','scarborough']}
+            staffAccess: []
         };
 
         // Live config — starts as defaults, gets overwritten by Firestore on load
@@ -1988,6 +2194,7 @@
                 const snap = await getDoc(settingsDocRef());
                 if (snap.exists()) cfg = { ...DEFAULT_CFG, ...snap.data() };
             } catch (e) { console.warn("Settings load failed, using defaults:", e); }
+            populateSiteDropdown();
         };
 
         const saveSettings = async () => {
@@ -2011,6 +2218,253 @@
 
         const syncAdminButton = () => {
             getEl('adminSettingsBtn').classList.toggle('hidden', !isAdmin());
+        };
+
+        // ── Sites System ─────────────────────────────────────────────────
+
+        // Get the sites this user is allowed to see
+        const getUserAllowedSites = () => {
+            if (!currentUser) return [];
+            const entry = (cfg.staffAccess || []).find(s => s.uid === currentUser.uid);
+            if (!entry || !entry.sites || entry.sites.includes('all') || entry.sites.length === 0) {
+                // No restriction — see all sites
+                return (cfg.sites || []).map(s => s.id);
+            }
+            return entry.sites;
+        };
+
+        // Populate the site dropdown on the enquiry form
+        const populateSiteDropdown = () => {
+            const sel = getEl('siteSelect');
+            const allowed = getUserAllowedSites();
+            const sites = (cfg.sites || []).filter(s => allowed.includes(s.id));
+            sel.innerHTML = '<option value="">Select site…</option>';
+            sites.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.id;
+                opt.textContent = s.name;
+                sel.appendChild(opt);
+            });
+            // Auto-select if only one site
+            if (sites.length === 1) sel.value = sites[0].id;
+
+            // Update accent strip to show permitted site(s)
+            const label = getEl('accentSiteLabel');
+            if (label) {
+                if (sites.length === 1) {
+                    const s = sites[0];
+                    label.textContent = s.address ? `${s.name} · ${s.address}` : s.name;
+                } else if (sites.length > 1) {
+                    label.textContent = sites.map(s => s.name).join(' · ');
+                } else {
+                    label.textContent = 'All Sites';
+                }
+            }
+        };
+
+        // Get email UIDs for a given site and type
+        const getSiteUids = (siteId, type) => {
+            const site = (cfg.sites || []).find(s => s.id === siteId);
+            if (!site) return ['reservation_team'];
+            const raw = site[type] || 'reservation_team';
+            return raw.split(',').map(u => u.trim()).filter(Boolean);
+        };
+
+        // Merge site-level branding over global cfg — site fields win if non-empty
+        const getSiteCfg = (siteId) => {
+            const site = (cfg.sites || []).find(s => s.id === siteId);
+            if (!site) return cfg;
+            const SITE_BRANDING_KEYS = [
+                'restaurantName','phone','address','footerNote',
+                'confirmBandText','cancelBandText',
+                'confirmIntro','cancelIntro','cancelClosing',
+                'confirmSignoff','cancelSignoff'
+            ];
+            const merged = { ...cfg };
+            SITE_BRANDING_KEYS.forEach(k => {
+                if (site[k] && site[k].trim() !== '') merged[k] = site[k];
+            });
+            return merged;
+        };
+
+        // Filter bookings by allowed sites
+        const filterBySite = (bookings) => {
+            const allowed = getUserAllowedSites();
+            if (!allowed.length) return bookings;
+            return bookings.filter(b => !b.site || allowed.includes(b.site));
+        };
+
+        // ── Admin: Sites & Access Tab ─────────────────────────────────────
+
+        const renderSitesAdmin = () => {
+            const list = getEl('sitesAdminList');
+            list.innerHTML = '';
+            (cfg.sites || []).forEach((site, i) => {
+                const card = document.createElement('div');
+                card.style.cssText = 'border:1px solid #e2e8f0;border-radius:8px;padding:16px;background:#fafafa;display:flex;flex-direction:column;gap:10px;';
+                card.innerHTML = `
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <span style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#64748b;">Site ${i+1}</span>
+                        <button data-site-del="${i}" style="background:none;border:none;color:#ef4444;font-size:11px;font-weight:700;cursor:pointer;padding:2px 6px;">✕ Remove</button>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                        <div>
+                            <label class="field-label">Site Name</label>
+                            <input type="text" data-site="${i}" data-key="name" value="${site.name||''}" class="field-input" style="margin-top:4px;" placeholder="e.g. Peak District">
+                        </div>
+                        <div>
+                            <label class="field-label">Site ID</label>
+                            <input type="text" data-site="${i}" data-key="id" value="${site.id||''}" class="field-input" style="margin-top:4px;font-family:monospace;" placeholder="e.g. peak-district">
+                        </div>
+                    </div>
+                    <div style="height:1px;background:#e2e8f0;"></div>
+                    <p style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#94a3b8;margin:0;">Branding &amp; Contact</p>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                        <div>
+                            <label class="field-label">Restaurant Name</label>
+                            <input type="text" data-site="${i}" data-key="restaurantName" value="${site.restaurantName||''}" class="field-input" style="margin-top:4px;" placeholder="e.g. Bareca Peaks at Bike & Boot">
+                        </div>
+                        <div>
+                            <label class="field-label">Phone Number</label>
+                            <input type="text" data-site="${i}" data-key="phone" value="${site.phone||''}" class="field-input" style="margin-top:4px;" placeholder="e.g. 01234 567890">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="field-label">Address</label>
+                        <input type="text" data-site="${i}" data-key="address" value="${site.address||''}" class="field-input" style="margin-top:4px;" placeholder="e.g. Hope Road, Hope Valley, S33 0AL">
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                        <div>
+                            <label class="field-label">Confirmation Band Text</label>
+                            <input type="text" data-site="${i}" data-key="confirmBandText" value="${site.confirmBandText||''}" class="field-input" style="margin-top:4px;" placeholder="e.g. Peaks at Bike & Boot · Hope Valley">
+                        </div>
+                        <div>
+                            <label class="field-label">Cancellation Band Text</label>
+                            <input type="text" data-site="${i}" data-key="cancelBandText" value="${site.cancelBandText||''}" class="field-input" style="margin-top:4px;" placeholder="e.g. Reservation Cancelled · Bareca">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="field-label">Confirmation Intro <span style="font-weight:400;text-transform:none;letter-spacing:0;">(leave blank to use global setting)</span></label>
+                        <textarea data-site="${i}" data-key="confirmIntro" rows="2" class="field-input" style="margin-top:4px;resize:none;" placeholder="Thank you for your reservation…">${site.confirmIntro||''}</textarea>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                        <div>
+                            <label class="field-label">Confirmation Sign-off</label>
+                            <input type="text" data-site="${i}" data-key="confirmSignoff" value="${site.confirmSignoff||''}" class="field-input" style="margin-top:4px;" placeholder="The Bareca Peaks Team">
+                        </div>
+                        <div>
+                            <label class="field-label">Cancellation Sign-off</label>
+                            <input type="text" data-site="${i}" data-key="cancelSignoff" value="${site.cancelSignoff||''}" class="field-input" style="margin-top:4px;" placeholder="The Bareca Team">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="field-label">Cancellation Intro <span style="font-weight:400;text-transform:none;letter-spacing:0;">(leave blank to use global setting)</span></label>
+                        <textarea data-site="${i}" data-key="cancelIntro" rows="2" class="field-input" style="margin-top:4px;resize:none;" placeholder="We're writing to confirm your reservation has been cancelled…">${site.cancelIntro||''}</textarea>
+                    </div>
+                    <div>
+                        <label class="field-label">Cancellation Closing <span style="font-weight:400;text-transform:none;letter-spacing:0;">(leave blank to use global setting)</span></label>
+                        <textarea data-site="${i}" data-key="cancelClosing" rows="2" class="field-input" style="margin-top:4px;resize:none;" placeholder="We're sorry we won't be seeing you…">${site.cancelClosing||''}</textarea>
+                    </div>
+                    <div style="height:1px;background:#e2e8f0;"></div>
+                    <p style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#94a3b8;margin:0;">Email Routing</p>
+                    <div>
+                        <label class="field-label">Enquiry Email UIDs <span style="font-weight:400;text-transform:none;letter-spacing:0;">(comma-separated)</span></label>
+                        <input type="text" data-site="${i}" data-key="enquiryUids" value="${site.enquiryUids||''}" class="field-input" style="margin-top:4px;font-family:monospace;font-size:12px;" placeholder="reservation_team">
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                        <div>
+                            <label class="field-label">Confirm Email UIDs</label>
+                            <input type="text" data-site="${i}" data-key="confirmUids" value="${site.confirmUids||''}" class="field-input" style="margin-top:4px;font-family:monospace;font-size:12px;">
+                        </div>
+                        <div>
+                            <label class="field-label">Kitchen Email UIDs</label>
+                            <input type="text" data-site="${i}" data-key="kitchenUids" value="${site.kitchenUids||''}" class="field-input" style="margin-top:4px;font-family:monospace;font-size:12px;">
+                        </div>
+                    </div>`;
+                // Live update cfg on change
+                card.querySelectorAll('[data-site]').forEach(inp => {
+                    inp.addEventListener('input', () => {
+                        const idx = parseInt(inp.dataset.site);
+                        cfg.sites[idx][inp.dataset.key] = inp.value;
+                    });
+                });
+                card.querySelector(`[data-site-del="${i}"]`).onclick = () => {
+                    cfg.sites.splice(i, 1);
+                    renderSitesAdmin();
+                };
+                list.appendChild(card);
+            });
+        };
+
+        const renderStaffAccessAdmin = () => {
+            const list = getEl('staffAccessList');
+            list.innerHTML = '';
+            (cfg.staffAccess || []).forEach((staff, i) => {
+                const siteOptions = (cfg.sites || []).map(s =>
+                    `<label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;">
+                        <input type="checkbox" data-staff="${i}" data-site="${s.id}" ${(staff.sites||[]).includes(s.id) ? 'checked' : ''} style="accent-color:var(--burgundy);">
+                        ${s.name}
+                    </label>`
+                ).join('');
+
+                const card = document.createElement('div');
+                card.style.cssText = 'border:1px solid #e2e8f0;border-radius:8px;padding:14px;background:#fafafa;display:flex;flex-direction:column;gap:10px;';
+                card.innerHTML = `
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <span style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#64748b;">Staff Member ${i+1}</span>
+                        <button data-staff-del="${i}" style="background:none;border:none;color:#ef4444;font-size:11px;font-weight:700;cursor:pointer;padding:2px 6px;">✕ Remove</button>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                        <div>
+                            <label class="field-label">Display Name</label>
+                            <input type="text" data-staff="${i}" data-key="name" value="${staff.name||''}" class="field-input" style="margin-top:4px;" placeholder="e.g. Jane Smith">
+                        </div>
+                        <div>
+                            <label class="field-label">Firebase Auth UID</label>
+                            <input type="text" data-staff="${i}" data-key="uid" value="${staff.uid||''}" class="field-input" style="margin-top:4px;font-family:monospace;font-size:12px;" placeholder="UID from Firebase">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="field-label" style="margin-bottom:8px;display:block;">Allowed Sites <span style="font-weight:400;text-transform:none;letter-spacing:0;">(none checked = all sites)</span></label>
+                        <div style="display:flex;flex-wrap:wrap;gap:12px;">${siteOptions}</div>
+                    </div>`;
+
+                card.querySelectorAll('[data-staff][data-key]').forEach(inp => {
+                    inp.addEventListener('input', () => {
+                        const idx = parseInt(inp.dataset.staff);
+                        cfg.staffAccess[idx][inp.dataset.key] = inp.value;
+                    });
+                });
+                card.querySelectorAll('[data-staff][data-site]').forEach(chk => {
+                    chk.addEventListener('change', () => {
+                        const idx = parseInt(chk.dataset.staff);
+                        const siteId = chk.dataset.site;
+                        const current = cfg.staffAccess[idx].sites || [];
+                        if (chk.checked) {
+                            if (!current.includes(siteId)) cfg.staffAccess[idx].sites = [...current, siteId];
+                        } else {
+                            cfg.staffAccess[idx].sites = current.filter(s => s !== siteId);
+                        }
+                    });
+                });
+                card.querySelector(`[data-staff-del="${i}"]`).onclick = () => {
+                    cfg.staffAccess.splice(i, 1);
+                    renderStaffAccessAdmin();
+                };
+                list.appendChild(card);
+            });
+        };
+
+        getEl('addSiteBtn').onclick = () => {
+            if (!cfg.sites) cfg.sites = [];
+            cfg.sites.push({ id: '', name: '', enquiryUids: 'reservation_team', confirmUids: 'reservation_team_confirm', kitchenUids: 'reservation_team_kitchen' });
+            renderSitesAdmin();
+        };
+
+        getEl('addStaffBtn').onclick = () => {
+            if (!cfg.staffAccess) cfg.staffAccess = [];
+            cfg.staffAccess.push({ uid: '', name: '', sites: [] });
+            renderStaffAccessAdmin();
         };
 
         // Sync a colour picker + hex input pair, both ways
@@ -2046,6 +2500,9 @@
             getEl('cfg_address').value         = cfg.address;
             getEl('cfg_footerNote').value      = cfg.footerNote;
             getEl('cfg_adminEmails').value     = cfg.adminEmails;
+            // Sites tab
+            renderSitesAdmin();
+            renderStaffAccessAdmin();
         };
 
         const readAdminForm = () => {
@@ -2062,6 +2519,7 @@
             cfg.address         = getEl('cfg_address').value;
             cfg.footerNote      = getEl('cfg_footerNote').value;
             cfg.adminEmails     = getEl('cfg_adminEmails').value;
+            // sites and staffAccess are updated live via their input handlers
         };
 
         // Admin modal open/close
@@ -2110,6 +2568,11 @@
         const modalStack = [];
 
         const openModal = (el) => {
+            // Idempotent — don't push the same modal twice
+            if (modalStack.includes(el)) {
+                el.classList.remove('hidden');
+                return;
+            }
             el.classList.remove('hidden');
             modalStack.push(el);
             // Lock body scroll on first modal open
@@ -2122,6 +2585,13 @@
             if (idx !== -1) modalStack.splice(idx, 1);
             // Restore scroll when no modals remain
             if (modalStack.length === 0) document.body.style.overflow = '';
+        };
+
+        // Hard-reset all modals and scroll lock — used on logout
+        const closeAllModals = () => {
+            modalStack.forEach(el => el.classList.add('hidden'));
+            modalStack.length = 0;
+            document.body.style.overflow = '';
         };
 
         const closeTopModal = () => {
@@ -2164,7 +2634,7 @@
             e.preventDefault();
             try { await signInWithEmailAndPassword(auth, getEl('loginEmail').value, getEl('loginPassword').value); } catch (err) { dom.loginError.classList.remove('hidden'); }
         };
-        getEl('logoutBtn').onclick = () => signOut(auth);
+        getEl('logoutBtn').onclick = () => { closeAllModals(); signOut(auth); };
         getEl('modalClose').onclick = () => closeModal(dom.detailModal);
         getEl('confirmFormCancel').onclick = () => { closeModal(dom.confirmModal); openModal(dom.detailModal); };
         // ── View toggle ──────────────────────────────────────────────────
@@ -2230,7 +2700,7 @@
             const isPast  = dateStr < todayStr;
             getEl('dayViewSubheading').textContent = isToday ? 'Today' : isPast ? 'Past date' : 'Upcoming';
 
-            const dayBookings = allBookingsCache
+            const dayBookings = filterBySite(allBookingsCache)
                 .filter(b => b.resDate === dateStr)
                 .sort((a, b) => (a.resTime || '').localeCompare(b.resTime || ''));
 
@@ -2289,7 +2759,7 @@
                     <div style="width:1px;height:32px;background:var(--taupe-dk);flex-shrink:0;"></div>
                     <div style="flex:1;min-width:0;">
                         <div style="font-weight:600;font-size:14px;color:var(--text-dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${b.customerName}</div>
-                        <div style="font-size:12px;color:var(--text-mid);margin-top:2px;">${pax} cover${pax!==1?'s':''} · ${b.menuArrangement==='Other'?(b.menuOtherDetails||'Special'):b.menuArrangement||'—'}</div>
+                        <div style="font-size:12px;color:var(--text-mid);margin-top:2px;">${pax} cover${pax!==1?'s':''} · ${b.menuArrangement==='Other'?(b.menuOtherDetails||'Special'):b.menuArrangement||'—'}${b.site ? ' · <span style="color:var(--burgundy);font-weight:600;">'+ ((cfg.sites||[]).find(s=>s.id===b.site)?.name||b.site) +'</span>' : ''}</div>
                     </div>
                     ${b.notes ? `<div style="max-width:180px;font-size:11px;color:var(--text-light);font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${b.notes}">${b.notes}</div>` : ''}
                     <div style="flex-shrink:0;text-align:right;">
@@ -2359,6 +2829,7 @@
                     ? `<div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:#10b981;"></div>` : '';
 
                 const menuLabel = b.menuArrangement === 'Other' ? (b.menuOtherDetails || 'Special') : (b.menuArrangement || '—');
+                const siteLabel = b.site ? ((cfg.sites||[]).find(s => s.id === b.site)?.name || b.site) : null;
                 const indent    = isFinal && !isPast ? 'padding-left:8px;' : '';
                 const nameColor = isPast ? 'var(--text-mid)' : 'var(--text-dark)';
                 const dateColor = isPast ? 'var(--text-light)' : 'var(--burgundy)';
@@ -2376,7 +2847,7 @@
                     </div>
                     <div style="${indent}">
                         <div style="font-weight:600;font-size:14px;color:${nameColor};margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${b.customerName}</div>
-                        <div style="font-size:11px;color:var(--text-light);">${pax} cover${pax!==1?'s':''} · ${menuLabel}</div>
+                        <div style="font-size:11px;color:var(--text-light);">${pax} cover${pax!==1?'s':''} · ${menuLabel}${siteLabel ? ' · <span style="color:var(--burgundy);font-weight:600;">'+siteLabel+'</span>' : ''}</div>
                         ${statusTag}
                     </div>`;
 
@@ -2425,19 +2896,23 @@
         getEl('sendCloudEmailBtn').onclick = async () => {
             const data = Object.fromEntries(new FormData(dom.resForm).entries());
             if (!data.customerName || !data.resDate) { alert("Name and Date required."); return; }
+            if (!data.site) { alert("Please select a site."); getEl('siteSelect').focus(); return; }
             getEl('sendCloudEmailBtn').disabled = true;
             try {
                 const [y, m, day] = data.resDate.split('-');
+                const siteName = (cfg.sites||[]).find(s => s.id === data.site)?.name || data.site;
+                const enquiryUids = getSiteUids(data.site, 'enquiryUids');
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
-                    toUids: ['reservation_team'],
+                    toUids: enquiryUids,
                     message: {
-                        subject: `BARECA PEAKS ENQUIRY: ${data.customerName} ${day}/${m}/${y}`,
-                        text: `NEW ENQUIRY\nCustomer: ${data.customerName}\nDate: ${day}-${m}-${y}\nTime: ${data.resTime}\nMenu: ${data.menuArrangement}\nDietary: ${data.notes}\n\nTaken by: ${data.takenBy}`
+                        subject: `BARECA PEAKS ENQUIRY [${siteName}]: ${data.customerName} ${day}/${m}/${y}`,
+                        text: `NEW ENQUIRY\nSite: ${siteName}\nCustomer: ${data.customerName}\nDate: ${day}-${m}-${y}\nTime: ${data.resTime}\nMenu: ${data.menuArrangement}\nDietary: ${data.notes}\n\nTaken by: ${data.takenBy}`
                     }
                 });
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings'), { ...data, status: 'enquiry', sequence: 0 });
                 await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current'));
                 alert("Enquiry Recorded!"); dom.resForm.reset(); getEl('timeHour').value=''; getEl('timeMin').value='';
+                populateSiteDropdown(); // re-select single-site users
             } catch (e) { alert("Sync Error: " + e.code); } finally { getEl('sendCloudEmailBtn').disabled = false; }
         };
 
