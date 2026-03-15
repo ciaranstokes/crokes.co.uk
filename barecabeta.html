@@ -495,6 +495,12 @@
                 <p class="form-section-label">Guest Details</p>
                 <div class="form-grid">
                     <div class="form-group">
+                        <label class="field-label">Site</label>
+                        <select id="siteSelect" name="site" required class="field-input">
+                            <option value="">Select site…</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label class="field-label">Customer Name</label>
                         <input type="text" name="customerName" placeholder="Full name" required class="field-input">
                     </div>
@@ -647,15 +653,20 @@
             </div>
 
             <!-- Taupe accent strip -->
-            <div style="background:var(--taupe);border-bottom:1px solid var(--taupe-dk);padding:8px 28px;display:flex;gap:16px;">
+            <div style="background:var(--taupe);border-bottom:1px solid var(--taupe-dk);padding:8px 28px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
                 <div>
                     <span style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-light);">Covers</span>
                     <span id="modalPax" style="font-size:13px;font-weight:600;color:var(--burgundy);margin-left:6px;font-family:'DM Sans',sans-serif;"></span>
                 </div>
-                <div style="width:1px;background:var(--taupe-dk);"></div>
+                <div style="width:1px;background:var(--taupe-dk);height:14px;"></div>
                 <div>
                     <span style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-light);">Menu</span>
                     <span id="modalMenu" style="font-size:13px;font-weight:600;color:var(--burgundy);margin-left:6px;font-family:'DM Sans',sans-serif;"></span>
+                </div>
+                <div id="modalSiteBadge" style="display:none;width:1px;background:var(--taupe-dk);height:14px;"></div>
+                <div id="modalSiteWrap" style="display:none;">
+                    <span style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-light);">Site</span>
+                    <span id="modalSite" style="font-size:13px;font-weight:600;color:var(--burgundy);margin-left:6px;font-family:'DM Sans',sans-serif;"></span>
                 </div>
             </div>
 
@@ -972,11 +983,12 @@
             </div>
 
             <!-- Tab bar -->
-            <div class="flex border-b border-slate-200 bg-slate-50 flex-shrink-0">
-                <button data-tab="colours"  class="admin-tab active-tab px-5 py-3 text-sm font-bold text-slate-700 border-b-2 border-slate-900">Colours</button>
-                <button data-tab="confirm"  class="admin-tab px-5 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-700">Confirmation Email</button>
-                <button data-tab="cancel"   class="admin-tab px-5 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-700">Cancellation Email</button>
-                <button data-tab="contact"  class="admin-tab px-5 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-700">Contact &amp; Footer</button>
+            <div class="flex border-b border-slate-200 bg-slate-50 flex-shrink-0" style="overflow-x:auto;">
+                <button data-tab="colours"  class="admin-tab active-tab px-5 py-3 text-sm font-bold text-slate-700 border-b-2 border-slate-900 white-space:nowrap">Colours</button>
+                <button data-tab="confirm"  class="admin-tab px-5 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-700 whitespace-nowrap">Confirmation Email</button>
+                <button data-tab="cancel"   class="admin-tab px-5 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-700 whitespace-nowrap">Cancellation Email</button>
+                <button data-tab="contact"  class="admin-tab px-5 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-700 whitespace-nowrap">Contact &amp; Footer</button>
+                <button data-tab="sites"    class="admin-tab px-5 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-700 whitespace-nowrap">Sites &amp; Access</button>
             </div>
 
             <!-- Tab panels -->
@@ -1114,9 +1126,31 @@
                     </div>
                 </div>
 
-            </div>
+                <!-- SITES & ACCESS TAB -->
+                <div id="tab-sites" class="admin-panel hidden space-y-6">
+                    <p class="text-xs text-slate-500">Define your sites, their email routing UIDs, and which staff members can see each site's bookings.</p>
 
-            <!-- Footer actions -->
+                    <!-- Sites list (rendered by JS) -->
+                    <div id="sitesAdminList" class="space-y-4"></div>
+
+                    <button id="addSiteBtn" class="flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-600 border border-dashed border-slate-300 rounded-lg hover:border-slate-500 hover:text-slate-800 transition w-full justify-center">
+                        + Add Site
+                    </button>
+
+                    <div style="height:1px;background:#e2e8f0;margin:8px 0;"></div>
+
+                    <!-- Staff access section -->
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Staff Site Access</p>
+                        <p class="text-xs text-slate-400 mb-3">Enter each staff member's Firebase Auth UID and choose which sites they can view. Leave sites blank to grant access to all.</p>
+                        <div id="staffAccessList" class="space-y-3"></div>
+                        <button id="addStaffBtn" class="flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-600 border border-dashed border-slate-300 rounded-lg hover:border-slate-500 hover:text-slate-800 transition w-full justify-center mt-3">
+                            + Add Staff Member
+                        </button>
+                    </div>
+                </div>
+
+            </div>
             <div class="border-t bg-white px-6 py-4 flex gap-3 items-center flex-shrink-0">
                 <span id="adminSaveStatus" class="text-xs text-slate-400 italic flex-1"></span>
                 <button id="adminResetBtn" class="px-4 py-2 text-xs font-bold text-slate-500 hover:text-red-500 border border-slate-200 rounded-lg transition">Reset to Defaults</button>
@@ -1842,10 +1876,22 @@
                     });
                 });
                 allBookingsCache = bookings;
-                renderList(bookings);
+                const visibleBookings = filterBySite(bookings);
+                renderList(visibleBookings);
                 // Refresh day view if it's currently visible
                 if (getEl('dayViewContainer').style.display !== 'none') renderDayView();
-                if (calendar) { calendar.removeAllEvents(); calendar.addEventSource(events); }
+                if (calendar) {
+                    calendar.removeAllEvents();
+                    calendar.addEventSource(visibleBookings.map(data => ({
+                        id: data.id,
+                        title: `${data.customerName} (${(parseInt(data.adultCount)||0) + (parseInt(data.childCount)||0)})`,
+                        start: `${data.resDate}T${data.resTime}`,
+                        backgroundColor: data.status === 'finalized' ? '#d1fae5' : '#624A44',
+                        borderColor: data.status === 'finalized' ? '#10b981' : '#624A44',
+                        textColor: data.status === 'finalized' ? '#065f46' : '#ffffff',
+                        extendedProps: { ...data }
+                    })));
+                }
             });
         };
 
@@ -1891,10 +1937,18 @@
                 emailSentWrap.classList.add('hidden');
             }
 
-            openModal(dom.detailModal);
-        };
+            // Site badge
+            if (data.site) {
+                const siteName = (cfg.sites||[]).find(s => s.id === data.site)?.name || data.site;
+                getEl('modalSite').textContent = siteName;
+                getEl('modalSiteBadge').style.display = '';
+                getEl('modalSiteWrap').style.display = '';
+            } else {
+                getEl('modalSiteBadge').style.display = 'none';
+                getEl('modalSiteWrap').style.display = 'none';
+            }
 
-        getEl('modalConfirmTrigger').onclick = () => {
+            openModal(dom.detailModal);
             const f = getEl('finalConfirmForm');
             const d = currentViewingBooking;
             f.resDate.value = d.resDate;
@@ -1939,12 +1993,15 @@
                 const label = generateKitchenLabel({ ...currentViewingBooking, ...updates });
                 const pax = (parseInt(updates.adultCount)||0) + (parseInt(updates.childCount)||0);
                 const icsContent = generateICSContent({id: currentViewingBooking.id, ...currentViewingBooking, ...updates}, updates.sequence);
+                const siteId = currentViewingBooking.site || '';
+                const siteName = (cfg.sites||[]).find(s => s.id === siteId)?.name || siteId;
+                const confirmUids = getSiteUids(siteId, 'confirmUids');
 
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
-                    toUids: ['reservation_team_confirm'],
+                    toUids: confirmUids,
                     message: {
-                        subject: `BARECA PEAKS CONFIRMATION - ${updates.customerName || currentViewingBooking.customerName}`,
-                        text: `RESERVATION CONFIRMED\n------------------\nGroup Label: ${label}\nCustomer: ${currentViewingBooking.customerName}\nDate: ${updates.resDate}\nTime: ${updates.resTime}\nGuests: ${pax}\nMenu: ${updates.menuArrangement}\n\nResident: ${updates.isResident ? 'Yes' : 'No'}\nDeposit Paid: £${updates.depositAmount || '0.00'}\nNRA Setup: ${updates.nraSetup ? 'Yes' : 'No'}\n\nNotes: ${updates.confirmedNotes || 'None'}\n\nConfirmed by: ${currentUser.email}`,
+                        subject: `BARECA PEAKS CONFIRMATION${siteName ? ' ['+siteName+']' : ''} - ${updates.customerName || currentViewingBooking.customerName}`,
+                        text: `RESERVATION CONFIRMED\n------------------\n${siteName ? 'Site: '+siteName+'\n' : ''}Group Label: ${label}\nCustomer: ${currentViewingBooking.customerName}\nDate: ${updates.resDate}\nTime: ${updates.resTime}\nGuests: ${pax}\nMenu: ${updates.menuArrangement}\n\nResident: ${updates.isResident ? 'Yes' : 'No'}\nDeposit Paid: £${updates.depositAmount || '0.00'}\nNRA Setup: ${updates.nraSetup ? 'Yes' : 'No'}\n\nNotes: ${updates.confirmedNotes || 'None'}\n\nConfirmed by: ${currentUser.email}`,
                         attachments: [{
                             filename: `Invite_${label.replace(/\s+/g,'_')}.ics`,
                             content: btoa(icsContent),
@@ -1965,13 +2022,16 @@
             const label = generateKitchenLabel(d);
             const seq = d.sequence || 0;
             const ics = generateICSContent(d, seq);
+            const siteId = d.site || '';
+            const siteName = (cfg.sites||[]).find(s => s.id === siteId)?.name || siteId;
+            const kitchenUids = getSiteUids(siteId, 'kitchenUids');
 
             try {
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
-                    toUids: ['reservation_team_kitchen'],
+                    toUids: kitchenUids,
                     message: {
-                        subject: `${seq > 0 ? 'UPDATED: ' : ''}BARECA PEAKS KITCHEN DIARY: ${label}`,
-                        text: `KITCHEN NOTIFICATION\n------------------\nLabel: ${label}\nGuests: ${(parseInt(d.adultCount)||0) + (parseInt(d.childCount)||0)}\nMenu: ${d.menuArrangement}\nDeposit: £${d.depositAmount||0}\n\nExtra Details: ${d.confirmedNotes||'None'}\nOriginal Dietary: ${d.notes}`,
+                        subject: `${seq > 0 ? 'UPDATED: ' : ''}BARECA PEAKS KITCHEN DIARY${siteName ? ' ['+siteName+']' : ''}: ${label}`,
+                        text: `KITCHEN NOTIFICATION\n------------------\n${siteName ? 'Site: '+siteName+'\n' : ''}Label: ${label}\nGuests: ${(parseInt(d.adultCount)||0) + (parseInt(d.childCount)||0)}\nMenu: ${d.menuArrangement}\nDeposit: £${d.depositAmount||0}\n\nExtra Details: ${d.confirmedNotes||'None'}\nOriginal Dietary: ${d.notes}`,
                         attachments: [{ filename: `Reservation_${label.replace(/\s+/g,'_')}.ics`, content: btoa(ics), encoding: 'base64', contentType: 'text/calendar' }]
                     }
                 });
@@ -2013,7 +2073,14 @@
             phone:          "01433 440 777",
             address:        "Hope Road, Hope Valley, S33 0AL",
             footerNote:     "This email confirms your reservation. Please retain for your records.",
-            adminEmails:    ADMIN_EMAILS_FALLBACK.join(', ')
+            adminEmails:    ADMIN_EMAILS_FALLBACK.join(', '),
+            // Sites — array of {id, name, enquiryUids, confirmUids, kitchenUids}
+            sites: [
+                { id: 'peak-district', name: 'Peak District', enquiryUids: 'reservation_team', confirmUids: 'reservation_team_confirm', kitchenUids: 'reservation_team_kitchen' },
+                { id: 'scarborough',   name: 'Scarborough',   enquiryUids: 'reservation_team', confirmUids: 'reservation_team_confirm', kitchenUids: 'reservation_team_kitchen' }
+            ],
+            // staffAccess — array of {uid, name, sites: ['all'] or ['peak-district','scarborough']}
+            staffAccess: []
         };
 
         // Live config — starts as defaults, gets overwritten by Firestore on load
@@ -2026,6 +2093,7 @@
                 const snap = await getDoc(settingsDocRef());
                 if (snap.exists()) cfg = { ...DEFAULT_CFG, ...snap.data() };
             } catch (e) { console.warn("Settings load failed, using defaults:", e); }
+            populateSiteDropdown();
         };
 
         const saveSettings = async () => {
@@ -2049,6 +2117,173 @@
 
         const syncAdminButton = () => {
             getEl('adminSettingsBtn').classList.toggle('hidden', !isAdmin());
+        };
+
+        // ── Sites System ─────────────────────────────────────────────────
+
+        // Get the sites this user is allowed to see
+        const getUserAllowedSites = () => {
+            if (!currentUser) return [];
+            const entry = (cfg.staffAccess || []).find(s => s.uid === currentUser.uid);
+            if (!entry || !entry.sites || entry.sites.includes('all') || entry.sites.length === 0) {
+                // No restriction — see all sites
+                return (cfg.sites || []).map(s => s.id);
+            }
+            return entry.sites;
+        };
+
+        // Populate the site dropdown on the enquiry form
+        const populateSiteDropdown = () => {
+            const sel = getEl('siteSelect');
+            const allowed = getUserAllowedSites();
+            const sites = (cfg.sites || []).filter(s => allowed.includes(s.id));
+            sel.innerHTML = '<option value="">Select site…</option>';
+            sites.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.id;
+                opt.textContent = s.name;
+                sel.appendChild(opt);
+            });
+            // Auto-select if only one site
+            if (sites.length === 1) sel.value = sites[0].id;
+        };
+
+        // Get email UIDs for a given site and type
+        const getSiteUids = (siteId, type) => {
+            const site = (cfg.sites || []).find(s => s.id === siteId);
+            if (!site) return ['reservation_team'];
+            const raw = site[type] || 'reservation_team';
+            return raw.split(',').map(u => u.trim()).filter(Boolean);
+        };
+
+        // Filter bookings by allowed sites
+        const filterBySite = (bookings) => {
+            const allowed = getUserAllowedSites();
+            if (!allowed.length) return bookings;
+            return bookings.filter(b => !b.site || allowed.includes(b.site));
+        };
+
+        // ── Admin: Sites & Access Tab ─────────────────────────────────────
+
+        const renderSitesAdmin = () => {
+            const list = getEl('sitesAdminList');
+            list.innerHTML = '';
+            (cfg.sites || []).forEach((site, i) => {
+                const card = document.createElement('div');
+                card.style.cssText = 'border:1px solid #e2e8f0;border-radius:8px;padding:16px;background:#fafafa;display:flex;flex-direction:column;gap:10px;';
+                card.innerHTML = `
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <span style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#64748b;">Site ${i+1}</span>
+                        <button data-site-del="${i}" style="background:none;border:none;color:#ef4444;font-size:11px;font-weight:700;cursor:pointer;padding:2px 6px;">✕ Remove</button>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                        <div>
+                            <label class="field-label">Site Name</label>
+                            <input type="text" data-site="${i}" data-key="name" value="${site.name||''}" class="field-input" style="margin-top:4px;" placeholder="e.g. Peak District">
+                        </div>
+                        <div>
+                            <label class="field-label">Site ID</label>
+                            <input type="text" data-site="${i}" data-key="id" value="${site.id||''}" class="field-input" style="margin-top:4px;font-family:monospace;" placeholder="e.g. peak-district">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="field-label">Enquiry Email UIDs <span style="font-weight:400;text-transform:none;letter-spacing:0;">(comma-separated Firebase Auth UIDs or toUids strings)</span></label>
+                        <input type="text" data-site="${i}" data-key="enquiryUids" value="${site.enquiryUids||''}" class="field-input" style="margin-top:4px;font-family:monospace;font-size:12px;" placeholder="reservation_team">
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                        <div>
+                            <label class="field-label">Confirm Email UIDs</label>
+                            <input type="text" data-site="${i}" data-key="confirmUids" value="${site.confirmUids||''}" class="field-input" style="margin-top:4px;font-family:monospace;font-size:12px;">
+                        </div>
+                        <div>
+                            <label class="field-label">Kitchen Email UIDs</label>
+                            <input type="text" data-site="${i}" data-key="kitchenUids" value="${site.kitchenUids||''}" class="field-input" style="margin-top:4px;font-family:monospace;font-size:12px;">
+                        </div>
+                    </div>`;
+                // Live update cfg on change
+                card.querySelectorAll('[data-site]').forEach(inp => {
+                    inp.addEventListener('input', () => {
+                        const idx = parseInt(inp.dataset.site);
+                        cfg.sites[idx][inp.dataset.key] = inp.value;
+                    });
+                });
+                card.querySelector(`[data-site-del="${i}"]`).onclick = () => {
+                    cfg.sites.splice(i, 1);
+                    renderSitesAdmin();
+                };
+                list.appendChild(card);
+            });
+        };
+
+        const renderStaffAccessAdmin = () => {
+            const list = getEl('staffAccessList');
+            list.innerHTML = '';
+            (cfg.staffAccess || []).forEach((staff, i) => {
+                const siteOptions = (cfg.sites || []).map(s =>
+                    `<label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;">
+                        <input type="checkbox" data-staff="${i}" data-site="${s.id}" ${(staff.sites||[]).includes(s.id) ? 'checked' : ''} style="accent-color:var(--burgundy);">
+                        ${s.name}
+                    </label>`
+                ).join('');
+
+                const card = document.createElement('div');
+                card.style.cssText = 'border:1px solid #e2e8f0;border-radius:8px;padding:14px;background:#fafafa;display:flex;flex-direction:column;gap:10px;';
+                card.innerHTML = `
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <span style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#64748b;">Staff Member ${i+1}</span>
+                        <button data-staff-del="${i}" style="background:none;border:none;color:#ef4444;font-size:11px;font-weight:700;cursor:pointer;padding:2px 6px;">✕ Remove</button>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                        <div>
+                            <label class="field-label">Display Name</label>
+                            <input type="text" data-staff="${i}" data-key="name" value="${staff.name||''}" class="field-input" style="margin-top:4px;" placeholder="e.g. Jane Smith">
+                        </div>
+                        <div>
+                            <label class="field-label">Firebase Auth UID</label>
+                            <input type="text" data-staff="${i}" data-key="uid" value="${staff.uid||''}" class="field-input" style="margin-top:4px;font-family:monospace;font-size:12px;" placeholder="UID from Firebase">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="field-label" style="margin-bottom:8px;display:block;">Allowed Sites <span style="font-weight:400;text-transform:none;letter-spacing:0;">(none checked = all sites)</span></label>
+                        <div style="display:flex;flex-wrap:wrap;gap:12px;">${siteOptions}</div>
+                    </div>`;
+
+                card.querySelectorAll('[data-staff][data-key]').forEach(inp => {
+                    inp.addEventListener('input', () => {
+                        const idx = parseInt(inp.dataset.staff);
+                        cfg.staffAccess[idx][inp.dataset.key] = inp.value;
+                    });
+                });
+                card.querySelectorAll('[data-staff][data-site]').forEach(chk => {
+                    chk.addEventListener('change', () => {
+                        const idx = parseInt(chk.dataset.staff);
+                        const siteId = chk.dataset.site;
+                        const current = cfg.staffAccess[idx].sites || [];
+                        if (chk.checked) {
+                            if (!current.includes(siteId)) cfg.staffAccess[idx].sites = [...current, siteId];
+                        } else {
+                            cfg.staffAccess[idx].sites = current.filter(s => s !== siteId);
+                        }
+                    });
+                });
+                card.querySelector(`[data-staff-del="${i}"]`).onclick = () => {
+                    cfg.staffAccess.splice(i, 1);
+                    renderStaffAccessAdmin();
+                };
+                list.appendChild(card);
+            });
+        };
+
+        getEl('addSiteBtn').onclick = () => {
+            if (!cfg.sites) cfg.sites = [];
+            cfg.sites.push({ id: '', name: '', enquiryUids: 'reservation_team', confirmUids: 'reservation_team_confirm', kitchenUids: 'reservation_team_kitchen' });
+            renderSitesAdmin();
+        };
+
+        getEl('addStaffBtn').onclick = () => {
+            if (!cfg.staffAccess) cfg.staffAccess = [];
+            cfg.staffAccess.push({ uid: '', name: '', sites: [] });
+            renderStaffAccessAdmin();
         };
 
         // Sync a colour picker + hex input pair, both ways
@@ -2084,6 +2319,9 @@
             getEl('cfg_address').value         = cfg.address;
             getEl('cfg_footerNote').value      = cfg.footerNote;
             getEl('cfg_adminEmails').value     = cfg.adminEmails;
+            // Sites tab
+            renderSitesAdmin();
+            renderStaffAccessAdmin();
         };
 
         const readAdminForm = () => {
@@ -2100,6 +2338,7 @@
             cfg.address         = getEl('cfg_address').value;
             cfg.footerNote      = getEl('cfg_footerNote').value;
             cfg.adminEmails     = getEl('cfg_adminEmails').value;
+            // sites and staffAccess are updated live via their input handlers
         };
 
         // Admin modal open/close
@@ -2268,7 +2507,7 @@
             const isPast  = dateStr < todayStr;
             getEl('dayViewSubheading').textContent = isToday ? 'Today' : isPast ? 'Past date' : 'Upcoming';
 
-            const dayBookings = allBookingsCache
+            const dayBookings = filterBySite(allBookingsCache)
                 .filter(b => b.resDate === dateStr)
                 .sort((a, b) => (a.resTime || '').localeCompare(b.resTime || ''));
 
@@ -2327,7 +2566,7 @@
                     <div style="width:1px;height:32px;background:var(--taupe-dk);flex-shrink:0;"></div>
                     <div style="flex:1;min-width:0;">
                         <div style="font-weight:600;font-size:14px;color:var(--text-dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${b.customerName}</div>
-                        <div style="font-size:12px;color:var(--text-mid);margin-top:2px;">${pax} cover${pax!==1?'s':''} · ${b.menuArrangement==='Other'?(b.menuOtherDetails||'Special'):b.menuArrangement||'—'}</div>
+                        <div style="font-size:12px;color:var(--text-mid);margin-top:2px;">${pax} cover${pax!==1?'s':''} · ${b.menuArrangement==='Other'?(b.menuOtherDetails||'Special'):b.menuArrangement||'—'}${b.site ? ' · <span style="color:var(--burgundy);font-weight:600;">'+ ((cfg.sites||[]).find(s=>s.id===b.site)?.name||b.site) +'</span>' : ''}</div>
                     </div>
                     ${b.notes ? `<div style="max-width:180px;font-size:11px;color:var(--text-light);font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${b.notes}">${b.notes}</div>` : ''}
                     <div style="flex-shrink:0;text-align:right;">
@@ -2397,6 +2636,7 @@
                     ? `<div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:#10b981;"></div>` : '';
 
                 const menuLabel = b.menuArrangement === 'Other' ? (b.menuOtherDetails || 'Special') : (b.menuArrangement || '—');
+                const siteLabel = b.site ? ((cfg.sites||[]).find(s => s.id === b.site)?.name || b.site) : null;
                 const indent    = isFinal && !isPast ? 'padding-left:8px;' : '';
                 const nameColor = isPast ? 'var(--text-mid)' : 'var(--text-dark)';
                 const dateColor = isPast ? 'var(--text-light)' : 'var(--burgundy)';
@@ -2414,7 +2654,7 @@
                     </div>
                     <div style="${indent}">
                         <div style="font-weight:600;font-size:14px;color:${nameColor};margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${b.customerName}</div>
-                        <div style="font-size:11px;color:var(--text-light);">${pax} cover${pax!==1?'s':''} · ${menuLabel}</div>
+                        <div style="font-size:11px;color:var(--text-light);">${pax} cover${pax!==1?'s':''} · ${menuLabel}${siteLabel ? ' · <span style="color:var(--burgundy);font-weight:600;">'+siteLabel+'</span>' : ''}</div>
                         ${statusTag}
                     </div>`;
 
@@ -2463,19 +2703,23 @@
         getEl('sendCloudEmailBtn').onclick = async () => {
             const data = Object.fromEntries(new FormData(dom.resForm).entries());
             if (!data.customerName || !data.resDate) { alert("Name and Date required."); return; }
+            if (!data.site) { alert("Please select a site."); getEl('siteSelect').focus(); return; }
             getEl('sendCloudEmailBtn').disabled = true;
             try {
                 const [y, m, day] = data.resDate.split('-');
+                const siteName = (cfg.sites||[]).find(s => s.id === data.site)?.name || data.site;
+                const enquiryUids = getSiteUids(data.site, 'enquiryUids');
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
-                    toUids: ['reservation_team'],
+                    toUids: enquiryUids,
                     message: {
-                        subject: `BARECA PEAKS ENQUIRY: ${data.customerName} ${day}/${m}/${y}`,
-                        text: `NEW ENQUIRY\nCustomer: ${data.customerName}\nDate: ${day}-${m}-${y}\nTime: ${data.resTime}\nMenu: ${data.menuArrangement}\nDietary: ${data.notes}\n\nTaken by: ${data.takenBy}`
+                        subject: `BARECA PEAKS ENQUIRY [${siteName}]: ${data.customerName} ${day}/${m}/${y}`,
+                        text: `NEW ENQUIRY\nSite: ${siteName}\nCustomer: ${data.customerName}\nDate: ${day}-${m}-${y}\nTime: ${data.resTime}\nMenu: ${data.menuArrangement}\nDietary: ${data.notes}\n\nTaken by: ${data.takenBy}`
                     }
                 });
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings'), { ...data, status: 'enquiry', sequence: 0 });
                 await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current'));
                 alert("Enquiry Recorded!"); dom.resForm.reset(); getEl('timeHour').value=''; getEl('timeMin').value='';
+                populateSiteDropdown(); // re-select single-site users
             } catch (e) { alert("Sync Error: " + e.code); } finally { getEl('sendCloudEmailBtn').disabled = false; }
         };
 
