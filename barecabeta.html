@@ -470,6 +470,7 @@
             <div class="app-header-title">
                 <h1>Bareca Peaks at Bike and Boot</h1>
                 <p>Reservation Management</p>
+                <p id="loggedInEmail" style="font-size:10px;letter-spacing:0.1em;color:rgba(228,225,220,0.4);margin-top:2px;"></p>
             </div>
             <div class="app-header-actions">
                 <div style="display:flex;gap:8px;">
@@ -1847,6 +1848,7 @@
                 dom.loginSection.classList.add('hidden');
                 dom.appSection.classList.remove('hidden');
                 getEl('userIdDisplay').textContent = `Staff ID: ${user.uid.substring(0, 8)}`;
+                getEl('loggedInEmail').textContent = user.email;
                 initCalendar();
                 startDataSync();
                 await loadSettings();
@@ -1860,11 +1862,17 @@
         });
 
         const initCalendar = () => {
+            let lastEventClick = 0;
             calendar = new FullCalendar.Calendar(getEl('calendar'), {
                 initialView: 'dayGridMonth',
                 headerToolbar: { left: 'prev,next today', center: 'title', right: '' },
-                eventClick: (info) => showBookingDetails(info.event.id, info.event.extendedProps),
+                eventClick: (info) => {
+                    lastEventClick = Date.now();
+                    showBookingDetails(info.event.id, info.event.extendedProps);
+                },
                 dateClick: (info) => {
+                    // Don't trigger day view if an event was just clicked
+                    if (Date.now() - lastEventClick < 300) return;
                     dayViewDate = new Date(info.date);
                     showDayView();
                 }
