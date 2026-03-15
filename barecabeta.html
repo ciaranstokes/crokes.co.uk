@@ -841,6 +841,17 @@
                     </div>
                 </div>
 
+                <!-- Notify team option -->
+                <div style="background:var(--cream);border:1px solid var(--taupe-dk);border-radius:2px;padding:12px 14px;">
+                    <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+                        <input type="checkbox" id="notifyTeamCheck" name="notifyTeam" checked style="width:16px;height:16px;accent-color:var(--burgundy);cursor:pointer;flex-shrink:0;">
+                        <div>
+                            <span style="font-size:12px;font-weight:600;color:var(--text-dark);font-family:'DM Sans',sans-serif;">Notify team by email</span>
+                            <p style="font-size:10px;color:var(--text-light);margin:1px 0 0;">Send confirmation email with calendar invite to the team</p>
+                        </div>
+                    </label>
+                </div>
+
                 <!-- Footer buttons -->
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding-top:4px;">
                     <button type="button" id="confirmFormCancel" class="btn-reset">Back</button>
@@ -1991,6 +2002,9 @@
             const saveBtn = getEl('finalConfirmForm').querySelector('[type="submit"]');
             if (saveBtn) saveBtn.textContent = isFinalised ? 'Update Confirmation' : 'Save & Confirm';
 
+            // Default notify checkbox: on for first confirm, off for edits
+            getEl('notifyTeamCheck').checked = !isFinalised;
+
             const f = getEl('finalConfirmForm');
             const d = currentViewingBooking;
             f.resDate.value = d.resDate;
@@ -2035,34 +2049,37 @@
             updates.status = 'finalized';
             updates.isResident = fd.has('isResident');
             updates.nraSetup = fd.has('nraSetup');
+            const notifyTeam = fd.has('notifyTeam');
             updates.sequence = (currentViewingBooking.sequence || 0) + (currentViewingBooking.status === 'finalized' ? 1 : 0);
 
             try {
                 await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings', currentViewingBooking.id), updates, { merge: true });
 
-                const label = generateKitchenLabel({ ...currentViewingBooking, ...updates });
-                const pax = (parseInt(updates.adultCount)||0) + (parseInt(updates.childCount)||0);
-                const icsContent = generateICSContent({id: currentViewingBooking.id, ...currentViewingBooking, ...updates}, updates.sequence);
-                const siteId = currentViewingBooking.site || '';
-                const siteName = (cfg.sites||[]).find(s => s.id === siteId)?.name || siteId;
-                const confirmUids = getSiteUids(siteId, 'confirmUids');
+                if (notifyTeam) {
+                    const label = generateKitchenLabel({ ...currentViewingBooking, ...updates });
+                    const pax = (parseInt(updates.adultCount)||0) + (parseInt(updates.childCount)||0);
+                    const icsContent = generateICSContent({id: currentViewingBooking.id, ...currentViewingBooking, ...updates}, updates.sequence);
+                    const siteId = updates.site || currentViewingBooking.site || '';
+                    const siteName = (cfg.sites||[]).find(s => s.id === siteId)?.name || siteId;
+                    const confirmUids = getSiteUids(siteId, 'confirmUids');
 
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
-                    toUids: confirmUids,
-                    message: {
-                        subject: `BARECA PEAKS CONFIRMATION${siteName ? ' ['+siteName+']' : ''} - ${updates.customerName || currentViewingBooking.customerName}`,
-                        text: `RESERVATION CONFIRMED\n------------------\n${siteName ? 'Site: '+siteName+'\n' : ''}Group Label: ${label}\nCustomer: ${currentViewingBooking.customerName}\nDate: ${updates.resDate}\nTime: ${updates.resTime}\nGuests: ${pax}\nMenu: ${updates.menuArrangement}\n\nResident: ${updates.isResident ? 'Yes' : 'No'}\nDeposit Paid: £${updates.depositAmount || '0.00'}\nNRA Setup: ${updates.nraSetup ? 'Yes' : 'No'}\n\nNotes: ${updates.confirmedNotes || 'None'}\n\nConfirmed by: ${currentUser.email}`,
-                        attachments: [{
-                            filename: `Invite_${label.replace(/\s+/g,'_')}.ics`,
-                            content: btoa(icsContent),
-                            encoding: 'base64',
-                            contentType: 'text/calendar'
-                        }]
-                    }
-                });
+                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
+                        toUids: confirmUids,
+                        message: {
+                            subject: `BARECA PEAKS CONFIRMATION${siteName ? ' ['+siteName+']' : ''} - ${updates.customerName || currentViewingBooking.customerName}`,
+                            text: `RESERVATION CONFIRMED\n------------------\n${siteName ? 'Site: '+siteName+'\n' : ''}Group Label: ${label}\nCustomer: ${currentViewingBooking.customerName}\nDate: ${updates.resDate}\nTime: ${updates.resTime}\nGuests: ${pax}\nMenu: ${updates.menuArrangement}\n\nResident: ${updates.isResident ? 'Yes' : 'No'}\nDeposit Paid: £${updates.depositAmount || '0.00'}\nNRA Setup: ${updates.nraSetup ? 'Yes' : 'No'}\n\nNotes: ${updates.confirmedNotes || 'None'}\n\nConfirmed by: ${currentUser.email}`,
+                            attachments: [{
+                                filename: `Invite_${label.replace(/\s+/g,'_')}.ics`,
+                                content: btoa(icsContent),
+                                encoding: 'base64',
+                                contentType: 'text/calendar'
+                            }]
+                        }
+                    });
+                }
 
                 closeModal(dom.confirmModal);
-                alert("Reservation Confirmed and Team Notified with Calendar Link!");
+                alert(notifyTeam ? "Reservation saved and team notified." : "Reservation saved.");
             } catch (err) { alert("Save Failed: " + err.message); }
         };
 
