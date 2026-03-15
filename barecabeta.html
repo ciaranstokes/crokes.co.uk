@@ -1982,9 +1982,11 @@
             }
 
             openModal(dom.detailModal);
+        };
+
+        getEl('modalConfirmTrigger').onclick = () => {
             const isFinalised = currentViewingBooking.status === 'finalized';
             getEl('confirmFormTitle').textContent = isFinalised ? 'Edit Confirmation' : 'Finalise Reservation';
-            // Update subtitle and save button to match
             getEl('confirmFormTitle').nextElementSibling.textContent = isFinalised ? 'Update the confirmed details' : 'Verify details before confirming';
             const saveBtn = getEl('finalConfirmForm').querySelector('[type="submit"]');
             if (saveBtn) saveBtn.textContent = isFinalised ? 'Update Confirmation' : 'Save & Confirm';
@@ -1992,7 +1994,6 @@
             const f = getEl('finalConfirmForm');
             const d = currentViewingBooking;
             f.resDate.value = d.resDate;
-            // Populate 12hr confirm time picker
             if (d.resTime) {
                 const [hh, mm] = d.resTime.split(':');
                 let h = parseInt(hh);
@@ -2001,7 +2002,6 @@
                 getEl('confirmTimeMin').value = mm;
                 syncConfirmTime();
             }
-            // Populate site dropdown in confirm form
             const confirmSiteSel = getEl('confirmSiteSelect');
             confirmSiteSel.innerHTML = '<option value="">Select site…</option>';
             (cfg.sites || []).forEach(s => {
@@ -2011,7 +2011,6 @@
                 confirmSiteSel.appendChild(opt);
             });
             confirmSiteSel.value = d.site || '';
-
             f.adultCount.value = d.adultCount; f.childCount.value = d.childCount;
             f.menuArrangement.value = (d.menuArrangement === 'Unknown' || !d.menuArrangement) ? 'Choose on the Day' : d.menuArrangement;
             f.confirmedNotes.value = d.confirmedNotes || '';
