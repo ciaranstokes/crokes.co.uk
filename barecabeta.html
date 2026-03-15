@@ -1956,6 +1956,13 @@
             }
 
             openModal(dom.detailModal);
+            const isFinalised = currentViewingBooking.status === 'finalized';
+            getEl('confirmFormTitle').textContent = isFinalised ? 'Edit Confirmation' : 'Finalise Reservation';
+            // Update subtitle and save button to match
+            getEl('confirmFormTitle').nextElementSibling.textContent = isFinalised ? 'Update the confirmed details' : 'Verify details before confirming';
+            const saveBtn = getEl('finalConfirmForm').querySelector('[type="submit"]');
+            if (saveBtn) saveBtn.textContent = isFinalised ? 'Update Confirmation' : 'Save & Confirm';
+
             const f = getEl('finalConfirmForm');
             const d = currentViewingBooking;
             f.resDate.value = d.resDate;
