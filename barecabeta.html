@@ -683,6 +683,15 @@
                     <p style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#059669;margin:0 0 4px;">Kitchen Notes</p>
                     <p id="modalConfirmedNotes" style="font-size:13px;color:#065f46;font-style:italic;margin:0;"></p>
                 </div>
+
+                <!-- Guest email sent status -->
+                <div id="modalEmailSentWrapper" class="hidden" style="background:rgba(98,74,68,0.05);border:1px solid rgba(98,74,68,0.18);border-radius:2px;padding:11px 14px;display:flex;align-items:center;gap:10px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;flex-shrink:0;color:#624A44;" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/></svg>
+                    <div>
+                        <p style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--burgundy);margin:0 0 2px;">Guest Email Sent</p>
+                        <p id="modalEmailSentDetails" style="font-size:11px;color:var(--text-mid);margin:0;"></p>
+                    </div>
+                </div>
             </div>
 
             <!-- Actions -->
@@ -1579,6 +1588,14 @@
 
                 closeModal(getEl('emailPreviewModal'));
                 closeModal(dom.detailModal);
+
+                // Record the send on the booking document
+                await setDoc(
+                    doc(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings', currentViewingBooking.id),
+                    { guestEmailSentAt: new Date().toISOString(), guestEmailSentTo: recipientEmail },
+                    { merge: true }
+                );
+
                 alert(`Confirmation email sent to ${recipientEmail}`);
 
             } catch (err) {
@@ -1847,11 +1864,32 @@
             getEl('confirmedActions').style.display = isFinal ? 'flex' : 'none';
             getEl('modalConfirmTrigger').textContent = isFinal ? "Edit Confirmation" : "Confirm Reservation";
 
+            // Update Email Guest button label
+            if (isFinal) {
+                const emailBtn = getEl('modalSendGuestBtn');
+                const hasSent = !!data.guestEmailSentAt;
+                emailBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" style="width:13px;height:13px;" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/></svg>${hasSent ? 'Resend Email' : 'Email Guest'}`;
+            }
+
             const notesWrap = getEl('modalConfirmedNotesWrapper');
             if (isFinal && data.confirmedNotes) {
                 notesWrap.classList.remove('hidden');
                 getEl('modalConfirmedNotes').textContent = data.confirmedNotes;
             } else notesWrap.classList.add('hidden');
+
+            // Guest email sent status
+            const emailSentWrap = getEl('modalEmailSentWrapper');
+            if (data.guestEmailSentAt) {
+                const sentDate = new Date(data.guestEmailSentAt);
+                const formatted = sentDate.toLocaleString('en-GB', {
+                    day: '2-digit', month: 'short', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                });
+                getEl('modalEmailSentDetails').textContent = `${data.guestEmailSentTo} · ${formatted}`;
+                emailSentWrap.classList.remove('hidden');
+            } else {
+                emailSentWrap.classList.add('hidden');
+            }
 
             openModal(dom.detailModal);
         };
