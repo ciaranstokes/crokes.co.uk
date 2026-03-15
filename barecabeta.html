@@ -484,7 +484,7 @@
         <div class="accent-strip">
             <span>New Reservation</span>
             <div class="accent-dot"></div>
-            <span style="font-weight:400;opacity:0.7;">Peaks at Bike &amp; Boot · Hope Valley</span>
+            <span id="accentSiteLabel" style="font-weight:400;opacity:0.7;">Peaks at Bike &amp; Boot · Hope Valley</span>
         </div>
 
         <!-- Reservation Form -->
@@ -1262,7 +1262,8 @@
         // #F5F3F0 (off-white), Metropolis/Georgia fonts.
         // d.menuDisplay is an override field set from the edit panel.
         // ---------------------------------------------------------------
-        const generateGuestEmailHTML = (d) => {
+        const generateGuestEmailHTML = (d, resolvedCfg) => {
+            const rc = resolvedCfg || getSiteCfg(d.site || '');
             const adults  = parseInt(d.adultCount)  || 0;
             const children = parseInt(d.childCount) || 0;
             const pax = adults + children;
@@ -1281,17 +1282,17 @@
 
             const row = (label, value, last = false) => `
               <tr>
-                <td width="38%" style="background-color:${cfg.labelBg};padding:12px 14px;border:1px solid #c8c4be;${last?'':'border-bottom:none;'}text-align:right;vertical-align:middle;">
-                  <span style="font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;font-weight:700;color:${cfg.labelText};">${label}</span>
+                <td width="38%" style="background-color:${rc.labelBg};padding:12px 14px;border:1px solid #c8c4be;${last?'':'border-bottom:none;'}text-align:right;vertical-align:middle;">
+                  <span style="font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;font-weight:700;color:${rc.labelText};">${label}</span>
                 </td>
                 <td width="62%" style="background-color:#ffffff;padding:12px 16px;border:1px solid #c8c4be;border-left:none;${last?'':'border-bottom:none;'}vertical-align:middle;">
                   <span style="font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;color:#2d1f1c;">${value}</span>
                 </td>
               </tr>`;
 
-            // Build "Things to Note" paragraphs from cfg, replacing {{phone}} placeholder
-            const noteParas = (cfg.thingsToNote || '')
-                .replace(/\{\{phone\}\}/g, cfg.phone)
+            // Build "Things to Note" paragraphs from rc, replacing {{phone}} placeholder
+            const noteParas = (rc.thingsToNote || '')
+                .replace(/\{\{phone\}\}/g, rc.phone)
                 .split(/\n\n+/)
                 .filter(p => p.trim())
                 .map(p => {
@@ -1304,32 +1305,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>${cfg.restaurantName} – Reservation Confirmation</title>
+<title>${rc.restaurantName} – Reservation Confirmation</title>
 </head>
-<body style="margin:0;padding:0;background-color:${cfg.pageBg};font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;">
+<body style="margin:0;padding:0;background-color:${rc.pageBg};font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;">
 
-<table width="100%" cellpadding="0" cellspacing="0" style="background-color:${cfg.pageBg};padding:32px 16px;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:${rc.pageBg};padding:32px 16px;">
   <tr><td align="center">
     <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;">
 
       <tr>
-        <td style="background-color:${cfg.headerBg};padding:32px 40px 24px;text-align:center;border-radius:4px 4px 0 0;">
-          <img src="https://framerusercontent.com/images/z1j6LJZfF4uLlPlAZMHc9mP8AtE.png" alt="${cfg.restaurantName}" width="220" style="display:block;margin:0 auto;max-width:220px;background-color:${cfg.logoBg};padding:10px 16px;border-radius:4px;">
+        <td style="background-color:${rc.headerBg};padding:32px 40px 24px;text-align:center;border-radius:4px 4px 0 0;">
+          <img src="https://framerusercontent.com/images/z1j6LJZfF4uLlPlAZMHc9mP8AtE.png" alt="${rc.restaurantName}" width="220" style="display:block;margin:0 auto;max-width:220px;background-color:${rc.logoBg};padding:10px 16px;border-radius:4px;">
           <div style="width:48px;height:2px;background-color:#E4E1DC;margin:20px auto 0;opacity:0.6;"></div>
           <p style="margin:12px 0 0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:rgba(228,225,220,0.7);font-weight:400;">Reservation Confirmation</p>
         </td>
       </tr>
 
       <tr>
-        <td style="background-color:${cfg.confirmAccent};padding:10px 40px;text-align:center;">
-          <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:${cfg.labelText};font-weight:700;">${cfg.confirmBandText}</p>
+        <td style="background-color:${rc.confirmAccent};padding:10px 40px;text-align:center;">
+          <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:${rc.labelText};font-weight:700;">${rc.confirmBandText}</p>
         </td>
       </tr>
 
       <tr>
         <td style="background-color:#ffffff;padding:36px 40px 28px;">
           <p style="margin:0 0 6px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:17px;color:#2d1f1c;">Dear ${d.customerName},</p>
-          <p style="margin:0 0 28px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#5a4a47;line-height:1.7;">${cfg.confirmIntro}</p>
+          <p style="margin:0 0 28px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#5a4a47;line-height:1.7;">${rc.confirmIntro}</p>
 
           <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
             ${row('Reservation Name:', d.customerName)}
@@ -1339,8 +1340,8 @@
             ${row('Special Arrangements:', d.notes || 'None')}
             ${row('Deposit Paid:', depositDisplay)}
             <tr>
-              <td width="38%" style="background-color:${cfg.labelBg};padding:14px 14px;border:1px solid #c8c4be;border-top:none;text-align:right;vertical-align:top;">
-                <span style="font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;font-weight:700;color:${cfg.labelText};">Things to Note:</span>
+              <td width="38%" style="background-color:${rc.labelBg};padding:14px 14px;border:1px solid #c8c4be;border-top:none;text-align:right;vertical-align:top;">
+                <span style="font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;font-weight:700;color:${rc.labelText};">Things to Note:</span>
               </td>
               <td width="62%" style="background-color:#ffffff;padding:14px 16px;border:1px solid #c8c4be;border-left:none;border-top:none;vertical-align:top;">
                 ${noteParas}
@@ -1349,17 +1350,17 @@
           </table>
 
           <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#2d1f1c;line-height:1.7;">
-            Warm regards,<br><strong>${cfg.confirmSignoff}</strong>
+            Warm regards,<br><strong>${rc.confirmSignoff}</strong>
           </p>
         </td>
       </tr>
 
       <tr>
-        <td style="background-color:${cfg.headerBg};padding:20px 40px;text-align:center;border-radius:0 0 4px 4px;">
+        <td style="background-color:${rc.headerBg};padding:20px 40px;text-align:center;border-radius:0 0 4px 4px;">
           <p style="margin:0 0 4px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:12px;color:rgba(228,225,220,0.85);">
-            ${cfg.restaurantName} &nbsp;·&nbsp; ${cfg.address}
+            ${rc.restaurantName} &nbsp;·&nbsp; ${rc.address}
           </p>
-          <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;color:rgba(228,225,220,0.5);letter-spacing:0.5px;">${cfg.footerNote}</p>
+          <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;color:rgba(228,225,220,0.5);letter-spacing:0.5px;">${rc.footerNote}</p>
         </td>
       </tr>
 
@@ -1375,7 +1376,8 @@
         // Uses a muted red accent to signal cancellation clearly whilst
         // keeping the Bareca warmth and Metropolis typography.
         // ---------------------------------------------------------------
-        const generateCancellationEmailHTML = (d) => {
+        const generateCancellationEmailHTML = (d, resolvedCfg) => {
+            const rc = resolvedCfg || getSiteCfg(d.site || '');
             const adults   = parseInt(d.adultCount)  || 0;
             const children = parseInt(d.childCount)  || 0;
             const pax      = adults + children;
@@ -1394,8 +1396,8 @@
 
             const cancelRow = (label, value, isLast = false) => `
               <tr>
-                <td width="38%" style="background-color:${cfg.labelBg};padding:12px 14px;border:1px solid #c8c4be;${isLast?'':'border-bottom:none;'}text-align:right;vertical-align:middle;">
-                  <span style="font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;font-weight:700;color:${cfg.labelText};">${label}</span>
+                <td width="38%" style="background-color:${rc.labelBg};padding:12px 14px;border:1px solid #c8c4be;${isLast?'':'border-bottom:none;'}text-align:right;vertical-align:middle;">
+                  <span style="font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;font-weight:700;color:${rc.labelText};">${label}</span>
                 </td>
                 <td width="62%" style="background-color:#ffffff;padding:12px 16px;border:1px solid #c8c4be;border-left:none;${isLast?'':'border-bottom:none;'}vertical-align:middle;">
                   <span style="font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;color:#2d1f1c;">${value}</span>
@@ -1407,32 +1409,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>${cfg.restaurantName} – Cancellation Confirmation</title>
+<title>${rc.restaurantName} – Cancellation Confirmation</title>
 </head>
-<body style="margin:0;padding:0;background-color:${cfg.pageBg};font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;">
+<body style="margin:0;padding:0;background-color:${rc.pageBg};font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;">
 
-<table width="100%" cellpadding="0" cellspacing="0" style="background-color:${cfg.pageBg};padding:32px 16px;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:${rc.pageBg};padding:32px 16px;">
   <tr><td align="center">
     <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;">
 
       <tr>
-        <td style="background-color:${cfg.headerBg};padding:32px 40px 24px;text-align:center;border-radius:4px 4px 0 0;">
-          <img src="https://framerusercontent.com/images/z1j6LJZfF4uLlPlAZMHc9mP8AtE.png" alt="${cfg.restaurantName}" width="220" style="display:block;margin:0 auto;max-width:220px;background-color:${cfg.logoBg};padding:10px 16px;border-radius:4px;">
+        <td style="background-color:${rc.headerBg};padding:32px 40px 24px;text-align:center;border-radius:4px 4px 0 0;">
+          <img src="https://framerusercontent.com/images/z1j6LJZfF4uLlPlAZMHc9mP8AtE.png" alt="${rc.restaurantName}" width="220" style="display:block;margin:0 auto;max-width:220px;background-color:${rc.logoBg};padding:10px 16px;border-radius:4px;">
           <div style="width:48px;height:2px;background-color:#E4E1DC;margin:20px auto 0;opacity:0.6;"></div>
           <p style="margin:12px 0 0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:rgba(228,225,220,0.7);font-weight:400;">Cancellation Notice</p>
         </td>
       </tr>
 
       <tr>
-        <td style="background-color:${cfg.cancelAccent};padding:10px 40px;text-align:center;">
-          <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#fecaca;font-weight:700;">${cfg.cancelBandText}</p>
+        <td style="background-color:${rc.cancelAccent};padding:10px 40px;text-align:center;">
+          <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#fecaca;font-weight:700;">${rc.cancelBandText}</p>
         </td>
       </tr>
 
       <tr>
         <td style="background-color:#ffffff;padding:36px 40px 28px;">
           <p style="margin:0 0 6px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:17px;color:#2d1f1c;">Dear ${d.customerName},</p>
-          <p style="margin:0 0 28px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#5a4a47;line-height:1.7;">${cfg.cancelIntro}</p>
+          <p style="margin:0 0 28px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#5a4a47;line-height:1.7;">${rc.cancelIntro}</p>
 
           <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
             ${cancelRow('Reservation Name:', d.customerName)}
@@ -1444,20 +1446,20 @@
 
           ${additionalMsg}
 
-          <p style="margin:0 0 16px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#5a4a47;line-height:1.7;">${cfg.cancelClosing}</p>
+          <p style="margin:0 0 16px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#5a4a47;line-height:1.7;">${rc.cancelClosing}</p>
           <p style="margin:0 0 28px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#5a4a47;line-height:1.7;">
-            You can reach us on <strong>${cfg.phone}</strong> or visit us at <strong>${cfg.address}</strong>.
+            You can reach us on <strong>${rc.phone}</strong> or visit us at <strong>${rc.address}</strong>.
           </p>
           <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#2d1f1c;line-height:1.7;">
-            Warm regards,<br><strong>${cfg.cancelSignoff}</strong>
+            Warm regards,<br><strong>${rc.cancelSignoff}</strong>
           </p>
         </td>
       </tr>
 
       <tr>
-        <td style="background-color:${cfg.headerBg};padding:20px 40px;text-align:center;border-radius:0 0 4px 4px;">
+        <td style="background-color:${rc.headerBg};padding:20px 40px;text-align:center;border-radius:0 0 4px 4px;">
           <p style="margin:0 0 4px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:12px;color:rgba(228,225,220,0.85);">
-            ${cfg.restaurantName} &nbsp;·&nbsp; ${cfg.address}
+            ${rc.restaurantName} &nbsp;·&nbsp; ${rc.address}
           </p>
           <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:11px;color:rgba(228,225,220,0.5);letter-spacing:0.5px;">
             This email confirms your cancellation. Please retain for your records.
@@ -1549,9 +1551,10 @@
 
             // Populate meta bar
             const [y, m, day] = (d.resDate || '').split('-');
+            const siteCfgForSubject = getSiteCfg(d.site || '');
             getEl('previewToAddress').value        = d.customerEmail;
             getEl('emailValidationMsg').classList.add('hidden');
-            getEl('previewSubjectLine').textContent = `Your Bareca Peaks Reservation – ${day}/${m}/${y}`;
+            getEl('previewSubjectLine').textContent = `Your ${siteCfgForSubject.restaurantName} Reservation – ${day}/${m}/${y}`;
 
             // Render iframe
             refreshPreviewFrame();
@@ -1586,14 +1589,15 @@
             sendBtn.classList.add('syncing-pulse');
 
             try {
+                const rc = getSiteCfg(previewData.site || '');
                 const [y, m, day] = (previewData.resDate || "").split('-');
                 const pax = (parseInt(previewData.adultCount)||0) + (parseInt(previewData.childCount)||0);
 
-                // Plain text fallback
+                // Plain text fallback using site-resolved branding
                 const plainText = [
                     `Dear ${previewData.customerName},`,
                     ``,
-                    `Thank you for your reservation at Bareca Peaks. We look forward to welcoming your party.`,
+                    rc.confirmIntro || `Thank you for your reservation at ${rc.restaurantName}. We look forward to welcoming your party.`,
                     ``,
                     `BOOKING DETAILS`,
                     `---------------`,
@@ -1604,19 +1608,19 @@
                     previewData.notes ? `Special Arrangements: ${previewData.notes}` : null,
                     `Deposit Paid:     ${previewData.depositAmount ? '£'+previewData.depositAmount : 'N/A'}`,
                     ``,
-                    `Please note your reservation is for a specific time. If you are running late please call 01433 440 777.`,
+                    rc.phone ? `Please note your reservation is for a specific time. If you are running late please call ${rc.phone}.` : `Please note your reservation is for a specific time.`,
                     ``,
                     `Warm regards,`,
-                    `The Bareca Peaks Team`,
-                    `Hope Road, Hope Valley, S33 0AL · 01433 440 777`
-                ].filter(l => l !== null).join('\n');
+                    rc.confirmSignoff || `The ${rc.restaurantName} Team`,
+                    rc.address ? `${rc.address}${rc.phone ? ' · ' + rc.phone : ''}` : ''
+                ].filter(l => l !== null && l !== '').join('\n');
 
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
                     to: [recipientEmail],
                     message: {
-                        subject: `Your Bareca Peaks Reservation – ${day}/${m}/${y}`,
+                        subject: `Your ${rc.restaurantName} Reservation – ${day}/${m}/${y}`,
                         text: plainText,
-                        html: generateGuestEmailHTML(previewData)
+                        html: generateGuestEmailHTML(previewData, rc)
                     }
                 });
 
@@ -1681,6 +1685,7 @@
             // Build cancel preview data
             cancelPreviewData = {
                 id:           d.id,
+                site:         d.site || '',
                 customerName: d.customerName || '',
                 customerEmail: d.customerEmail || '',
                 resDate:      d.resDate || '',
@@ -1704,9 +1709,10 @@
 
             // Populate meta bar
             const [y, m, day] = (d.resDate || '').split('-');
+            const cancelSiteCfg = getSiteCfg(d.site || '');
             getEl('cancelPreviewToAddress').value         = d.customerEmail || '';
             getEl('cancelEmailValidationMsg').classList.add('hidden');
-            getEl('cancelPreviewSubjectLine').textContent = `Bareca Peaks – Cancellation Confirmation`;
+            getEl('cancelPreviewSubjectLine').textContent = `${cancelSiteCfg.restaurantName} – Cancellation Confirmation`;
 
             refreshCancelFrame();
             closeModal(dom.detailModal);
@@ -1771,13 +1777,14 @@
 
                 // 2. Guest cancellation email (only if address provided)
                 if (recipientEmail) {
+                    const rc = getSiteCfg(cancelPreviewData.site || '');
                     const [y, m, day] = (cancelPreviewData.resDate || '').split('-');
                     const pax = (parseInt(cancelPreviewData.adultCount)||0) + (parseInt(cancelPreviewData.childCount)||0);
 
                     const plainText = [
                         `Dear ${cancelPreviewData.customerName},`,
                         ``,
-                        `We're writing to confirm that your reservation at Bareca Peaks has been successfully cancelled.`,
+                        rc.cancelIntro || `We're writing to confirm that your reservation at ${rc.restaurantName} has been successfully cancelled.`,
                         ``,
                         `CANCELLED BOOKING DETAILS`,
                         `-------------------------`,
@@ -1788,19 +1795,19 @@
                         `Deposit:          ${cancelPreviewData.depositNote}`,
                         cancelPreviewData.additionalMsg ? `\n${cancelPreviewData.additionalMsg}` : null,
                         ``,
-                        `We're sorry we won't be seeing you this time. Please call 01433 440 777 to make a future reservation.`,
+                        rc.cancelClosing || `We're sorry we won't be seeing you this time.${rc.phone ? ' Please call ' + rc.phone + ' to make a future reservation.' : ''}`,
                         ``,
                         `Warm regards,`,
-                        `The Bareca Peaks Team`,
-                        `Hope Road, Hope Valley, S33 0AL · 01433 440 777`
-                    ].filter(l => l !== null).join('\n');
+                        rc.cancelSignoff || `The ${rc.restaurantName} Team`,
+                        rc.address ? `${rc.address}${rc.phone ? ' · ' + rc.phone : ''}` : ''
+                    ].filter(l => l !== null && l !== '').join('\n');
 
                     await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
                         to: [recipientEmail],
                         message: {
-                            subject: `Bareca Peaks – Cancellation Confirmation`,
+                            subject: `${rc.restaurantName} – Cancellation Confirmation`,
                             text: plainText,
-                            html: generateCancellationEmailHTML(cancelPreviewData)
+                            html: generateCancellationEmailHTML(cancelPreviewData, rc)
                         }
                     });
                 }
@@ -2076,8 +2083,42 @@
             adminEmails:    ADMIN_EMAILS_FALLBACK.join(', '),
             // Sites — array of {id, name, enquiryUids, confirmUids, kitchenUids}
             sites: [
-                { id: 'peak-district', name: 'Peak District', enquiryUids: 'reservation_team', confirmUids: 'reservation_team_confirm', kitchenUids: 'reservation_team_kitchen' },
-                { id: 'scarborough',   name: 'Scarborough',   enquiryUids: 'reservation_team', confirmUids: 'reservation_team_confirm', kitchenUids: 'reservation_team_kitchen' }
+                {
+                    id: 'peak-district',
+                    name: 'Peak District',
+                    enquiryUids: 'reservation_team',
+                    confirmUids: 'reservation_team_confirm',
+                    kitchenUids: 'reservation_team_kitchen',
+                    restaurantName: 'Bareca Peaks at Bike & Boot',
+                    phone:          '01433 440 777',
+                    address:        'Hope Road, Hope Valley, S33 0AL',
+                    footerNote:     'This email confirms your reservation. Please retain for your records.',
+                    confirmBandText:'Peaks at Bike & Boot · Hope Valley',
+                    cancelBandText: 'Reservation Cancelled · Peaks at Bike & Boot',
+                    confirmIntro:   '',
+                    cancelIntro:    '',
+                    cancelClosing:  '',
+                    confirmSignoff: '',
+                    cancelSignoff:  ''
+                },
+                {
+                    id: 'scarborough',
+                    name: 'Scarborough',
+                    enquiryUids: 'reservation_team',
+                    confirmUids: 'reservation_team_confirm',
+                    kitchenUids: 'reservation_team_kitchen',
+                    restaurantName: 'Bareca Scarborough',
+                    phone:          '',
+                    address:        '',
+                    footerNote:     'This email confirms your reservation. Please retain for your records.',
+                    confirmBandText:'Bareca · Scarborough',
+                    cancelBandText: 'Reservation Cancelled · Bareca Scarborough',
+                    confirmIntro:   '',
+                    cancelIntro:    '',
+                    cancelClosing:  '',
+                    confirmSignoff: '',
+                    cancelSignoff:  ''
+                }
             ],
             // staffAccess — array of {uid, name, sites: ['all'] or ['peak-district','scarborough']}
             staffAccess: []
@@ -2146,6 +2187,19 @@
             });
             // Auto-select if only one site
             if (sites.length === 1) sel.value = sites[0].id;
+
+            // Update accent strip to show permitted site(s)
+            const label = getEl('accentSiteLabel');
+            if (label) {
+                if (sites.length === 1) {
+                    const s = sites[0];
+                    label.textContent = s.address ? `${s.name} · ${s.address}` : s.name;
+                } else if (sites.length > 1) {
+                    label.textContent = sites.map(s => s.name).join(' · ');
+                } else {
+                    label.textContent = 'All Sites';
+                }
+            }
         };
 
         // Get email UIDs for a given site and type
@@ -2154,6 +2208,23 @@
             if (!site) return ['reservation_team'];
             const raw = site[type] || 'reservation_team';
             return raw.split(',').map(u => u.trim()).filter(Boolean);
+        };
+
+        // Merge site-level branding over global cfg — site fields win if non-empty
+        const getSiteCfg = (siteId) => {
+            const site = (cfg.sites || []).find(s => s.id === siteId);
+            if (!site) return cfg;
+            const SITE_BRANDING_KEYS = [
+                'restaurantName','phone','address','footerNote',
+                'confirmBandText','cancelBandText',
+                'confirmIntro','cancelIntro','cancelClosing',
+                'confirmSignoff','cancelSignoff'
+            ];
+            const merged = { ...cfg };
+            SITE_BRANDING_KEYS.forEach(k => {
+                if (site[k] && site[k].trim() !== '') merged[k] = site[k];
+            });
+            return merged;
         };
 
         // Filter bookings by allowed sites
@@ -2186,8 +2257,58 @@
                             <input type="text" data-site="${i}" data-key="id" value="${site.id||''}" class="field-input" style="margin-top:4px;font-family:monospace;" placeholder="e.g. peak-district">
                         </div>
                     </div>
+                    <div style="height:1px;background:#e2e8f0;"></div>
+                    <p style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#94a3b8;margin:0;">Branding &amp; Contact</p>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                        <div>
+                            <label class="field-label">Restaurant Name</label>
+                            <input type="text" data-site="${i}" data-key="restaurantName" value="${site.restaurantName||''}" class="field-input" style="margin-top:4px;" placeholder="e.g. Bareca Peaks at Bike & Boot">
+                        </div>
+                        <div>
+                            <label class="field-label">Phone Number</label>
+                            <input type="text" data-site="${i}" data-key="phone" value="${site.phone||''}" class="field-input" style="margin-top:4px;" placeholder="e.g. 01234 567890">
+                        </div>
+                    </div>
                     <div>
-                        <label class="field-label">Enquiry Email UIDs <span style="font-weight:400;text-transform:none;letter-spacing:0;">(comma-separated Firebase Auth UIDs or toUids strings)</span></label>
+                        <label class="field-label">Address</label>
+                        <input type="text" data-site="${i}" data-key="address" value="${site.address||''}" class="field-input" style="margin-top:4px;" placeholder="e.g. Hope Road, Hope Valley, S33 0AL">
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                        <div>
+                            <label class="field-label">Confirmation Band Text</label>
+                            <input type="text" data-site="${i}" data-key="confirmBandText" value="${site.confirmBandText||''}" class="field-input" style="margin-top:4px;" placeholder="e.g. Peaks at Bike & Boot · Hope Valley">
+                        </div>
+                        <div>
+                            <label class="field-label">Cancellation Band Text</label>
+                            <input type="text" data-site="${i}" data-key="cancelBandText" value="${site.cancelBandText||''}" class="field-input" style="margin-top:4px;" placeholder="e.g. Reservation Cancelled · Bareca">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="field-label">Confirmation Intro <span style="font-weight:400;text-transform:none;letter-spacing:0;">(leave blank to use global setting)</span></label>
+                        <textarea data-site="${i}" data-key="confirmIntro" rows="2" class="field-input" style="margin-top:4px;resize:none;" placeholder="Thank you for your reservation…">${site.confirmIntro||''}</textarea>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                        <div>
+                            <label class="field-label">Confirmation Sign-off</label>
+                            <input type="text" data-site="${i}" data-key="confirmSignoff" value="${site.confirmSignoff||''}" class="field-input" style="margin-top:4px;" placeholder="The Bareca Peaks Team">
+                        </div>
+                        <div>
+                            <label class="field-label">Cancellation Sign-off</label>
+                            <input type="text" data-site="${i}" data-key="cancelSignoff" value="${site.cancelSignoff||''}" class="field-input" style="margin-top:4px;" placeholder="The Bareca Team">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="field-label">Cancellation Intro <span style="font-weight:400;text-transform:none;letter-spacing:0;">(leave blank to use global setting)</span></label>
+                        <textarea data-site="${i}" data-key="cancelIntro" rows="2" class="field-input" style="margin-top:4px;resize:none;" placeholder="We're writing to confirm your reservation has been cancelled…">${site.cancelIntro||''}</textarea>
+                    </div>
+                    <div>
+                        <label class="field-label">Cancellation Closing <span style="font-weight:400;text-transform:none;letter-spacing:0;">(leave blank to use global setting)</span></label>
+                        <textarea data-site="${i}" data-key="cancelClosing" rows="2" class="field-input" style="margin-top:4px;resize:none;" placeholder="We're sorry we won't be seeing you…">${site.cancelClosing||''}</textarea>
+                    </div>
+                    <div style="height:1px;background:#e2e8f0;"></div>
+                    <p style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#94a3b8;margin:0;">Email Routing</p>
+                    <div>
+                        <label class="field-label">Enquiry Email UIDs <span style="font-weight:400;text-transform:none;letter-spacing:0;">(comma-separated)</span></label>
                         <input type="text" data-site="${i}" data-key="enquiryUids" value="${site.enquiryUids||''}" class="field-input" style="margin-top:4px;font-family:monospace;font-size:12px;" placeholder="reservation_team">
                     </div>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
