@@ -15,15 +15,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --burgundy:    #624A44;
-            --burgundy-dk: #4a3632;
-            --burgundy-lt: #7d5f58;
+            --burgundy:    #6a453f;
+            --burgundy-dk: #52342e;
+            --burgundy-lt: #8a5f58;
             --taupe:       #E4E1DC;
             --taupe-dk:    #c8c4be;
             --cream:       #F5F3F0;
             --cream-dk:    #ede9e4;
-            --text-dark:   #2d1f1c;
-            --text-mid:    #5a4a47;
+            --text-dark:   #414042;
+            --text-mid:    #605558;
             --text-light:  #9b8a87;
         }
 
@@ -32,7 +32,7 @@
         body {
             background-color: var(--cream);
             background-image:
-                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(98,74,68,0.08) 0%, transparent 70%);
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(106,69,63,0.08) 0%, transparent 70%);
             min-height: 100vh;
             font-family: 'DM Sans', sans-serif;
             color: var(--text-dark);
@@ -55,20 +55,20 @@
         input:focus, select:focus, textarea:focus {
             outline: none;
             border-color: var(--burgundy) !important;
-            box-shadow: 0 0 0 3px rgba(98,74,68,0.12);
+            box-shadow: 0 0 0 3px rgba(106,69,63,0.12);
         }
 
         /* ── LOGIN SCREEN ── */
         #loginSection {
             background-image:
-                radial-gradient(ellipse 60% 60% at 70% 50%, rgba(98,74,68,0.06) 0%, transparent 70%);
+                radial-gradient(ellipse 60% 60% at 70% 50%, rgba(106,69,63,0.06) 0%, transparent 70%);
         }
 
         .login-card {
             background: #fff;
             border: 1px solid var(--taupe-dk);
             border-radius: 2px;
-            box-shadow: 0 8px 40px rgba(98,74,68,0.10), 0 1px 3px rgba(98,74,68,0.06);
+            box-shadow: 0 8px 40px rgba(106,69,63,0.10), 0 1px 3px rgba(106,69,63,0.06);
         }
 
         .login-logo-band {
@@ -247,7 +247,7 @@
             border-radius: 0 0 2px 2px;
             padding: 32px 32px 28px;
             margin-bottom: 32px;
-            box-shadow: 0 4px 20px rgba(98,74,68,0.06);
+            box-shadow: 0 4px 20px rgba(106,69,63,0.06);
         }
 
         .form-section-label {
@@ -279,8 +279,8 @@
         select.field-input { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239b8a87' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
 
         .other-details-wrap {
-            background: rgba(98,74,68,0.04);
-            border: 1px solid rgba(98,74,68,0.15);
+            background: rgba(106,69,63,0.04);
+            border: 1px solid rgba(106,69,63,0.15);
             border-radius: 2px;
             padding: 16px;
             margin-top: 4px;
@@ -591,11 +591,37 @@
                     </div>
                 </div>
 
+                <!-- Historical booking toggle -->
+                <div id="historicalToggleWrap" style="background:var(--cream);border:1px solid var(--taupe-dk);border-radius:2px;padding:12px 14px;margin-top:8px;">
+                    <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+                        <input type="checkbox" id="historicalModeCheck" style="width:16px;height:16px;accent-color:#414042;cursor:pointer;flex-shrink:0;">
+                        <div>
+                            <span style="font-size:12px;font-weight:600;color:var(--text-dark);font-family:'DM Sans',sans-serif;">Historical booking import</span>
+                            <p style="font-size:10px;color:var(--text-light);margin:1px 0 0;">Record a past booking silently — no emails will be sent to staff or guests</p>
+                        </div>
+                    </label>
+                    <!-- Extra fields shown only in historical mode -->
+                    <div id="historicalExtraFields" style="display:none;margin-top:14px;display:none;flex-direction:column;gap:12px;">
+                        <div class="form-group">
+                            <label class="field-label">Booking Status</label>
+                            <select id="historicalStatus" name="historicalStatus" class="field-input">
+                                <option value="finalized">Confirmed</option>
+                                <option value="enquiry">Enquiry only</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="field-label">Historical Notes</label>
+                            <input type="text" id="historicalNote" name="historicalNote" placeholder="e.g. Walk-in, phone booking, migrated from old system…" class="field-input">
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Actions -->
                 <div class="btn-row">
                     <button type="button" id="sendCloudEmailBtn" class="btn-submit">
                         <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/></svg>
-                        Submit Reservation
+                        <span id="submitBtnLabel">Submit Reservation</span>
                     </button>
                     <button type="button" id="clearFormBtn" class="btn-reset">Clear Form</button>
                 </div>
@@ -639,8 +665,8 @@
     </div>
 
     <!-- Enquiry Details Modal -->
-    <div id="detailModal" class="fixed inset-0 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden" style="background:rgba(44,28,26,0.65);">
-        <div style="background:#fff;border-radius:2px;box-shadow:0 20px 60px rgba(98,74,68,0.25);width:100%;max-width:440px;overflow:hidden;">
+    <div id="detailModal" class="fixed inset-0 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden" style="background:rgba(36,22,20,0.65);">
+        <div style="background:#fff;border-radius:2px;box-shadow:0 20px 60px rgba(106,69,63,0.25);width:100%;max-width:440px;overflow:hidden;">
 
             <!-- Burgundy header -->
             <div id="modalHeader" style="background:var(--burgundy);padding:24px 28px 20px;">
@@ -649,7 +675,10 @@
                         <h3 id="modalTitle" style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--taupe);margin:0 0 4px;"></h3>
                         <p id="modalSubtitle" style="font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(228,225,220,0.55);margin:0;font-family:'DM Sans',sans-serif;"></p>
                     </div>
-                    <div id="finalizedBadge" class="hidden" style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#6ee7b7;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.25);border-radius:20px;padding:4px 10px;white-space:nowrap;">✓ Confirmed</div>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                        <div id="finalizedBadge" class="hidden" style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#6ee7b7;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.25);border-radius:20px;padding:4px 10px;white-space:nowrap;">✓ Confirmed</div>
+                        <div id="historicalBadge" class="hidden" style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#9b8a87;background:rgba(155,138,135,0.12);border:1px solid rgba(155,138,135,0.3);border-radius:20px;padding:4px 10px;white-space:nowrap;">⏷ Historical</div>
+                    </div>
                 </div>
             </div>
 
@@ -696,9 +725,16 @@
                     <p id="modalConfirmedNotes" style="font-size:13px;color:#065f46;font-style:italic;margin:0;"></p>
                 </div>
 
+                <!-- Historical booking note -->
+                <div id="modalHistoricalWrapper" class="hidden" style="background:rgba(155,138,135,0.07);border:1px solid rgba(155,138,135,0.25);border-radius:2px;padding:12px 14px;">
+                    <p style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-light);margin:0 0 4px;">Historical Import</p>
+                    <p id="modalHistoricalNote" style="font-size:13px;color:var(--text-mid);font-style:italic;margin:0;"></p>
+                    <p id="modalHistoricalMeta" style="font-size:10px;color:var(--text-light);margin:4px 0 0;"></p>
+                </div>
+
                 <!-- Guest email sent status -->
-                <div id="modalEmailSentWrapper" class="hidden" style="background:rgba(98,74,68,0.05);border:1px solid rgba(98,74,68,0.18);border-radius:2px;padding:11px 14px;display:flex;align-items:center;gap:10px;">
-                    <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;flex-shrink:0;color:#624A44;" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/></svg>
+                <div id="modalEmailSentWrapper" class="hidden" style="background:rgba(106,69,63,0.05);border:1px solid rgba(106,69,63,0.18);border-radius:2px;padding:11px 14px;display:flex;align-items:center;gap:10px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;flex-shrink:0;color:#6a453f;" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/></svg>
                     <div>
                         <p style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--burgundy);margin:0 0 2px;">Guest Email Sent</p>
                         <p id="modalEmailSentDetails" style="font-size:11px;color:var(--text-mid);margin:0;"></p>
@@ -715,7 +751,7 @@
                 <!-- Confirmed-only actions -->
                 <div id="confirmedActions" style="display:none;flex-direction:column;gap:8px;">
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                        <button id="modalSendGuestBtn" style="background:rgba(98,74,68,0.07);border:1px solid rgba(98,74,68,0.2);border-radius:2px;color:var(--burgundy);font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:11px 8px;cursor:pointer;transition:background 0.15s;display:flex;align-items:center;justify-content:center;gap:6px;">
+                        <button id="modalSendGuestBtn" style="background:rgba(106,69,63,0.07);border:1px solid rgba(106,69,63,0.2);border-radius:2px;color:var(--burgundy);font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:11px 8px;cursor:pointer;transition:background 0.15s;display:flex;align-items:center;justify-content:center;gap:6px;">
                             <svg xmlns="http://www.w3.org/2000/svg" style="width:13px;height:13px;" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/></svg>
                             Email Guest
                         </button>
@@ -740,8 +776,8 @@
     </div>
 
     <!-- Confirm Form Modal -->
-    <div id="confirmFormModal" class="fixed inset-0 backdrop-blur-sm flex items-center justify-center p-4 z-[60] hidden" style="background:rgba(44,28,26,0.65);">
-        <div style="background:#fff;border-radius:2px;box-shadow:0 20px 60px rgba(98,74,68,0.25);width:100%;max-width:520px;overflow:hidden;max-height:92vh;display:flex;flex-direction:column;">
+    <div id="confirmFormModal" class="fixed inset-0 backdrop-blur-sm flex items-center justify-center p-4 z-[60] hidden" style="background:rgba(36,22,20,0.65);">
+        <div style="background:#fff;border-radius:2px;box-shadow:0 20px 60px rgba(106,69,63,0.25);width:100%;max-width:520px;overflow:hidden;max-height:92vh;display:flex;flex-direction:column;">
 
             <!-- Header -->
             <div style="background:var(--burgundy);padding:22px 28px 18px;flex-shrink:0;">
@@ -863,8 +899,8 @@
     </div>
 
     <!-- Email Preview Modal -->
-    <div id="emailPreviewModal" class="fixed inset-0 backdrop-blur-sm flex items-center justify-center p-4 z-[70] hidden" style="background:rgba(44,28,26,0.65);">
-        <div style="background:#fff;border-radius:2px;box-shadow:0 20px 60px rgba(98,74,68,0.25);overflow:hidden;display:flex;flex-direction:column;max-height:92vh;width:100%;max-width:960px;">
+    <div id="emailPreviewModal" class="fixed inset-0 backdrop-blur-sm flex items-center justify-center p-4 z-[70] hidden" style="background:rgba(36,22,20,0.65);">
+        <div style="background:#fff;border-radius:2px;box-shadow:0 20px 60px rgba(106,69,63,0.25);overflow:hidden;display:flex;flex-direction:column;max-height:92vh;width:100%;max-width:960px;">
 
             <!-- Header -->
             <div style="background:var(--burgundy);padding:18px 24px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
@@ -925,8 +961,8 @@
     </div>
 
     <!-- Cancellation Email Preview Modal -->
-    <div id="cancelPreviewModal" class="fixed inset-0 backdrop-blur-sm flex items-center justify-center p-4 z-[70] hidden" style="background:rgba(44,28,26,0.65);">
-        <div style="background:#fff;border-radius:2px;box-shadow:0 20px 60px rgba(98,74,68,0.25);overflow:hidden;display:flex;flex-direction:column;max-height:92vh;width:100%;max-width:960px;">
+    <div id="cancelPreviewModal" class="fixed inset-0 backdrop-blur-sm flex items-center justify-center p-4 z-[70] hidden" style="background:rgba(36,22,20,0.65);">
+        <div style="background:#fff;border-radius:2px;box-shadow:0 20px 60px rgba(106,69,63,0.25);overflow:hidden;display:flex;flex-direction:column;max-height:92vh;width:100%;max-width:960px;">
 
             <!-- Header — dark red for cancellation -->
             <div style="background:#7f1d1d;padding:18px 24px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
@@ -1016,7 +1052,7 @@
 
                 <!-- COLOURS TAB -->
                 <div id="tab-colours" class="admin-panel space-y-6">
-                    <p class="text-xs text-slate-500">These colours apply to both the confirmation and cancellation emails. Use hex codes e.g. <code class="bg-slate-100 px-1 rounded">#624A44</code></p>
+                    <p class="text-xs text-slate-500">These colours apply to both the confirmation and cancellation emails. Use hex codes e.g. <code class="bg-slate-100 px-1 rounded">#6a453f</code></p>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div class="space-y-1">
                             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Header / Footer Background</label>
@@ -1174,7 +1210,7 @@
             <div class="border-t bg-white px-6 py-4 flex gap-3 items-center flex-shrink-0">
                 <span id="adminSaveStatus" class="text-xs text-slate-400 italic flex-1"></span>
                 <button id="adminResetBtn" class="px-4 py-2 text-xs font-bold text-slate-500 hover:text-red-500 border border-slate-200 rounded-lg transition">Reset to Defaults</button>
-                <button id="adminSaveBtn" class="px-6 py-2 text-sm font-bold text-white rounded-lg transition shadow" style="background-color:#624A44;">Save Settings</button>
+                <button id="adminSaveBtn" class="px-6 py-2 text-sm font-bold text-white rounded-lg transition shadow" style="background-color:#6a453f;">Save Settings</button>
             </div>
         </div>
     </div>
@@ -1278,7 +1314,7 @@
         // ---------------------------------------------------------------
         // GUEST EMAIL TEMPLATE — Bareca branded
         // Mirrors the structure of the uploaded Word template with the
-        // brand palette: #624A44 (burgundy), #E4E1DC (warm taupe),
+        // brand palette: #6a453f (burgundy), #E4E1DC (warm taupe),
         // #F5F3F0 (off-white), Metropolis/Georgia fonts.
         // d.menuDisplay is an override field set from the edit panel.
         // ---------------------------------------------------------------
@@ -1306,7 +1342,7 @@
                   <span style="font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;font-weight:700;color:${rc.labelText};">${label}</span>
                 </td>
                 <td width="62%" style="background-color:#ffffff;padding:12px 16px;border:1px solid #c8c4be;border-left:none;${last?'':'border-bottom:none;'}vertical-align:middle;">
-                  <span style="font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;color:#2d1f1c;">${value}</span>
+                  <span style="font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;color:#414042;">${value}</span>
                 </td>
               </tr>`;
 
@@ -1317,7 +1353,7 @@
                 .filter(p => p.trim())
                 .map(p => {
                     const [bold, ...rest] = p.split(/(?<=\.|—)\s/);
-                    return `<p style="margin:0 0 8px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;color:#2d1f1c;line-height:1.6;">${p.trim()}</p>`;
+                    return `<p style="margin:0 0 8px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;color:#414042;line-height:1.6;">${p.trim()}</p>`;
                 }).join('');
 
             return `<!DOCTYPE html>
@@ -1349,8 +1385,8 @@
 
       <tr>
         <td style="background-color:#ffffff;padding:36px 40px 28px;">
-          <p style="margin:0 0 6px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:17px;color:#2d1f1c;">Dear ${d.customerName},</p>
-          <p style="margin:0 0 28px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#5a4a47;line-height:1.7;">${rc.confirmIntro}</p>
+          <p style="margin:0 0 6px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:17px;color:#414042;">Dear ${d.customerName},</p>
+          <p style="margin:0 0 28px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#605558;line-height:1.7;">${rc.confirmIntro}</p>
 
           <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
             ${row('Reservation Name:', d.customerName)}
@@ -1369,7 +1405,7 @@
             </tr>
           </table>
 
-          <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#2d1f1c;line-height:1.7;">
+          <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#414042;line-height:1.7;">
             Warm regards,<br><strong>${rc.confirmSignoff}</strong>
           </p>
         </td>
@@ -1411,7 +1447,7 @@
 
             const depositNote = d.depositNote || 'N/A';
             const additionalMsg = d.additionalMsg
-                ? `<p style="margin:0 0 20px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#5a4a47;line-height:1.7;">${d.additionalMsg}</p>`
+                ? `<p style="margin:0 0 20px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#605558;line-height:1.7;">${d.additionalMsg}</p>`
                 : '';
 
             const cancelRow = (label, value, isLast = false) => `
@@ -1420,7 +1456,7 @@
                   <span style="font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;font-weight:700;color:${rc.labelText};">${label}</span>
                 </td>
                 <td width="62%" style="background-color:#ffffff;padding:12px 16px;border:1px solid #c8c4be;border-left:none;${isLast?'':'border-bottom:none;'}vertical-align:middle;">
-                  <span style="font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;color:#2d1f1c;">${value}</span>
+                  <span style="font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:13px;color:#414042;">${value}</span>
                 </td>
               </tr>`;
 
@@ -1453,8 +1489,8 @@
 
       <tr>
         <td style="background-color:#ffffff;padding:36px 40px 28px;">
-          <p style="margin:0 0 6px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:17px;color:#2d1f1c;">Dear ${d.customerName},</p>
-          <p style="margin:0 0 28px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#5a4a47;line-height:1.7;">${rc.cancelIntro}</p>
+          <p style="margin:0 0 6px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:17px;color:#414042;">Dear ${d.customerName},</p>
+          <p style="margin:0 0 28px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#605558;line-height:1.7;">${rc.cancelIntro}</p>
 
           <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
             ${cancelRow('Reservation Name:', d.customerName)}
@@ -1466,11 +1502,11 @@
 
           ${additionalMsg}
 
-          <p style="margin:0 0 16px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#5a4a47;line-height:1.7;">${rc.cancelClosing}</p>
-          <p style="margin:0 0 28px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#5a4a47;line-height:1.7;">
+          <p style="margin:0 0 16px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#605558;line-height:1.7;">${rc.cancelClosing}</p>
+          <p style="margin:0 0 28px;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#605558;line-height:1.7;">
             You can reach us on <strong>${rc.phone}</strong> or visit us at <strong>${rc.address}</strong>.
           </p>
-          <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#2d1f1c;line-height:1.7;">
+          <p style="margin:0;font-family:Metropolis,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#414042;line-height:1.7;">
             Warm regards,<br><strong>${rc.cancelSignoff}</strong>
           </p>
         </td>
@@ -1903,8 +1939,8 @@
                         id: data.id,
                         title: `${data.customerName} (${(parseInt(data.adultCount)||0) + (parseInt(data.childCount)||0)})`,
                         start: `${data.resDate}T${data.resTime}`,
-                        backgroundColor: isFinal ? '#d1fae5' : '#624A44',
-                        borderColor: isFinal ? '#10b981' : '#624A44',
+                        backgroundColor: isFinal ? '#d1fae5' : '#6a453f',
+                        borderColor: isFinal ? '#10b981' : '#6a453f',
                         textColor: isFinal ? '#065f46' : '#ffffff',
                         extendedProps: { ...data }
                     });
@@ -1920,8 +1956,8 @@
                         id: data.id,
                         title: `${data.customerName} (${(parseInt(data.adultCount)||0) + (parseInt(data.childCount)||0)})`,
                         start: `${data.resDate}T${data.resTime}`,
-                        backgroundColor: data.status === 'finalized' ? '#d1fae5' : '#624A44',
-                        borderColor: data.status === 'finalized' ? '#10b981' : '#624A44',
+                        backgroundColor: data.status === 'finalized' ? '#d1fae5' : '#6a453f',
+                        borderColor: data.status === 'finalized' ? '#10b981' : '#6a453f',
                         textColor: data.status === 'finalized' ? '#065f46' : '#ffffff',
                         extendedProps: { ...data }
                     })));
@@ -1951,6 +1987,7 @@
 
             const isFinal = data.status === 'finalized';
             getEl('finalizedBadge').classList.toggle('hidden', !isFinal);
+            getEl('historicalBadge').classList.toggle('hidden', !data.isHistorical);
             getEl('confirmedActions').style.display = isFinal ? 'flex' : 'none';
             getEl('modalConfirmTrigger').textContent = isFinal ? "Edit Confirmation" : "Confirm Reservation";
 
@@ -1966,6 +2003,18 @@
                 notesWrap.classList.remove('hidden');
                 getEl('modalConfirmedNotes').textContent = data.confirmedNotes;
             } else notesWrap.classList.add('hidden');
+
+            // Historical booking info
+            const histWrap = getEl('modalHistoricalWrapper');
+            if (data.isHistorical) {
+                histWrap.classList.remove('hidden');
+                getEl('modalHistoricalNote').textContent = data.historicalNote || 'Imported from historical records';
+                const importedBy = data.importedBy ? `Imported by ${data.importedBy}` : '';
+                const importedAt = data.importedAt ? ` on ${new Date(data.importedAt).toLocaleDateString('en-GB')}` : '';
+                getEl('modalHistoricalMeta').textContent = importedBy + importedAt;
+            } else {
+                histWrap.classList.add('hidden');
+            }
 
             // Guest email sent status
             const emailSentWrap = getEl('modalEmailSentWrapper');
@@ -2118,11 +2167,11 @@
 
         const DEFAULT_CFG = {
             // Colours
-            headerBg:      '#624A44',
+            headerBg:      '#6a453f',
             confirmAccent: '#E4E1DC',
             cancelAccent:  '#991b1b',
             labelBg:       '#E4E1DC',
-            labelText:     '#624A44',
+            labelText:     '#6a453f',
             logoBg:        '#e4e1dc',
             pageBg:        '#F5F3F0',
             // Confirmation text
@@ -2765,7 +2814,7 @@
                     <div style="flex-shrink:0;text-align:right;">
                         ${isFinal
                             ? '<span style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#059669;background:#d1fae5;padding:3px 8px;border-radius:20px;">Confirmed</span>'
-                            : '<span style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--burgundy);background:rgba(98,74,68,0.08);padding:3px 8px;border-radius:20px;">Enquiry</span>'
+                            : '<span style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--burgundy);background:rgba(106,69,63,0.08);padding:3px 8px;border-radius:20px;">Enquiry</span>'
                         }
                     </div>`;
 
@@ -2833,11 +2882,12 @@
                 const indent    = isFinal && !isPast ? 'padding-left:8px;' : '';
                 const nameColor = isPast ? 'var(--text-mid)' : 'var(--text-dark)';
                 const dateColor = isPast ? 'var(--text-light)' : 'var(--burgundy)';
+                const histTag = b.isHistorical ? `<span style="font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-light);background:rgba(155,138,135,0.12);border:1px solid rgba(155,138,135,0.2);border-radius:20px;padding:2px 7px;margin-left:5px;">historical</span>` : '';
                 const statusTag = isPast
-                    ? `<div style="margin-top:6px;font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-light);">Past</div>`
+                    ? `<div style="margin-top:6px;font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-light);">Past${histTag}</div>`
                     : isFinal
-                        ? `<div style="margin-top:6px;font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#059669;">Confirmed</div>`
-                        : `<div style="margin-top:6px;font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--burgundy);">Enquiry</div>`;
+                        ? `<div style="margin-top:6px;font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#059669;">Confirmed${histTag}</div>`
+                        : `<div style="margin-top:6px;font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--burgundy);">Enquiry${histTag}</div>`;
 
                 tile.innerHTML = `
                     ${accentBar}
@@ -2895,28 +2945,80 @@
 
         getEl('sendCloudEmailBtn').onclick = async () => {
             const data = Object.fromEntries(new FormData(dom.resForm).entries());
-            if (!data.customerName || !data.resDate) { alert("Name and Date required."); return; }
-            if (!data.site) { alert("Please select a site."); getEl('siteSelect').focus(); return; }
+            if (!data.customerName || !data.resDate) { alert('Name and Date required.'); return; }
+            if (!data.site) { alert('Please select a site.'); getEl('siteSelect').focus(); return; }
+
+            const isHistorical = getEl('historicalModeCheck').checked;
             getEl('sendCloudEmailBtn').disabled = true;
+
             try {
                 const [y, m, day] = data.resDate.split('-');
                 const siteName = (cfg.sites||[]).find(s => s.id === data.site)?.name || data.site;
-                const enquiryUids = getSiteUids(data.site, 'enquiryUids');
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
-                    toUids: enquiryUids,
-                    message: {
-                        subject: `BARECA PEAKS ENQUIRY [${siteName}]: ${data.customerName} ${day}/${m}/${y}`,
-                        text: `NEW ENQUIRY\nSite: ${siteName}\nCustomer: ${data.customerName}\nDate: ${day}-${m}-${y}\nTime: ${data.resTime}\nMenu: ${data.menuArrangement}\nDietary: ${data.notes}\n\nTaken by: ${data.takenBy}`
-                    }
-                });
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings'), { ...data, status: 'enquiry', sequence: 0 });
-                await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current'));
-                alert("Enquiry Recorded!"); dom.resForm.reset(); getEl('timeHour').value=''; getEl('timeMin').value='';
-                populateSiteDropdown(); // re-select single-site users
-            } catch (e) { alert("Sync Error: " + e.code); } finally { getEl('sendCloudEmailBtn').disabled = false; }
+
+                if (isHistorical) {
+                    // ── Historical import — no emails sent ─────────────────
+                    const historicalStatus = getEl('historicalStatus').value || 'finalized';
+                    const historicalNote   = getEl('historicalNote').value || '';
+
+                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings'), {
+                        ...data,
+                        status: historicalStatus,
+                        sequence: 0,
+                        isHistorical: true,
+                        historicalNote,
+                        importedAt: new Date().toISOString(),
+                        importedBy: currentUser.email
+                    });
+                    await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current')).catch(()=>{});
+                    alert('Historical booking saved. No emails sent.');
+                    dom.resForm.reset();
+                    getEl('timeHour').value = '';
+                    getEl('timeMin').value = '';
+                    getEl('historicalModeCheck').checked = false;
+                    updateHistoricalMode();
+                    populateSiteDropdown();
+
+                } else {
+                    // ── Standard enquiry — send notification emails ─────────
+                    const enquiryUids = getSiteUids(data.site, 'enquiryUids');
+                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'mail'), {
+                        toUids: enquiryUids,
+                        message: {
+                            subject: `BARECA PEAKS ENQUIRY [${siteName}]: ${data.customerName} ${day}/${m}/${y}`,
+                            text: `NEW ENQUIRY\nSite: ${siteName}\nCustomer: ${data.customerName}\nDate: ${day}-${m}-${y}\nTime: ${data.resTime}\nMenu: ${data.menuArrangement}\nDietary: ${data.notes}\n\nTaken by: ${data.takenBy}`
+                        }
+                    });
+                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'confirmed_bookings'), { ...data, status: 'enquiry', sequence: 0 });
+                    await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'drafts', 'current'));
+                    alert('Enquiry Recorded!');
+                    dom.resForm.reset();
+                    getEl('timeHour').value = '';
+                    getEl('timeMin').value = '';
+                    populateSiteDropdown();
+                }
+
+            } catch (e) { alert('Sync Error: ' + e.code); } finally { getEl('sendCloudEmailBtn').disabled = false; }
         };
 
         dom.menuSelect.addEventListener('change', () => dom.otherWrapper.classList.toggle('hidden', dom.menuSelect.value !== 'Other'));
+
+        // ── Historical Mode Toggle ────────────────────────────────────────
+        const historicalCheck = getEl('historicalModeCheck');
+        const historicalExtra = getEl('historicalExtraFields');
+        const submitBtnLabel  = getEl('submitBtnLabel');
+        const submitBtn       = getEl('sendCloudEmailBtn');
+
+        const updateHistoricalMode = () => {
+            const isHistorical = historicalCheck.checked;
+            // Show/hide the extra fields
+            historicalExtra.style.display = isHistorical ? 'flex' : 'none';
+            // Update button label and style
+            submitBtnLabel.textContent = isHistorical ? 'Save Historical Booking' : 'Submit Reservation';
+            submitBtn.style.background = isHistorical ? '#414042' : '';
+            submitBtn.style.backgroundColor = isHistorical ? '#414042' : 'var(--burgundy)';
+        };
+
+        historicalCheck.addEventListener('change', updateHistoricalMode);
         getEl('takenBy').addEventListener('input', (e) => {
             if (e.target.value.trim() && !getEl('takenAt').value) getEl('takenAt').value = new Date().toLocaleString('en-GB');
         });
