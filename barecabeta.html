@@ -400,39 +400,49 @@
 
         #calendar { background: white; padding: 20px; border-radius: 2px; border: 1px solid var(--taupe-dk); }
         /* ── Calendar event pills ─────────────────────────────────── */
-        .fc-event {
-            cursor: pointer;
+        .fc-daygrid-event,
+        .fc-h-event {
+            cursor: pointer !important;
             border: none !important;
             border-radius: 3px !important;
             padding: 0 !important;
             margin-bottom: 2px !important;
+            /* Use the backgroundColor set on each event via the inline style FC applies */
+            background-color: var(--fc-event-bg-color, #6a453f) !important;
         }
-        .fc-event .fc-event-main {
-            display: flex;
-            align-items: center;
-            gap: 4px;
+        .fc-h-event .fc-event-main,
+        .fc-daygrid-event .fc-event-main {
+            display: flex !important;
+            align-items: center !important;
+            gap: 4px !important;
             padding: 2px 6px !important;
-            overflow: hidden;
+            overflow: hidden !important;
+            /* Inherit colour from parent so FC's inline style flows through */
+            color: inherit !important;
+            background: transparent !important;
         }
-        /* Time portion — slightly muted */
+        /* Time — small and muted */
         .fc-event .fc-event-time {
             font-size: 9px !important;
             font-weight: 500 !important;
-            opacity: 0.75;
-            flex-shrink: 0;
+            opacity: 0.8 !important;
+            flex-shrink: 0 !important;
             font-family: 'Montserrat', sans-serif !important;
+            color: inherit !important;
         }
-        /* Name portion — bold, truncates cleanly */
+        /* Name — bold, truncates */
         .fc-event .fc-event-title {
             font-size: 10px !important;
             font-weight: 700 !important;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            white-space: nowrap !important;
             font-family: 'Montserrat', sans-serif !important;
+            color: inherit !important;
         }
-        /* Dot before time */
         .fc-daygrid-event-dot { display: none !important; }
+        /* Hover lift */
+        .fc-daygrid-event:hover { filter: brightness(0.92) !important; }
         .fc-toolbar-title { font-size: 1rem !important; font-weight: 700 !important; color: var(--text-dark) !important; font-family: 'Montserrat', serif !important; }
         .fc-button-primary { background-color: var(--burgundy) !important; border-color: var(--burgundy) !important; border-radius: 2px !important; }
         .fc-button-primary:hover { background-color: var(--burgundy-dk) !important; }
