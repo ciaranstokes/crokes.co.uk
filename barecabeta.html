@@ -2017,14 +2017,9 @@
                     const name = d.customerName || '';
                     const el = document.createElement('div');
                     el.className = `cal-chip ${statusClass}`;
+                    // Store booking id on element — look up from live cache on click
+                    el.dataset.bookingId = eventId;
                     el.innerHTML = `<span class="cal-chip-dot"></span><span class="cal-chip-time">${t}</span><span class="cal-chip-name">${name}</span><span class="cal-chip-covers">${covers}</span>`;
-                    // Handle click directly on the chip — most reliable approach
-                    el.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        hideCalTip();
-                        lastEventClick = Date.now();
-                        showBookingDetails(eventId, d);
-                    });
                     el.addEventListener('mouseenter', (e) => showCalTip(e, d));
                     el.addEventListener('mousemove', (e) => {
                         if (calTipVisible) {
@@ -2040,7 +2035,6 @@
                 },
                 eventMouseLeave: () => hideCalTip(),
                 eventClick: (info) => {
-                    // Fallback in case click reaches FC wrapper
                     hideCalTip();
                     lastEventClick = Date.now();
                     showBookingDetails(info.event.id, info.event.extendedProps);
