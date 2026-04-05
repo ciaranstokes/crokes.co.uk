@@ -400,70 +400,12 @@
 
         #calendar { background: white; padding: 20px; border-radius: 2px; border: 1px solid var(--taupe-dk); }
         /* ── Calendar event chips ─────────────────────────────────── */
-        .fc-event { cursor: pointer !important; border: none !important; background: none !important; padding: 1px 2px !important; box-shadow: none !important; }
-        .fc-event:focus { outline: none; }
-        .fc-event .fc-event-main { padding: 0 !important; }
-        .fc-daygrid-event-dot { display: none !important; }
-        .fc-event-title, .fc-event-time { display: none !important; }
+        .fc-event { cursor: pointer; border: none !important; padding: 2px 5px; }
 
-        .cal-chip {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            padding: 2px 6px 2px 4px;
-            border-radius: 3px;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 10px;
-            font-weight: 600;
-            white-space: nowrap;
-            overflow: hidden;
-            line-height: 1.4;
-            position: relative;
-        }
-        .cal-chip.enquiry  { background: #6a453f; color: #fff; }
-        .cal-chip.confirmed { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
-        .cal-chip.historical { background: rgba(155,138,135,0.18); color: #605558; border: 1px solid rgba(155,138,135,0.35); }
 
-        .cal-chip-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-        .enquiry   .cal-chip-dot { background: #e4a898; }
-        .confirmed .cal-chip-dot { background: #10b981; }
-        .historical .cal-chip-dot { background: #9b8a87; }
 
-        .cal-chip-time { opacity: 0.75; font-weight: 500; flex-shrink: 0; }
-        .cal-chip-name { overflow: hidden; text-overflow: ellipsis; flex: 1; min-width: 0; }
-        .cal-chip-covers {
-            font-size: 9px; font-weight: 700; opacity: 0.7;
-            flex-shrink: 0; margin-left: 2px;
-        }
 
         /* Tooltip */
-        .cal-tooltip {
-            position: fixed;
-            z-index: 9999;
-            background: #2d1f1c;
-            color: #e4e1dc;
-            border-radius: 4px;
-            padding: 8px 11px;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 11px;
-            line-height: 1.55;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.35);
-            pointer-events: none;
-            max-width: 220px;
-            opacity: 0;
-            transition: opacity 0.15s;
-        }
-        .cal-tooltip.visible { opacity: 1; }
-        .cal-tooltip-name { font-size: 12px; font-weight: 700; margin-bottom: 4px; color: #fff; }
-        .cal-tooltip-row { display: flex; gap: 6px; }
-        .cal-tooltip-label { opacity: 0.6; font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; }
-        .cal-tooltip-badge {
-            display: inline-block; padding: 1px 6px; border-radius: 20px;
-            font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 3px;
-        }
-        .cal-tooltip-badge.confirmed { background: rgba(16,185,129,0.2); color: #6ee7b7; }
-        .cal-tooltip-badge.enquiry   { background: rgba(106,69,63,0.4); color: #e4a898; }
-        .cal-tooltip-badge.historical { background: rgba(155,138,135,0.2); color: #9b8a87; }
         .fc-toolbar-title { font-size: 1rem !important; font-weight: 700 !important; color: var(--text-dark) !important; font-family: 'Montserrat', serif !important; }
         .fc-button-primary { background-color: var(--burgundy) !important; border-color: var(--burgundy) !important; border-radius: 2px !important; }
         .fc-button-primary:hover { background-color: var(--burgundy-dk) !important; }
@@ -1974,73 +1916,18 @@
 
         const initCalendar = () => {
             let lastEventClick = 0;
-            // ── Tooltip helpers ──────────────────────────────────────────
-            const calTip = getEl('calTooltip');
-            let calTipVisible = false;
-
-            const showCalTip = (e, data) => {
-                const d = data;
-                const covers = (parseInt(d.adultCount)||0) + (parseInt(d.childCount)||0);
-                const [sy, sm, sd] = (d.resDate||'').split('-');
-                let t = d.resTime || '';
-                if (t) { const [hh,mm]=t.split(':'); const h=parseInt(hh); t=`${h>12?h-12:(h===0?12:h)}:${mm} ${h>=12?'PM':'AM'}`; }
-                const statusClass = d.isHistorical ? 'historical' : d.status === 'finalized' ? 'confirmed' : 'enquiry';
-                const statusLabel = d.isHistorical ? 'Historical' : d.status === 'finalized' ? 'Confirmed' : 'Enquiry';
-                calTip.innerHTML = `
-                    <div class="cal-tooltip-name">${d.customerName}</div>
-                    <span class="cal-tooltip-badge ${statusClass}">${statusLabel}</span>
-                    <div class="cal-tooltip-row"><span class="cal-tooltip-label">Time</span> ${sd}/${sm} at ${t}</div>
-                    <div class="cal-tooltip-row"><span class="cal-tooltip-label">Covers</span> ${covers} (${d.adultCount||0} adults${d.childCount>0?', '+d.childCount+' children':''})</div>
-                    ${d.menuArrangement ? `<div class="cal-tooltip-row"><span class="cal-tooltip-label">Menu</span> ${d.menuArrangement}</div>` : ''}
-                    <div style="margin-top:5px;font-size:9px;opacity:0.5;">Click to open</div>`;
-                const vw = window.innerWidth, vh = window.innerHeight;
-                let x = e.clientX + 12, y = e.clientY + 12;
-                if (x + 230 > vw) x = e.clientX - 230;
-                if (y + 160 > vh) y = e.clientY - 160;
-                calTip.style.left = x + 'px';
-                calTip.style.top  = y + 'px';
-                calTip.classList.add('visible');
-                calTipVisible = true;
-            };
-            const hideCalTip = () => { calTip.classList.remove('visible'); calTipVisible = false; };
-
             calendar = new FullCalendar.Calendar(getEl('calendar'), {
                 initialView: 'dayGridMonth',
                 headerToolbar: { left: 'prev,next today', center: 'title', right: '' },
-                eventContent: (arg) => {
-                    const d = arg.event.extendedProps;
-                    const startStr = arg.event.startStr;
-                    const covers = (parseInt(d.adultCount)||0) + (parseInt(d.childCount)||0);
-                    let t = d.resTime || '';
-                    if (t) { const [hh,mm]=t.split(':'); const h=parseInt(hh); t=`${h>12?h-12:(h===0?12:h)}:${mm}`; }
-                    const statusClass = d.isHistorical ? 'historical' : d.status === 'finalized' ? 'confirmed' : 'enquiry';
-                    const name = d.customerName || '';
-                    const el = document.createElement('div');
-                    el.className = `cal-chip ${statusClass}`;
-                    el.innerHTML = `<span class="cal-chip-dot"></span><span class="cal-chip-time">${t}</span><span class="cal-chip-name">${name}</span><span class="cal-chip-covers">${covers}</span>`;
-                    el.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        hideCalTip();
-                        showDayView(new Date(startStr));
-                    });
-                    el.addEventListener('mouseenter', (e) => showCalTip(e, d));
-                    el.addEventListener('mousemove', (e) => {
-                        if (calTipVisible) {
-                            let x = e.clientX+12, y = e.clientY+12;
-                            if (x+230 > window.innerWidth)  x = e.clientX-230;
-                            if (y+160 > window.innerHeight) y = e.clientY-160;
-                            calTip.style.left = x+'px';
-                            calTip.style.top  = y+'px';
-                        }
-                    });
-                    el.addEventListener('mouseleave', hideCalTip);
-                    return { domNodes: [el] };
+                eventClick: (info) => {
+                    lastEventClick = Date.now();
+                    showBookingDetails(info.event.id, info.event.extendedProps);
                 },
-                eventMouseLeave: () => hideCalTip(),
                 dateClick: (info) => {
+                    // Don't trigger day view if an event was just clicked
                     if (Date.now() - lastEventClick < 300) return;
-                    showDayView(new Date(info.date));
+                    dayViewDate = new Date(info.date);
+                    showDayView();
                 }
             });
             calendar.render();
