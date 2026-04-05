@@ -400,8 +400,9 @@
 
         #calendar { background: white; padding: 20px; border-radius: 2px; border: 1px solid var(--taupe-dk); }
         /* ── Calendar event chips ─────────────────────────────────── */
-        .fc-event { cursor: pointer !important; border: none !important; background: transparent !important; padding: 1px 2px !important; }
+        .fc-event { cursor: pointer !important; border: none !important; background: none !important; padding: 1px 2px !important; box-shadow: none !important; }
         .fc-event:focus { outline: none; }
+        .fc-event .fc-event-main { padding: 0 !important; }
         .fc-daygrid-event-dot { display: none !important; }
         .fc-event-title, .fc-event-time { display: none !important; }
 
@@ -2008,6 +2009,7 @@
                 headerToolbar: { left: 'prev,next today', center: 'title', right: '' },
                 eventContent: (arg) => {
                     const d = arg.event.extendedProps;
+                    const eventId = arg.event.id;
                     const covers = (parseInt(d.adultCount)||0) + (parseInt(d.childCount)||0);
                     let t = d.resTime || '';
                     if (t) { const [hh,mm]=t.split(':'); const h=parseInt(hh); t=`${h>12?h-12:(h===0?12:h)}:${mm}`; }
@@ -2015,15 +2017,16 @@
                     const name = d.customerName || '';
                     const el = document.createElement('div');
                     el.className = `cal-chip ${statusClass}`;
-                    // pointer-events:none lets clicks fall through to FullCalendar's own event wrapper
-                    el.style.pointerEvents = 'none';
                     el.innerHTML = `<span class="cal-chip-dot"></span><span class="cal-chip-time">${t}</span><span class="cal-chip-name">${name}</span><span class="cal-chip-covers">${covers}</span>`;
-                    return { domNodes: [el] };
-                },
-                // Use FullCalendar's own mouse callbacks so tooltip doesn't block clicks
-                eventMouseEnter: (info) => {
-                    showCalTip({ clientX: info.jsEvent.clientX, clientY: info.jsEvent.clientY }, info.event.extendedProps);
-                    info.el.addEventListener('mousemove', (e) => {
+                    // Handle click directly on the chip — most reliable approach
+                    el.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        hideCalTip();
+                        lastEventClick = Date.now();
+                        showBookingDetails(eventId, d);
+                    });
+                    el.addEventListener('mouseenter', (e) => showCalTip(e, d));
+                    el.addEventListener('mousemove', (e) => {
                         if (calTipVisible) {
                             let x = e.clientX+12, y = e.clientY+12;
                             if (x+230 > window.innerWidth)  x = e.clientX-230;
@@ -2032,9 +2035,12 @@
                             calTip.style.top  = y+'px';
                         }
                     });
+                    el.addEventListener('mouseleave', hideCalTip);
+                    return { domNodes: [el] };
                 },
                 eventMouseLeave: () => hideCalTip(),
                 eventClick: (info) => {
+                    // Fallback in case click reaches FC wrapper
                     hideCalTip();
                     lastEventClick = Date.now();
                     showBookingDetails(info.event.id, info.event.extendedProps);
