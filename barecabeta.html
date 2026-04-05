@@ -2035,9 +2035,11 @@
                 },
                 eventMouseLeave: () => hideCalTip(),
                 eventClick: (info) => {
+                    // Click any booking pill → open Day view for that date
                     hideCalTip();
                     lastEventClick = Date.now();
-                    showBookingDetails(info.event.id, info.event.extendedProps);
+                    dayViewDate = new Date(info.event.startStr);
+                    showDayView();
                 },
                 dateClick: (info) => {
                     if (Date.now() - lastEventClick < 300) return;
