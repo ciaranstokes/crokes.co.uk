@@ -2009,7 +2009,7 @@
                 headerToolbar: { left: 'prev,next today', center: 'title', right: '' },
                 eventContent: (arg) => {
                     const d = arg.event.extendedProps;
-                    const eventId = arg.event.id;
+                    const startStr = arg.event.startStr;
                     const covers = (parseInt(d.adultCount)||0) + (parseInt(d.childCount)||0);
                     let t = d.resTime || '';
                     if (t) { const [hh,mm]=t.split(':'); const h=parseInt(hh); t=`${h>12?h-12:(h===0?12:h)}:${mm}`; }
@@ -2017,9 +2017,13 @@
                     const name = d.customerName || '';
                     const el = document.createElement('div');
                     el.className = `cal-chip ${statusClass}`;
-                    // Store booking id on element — look up from live cache on click
-                    el.dataset.bookingId = eventId;
                     el.innerHTML = `<span class="cal-chip-dot"></span><span class="cal-chip-time">${t}</span><span class="cal-chip-name">${name}</span><span class="cal-chip-covers">${covers}</span>`;
+                    el.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        hideCalTip();
+                        showDayView(new Date(startStr));
+                    });
                     el.addEventListener('mouseenter', (e) => showCalTip(e, d));
                     el.addEventListener('mousemove', (e) => {
                         if (calTipVisible) {
@@ -2034,17 +2038,9 @@
                     return { domNodes: [el] };
                 },
                 eventMouseLeave: () => hideCalTip(),
-                eventClick: (info) => {
-                    // Click any booking pill → open Day view for that date
-                    hideCalTip();
-                    lastEventClick = Date.now();
-                    dayViewDate = new Date(info.event.startStr);
-                    showDayView();
-                },
                 dateClick: (info) => {
                     if (Date.now() - lastEventClick < 300) return;
-                    dayViewDate = new Date(info.date);
-                    showDayView();
+                    showDayView(new Date(info.date));
                 }
             });
             calendar.render();
