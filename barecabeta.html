@@ -2015,12 +2015,25 @@
                     const name = d.customerName || '';
                     const el = document.createElement('div');
                     el.className = `cal-chip ${statusClass}`;
+                    // pointer-events:none lets clicks fall through to FullCalendar's own event wrapper
+                    el.style.pointerEvents = 'none';
                     el.innerHTML = `<span class="cal-chip-dot"></span><span class="cal-chip-time">${t}</span><span class="cal-chip-name">${name}</span><span class="cal-chip-covers">${covers}</span>`;
-                    el.addEventListener('mouseenter', (e) => showCalTip(e, d));
-                    el.addEventListener('mousemove',  (e) => { if(calTipVisible){ let x=e.clientX+12,y=e.clientY+12; if(x+230>window.innerWidth)x=e.clientX-230; if(y+160>window.innerHeight)y=e.clientY-160; calTip.style.left=x+'px'; calTip.style.top=y+'px'; }});
-                    el.addEventListener('mouseleave', hideCalTip);
                     return { domNodes: [el] };
                 },
+                // Use FullCalendar's own mouse callbacks so tooltip doesn't block clicks
+                eventMouseEnter: (info) => {
+                    showCalTip({ clientX: info.jsEvent.clientX, clientY: info.jsEvent.clientY }, info.event.extendedProps);
+                    info.el.addEventListener('mousemove', (e) => {
+                        if (calTipVisible) {
+                            let x = e.clientX+12, y = e.clientY+12;
+                            if (x+230 > window.innerWidth)  x = e.clientX-230;
+                            if (y+160 > window.innerHeight) y = e.clientY-160;
+                            calTip.style.left = x+'px';
+                            calTip.style.top  = y+'px';
+                        }
+                    });
+                },
+                eventMouseLeave: () => hideCalTip(),
                 eventClick: (info) => {
                     hideCalTip();
                     lastEventClick = Date.now();
