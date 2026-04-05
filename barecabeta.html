@@ -400,6 +400,12 @@
 
         #calendar { background: white; padding: 20px; border-radius: 2px; border: 1px solid var(--taupe-dk); }
         /* ── Calendar event pills ─────────────────────────────────── */
+        /* Kill FC default blue — per-event inline styles provide the actual colours */
+        :root {
+            --fc-event-bg-color: transparent;
+            --fc-event-border-color: transparent;
+        }
+
         .fc-daygrid-event,
         .fc-h-event {
             cursor: pointer !important;
@@ -407,19 +413,17 @@
             border-radius: 3px !important;
             padding: 0 !important;
             margin-bottom: 2px !important;
-            /* Use the backgroundColor set on each event via the inline style FC applies */
-            background-color: var(--fc-event-bg-color, #6a453f) !important;
+            /* background-color comes from FC's own inline style per event */
         }
-        .fc-h-event .fc-event-main,
-        .fc-daygrid-event .fc-event-main {
+        /* fc-event-main must be transparent so parent inline bg-color shows */
+        .fc-h-event .fc-event-main {
+            background: transparent !important;
+            color: inherit !important;
             display: flex !important;
             align-items: center !important;
             gap: 4px !important;
             padding: 2px 6px !important;
             overflow: hidden !important;
-            /* Inherit colour from parent so FC's inline style flows through */
-            color: inherit !important;
-            background: transparent !important;
         }
         /* Time — small and muted */
         .fc-event .fc-event-time {
@@ -441,8 +445,7 @@
             color: inherit !important;
         }
         .fc-daygrid-event-dot { display: none !important; }
-        /* Hover lift */
-        .fc-daygrid-event:hover { filter: brightness(0.92) !important; }
+        .fc-daygrid-event:hover { filter: brightness(0.88) !important; }
         .fc-toolbar-title { font-size: 1rem !important; font-weight: 700 !important; color: var(--text-dark) !important; font-family: 'Montserrat', serif !important; }
         .fc-button-primary { background-color: var(--burgundy) !important; border-color: var(--burgundy) !important; border-radius: 2px !important; }
         .fc-button-primary:hover { background-color: var(--burgundy-dk) !important; }
