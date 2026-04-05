@@ -399,13 +399,40 @@
         .view-toggle button.active-view, .view-toggle button:hover { background: var(--burgundy); color: #fff; }
 
         #calendar { background: white; padding: 20px; border-radius: 2px; border: 1px solid var(--taupe-dk); }
-        /* ── Calendar event chips ─────────────────────────────────── */
-        .fc-event { cursor: pointer; border: none !important; padding: 2px 5px; }
-
-
-
-
-        /* Tooltip */
+        /* ── Calendar event pills ─────────────────────────────────── */
+        .fc-event {
+            cursor: pointer;
+            border: none !important;
+            border-radius: 3px !important;
+            padding: 0 !important;
+            margin-bottom: 2px !important;
+        }
+        .fc-event .fc-event-main {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 6px !important;
+            overflow: hidden;
+        }
+        /* Time portion — slightly muted */
+        .fc-event .fc-event-time {
+            font-size: 9px !important;
+            font-weight: 500 !important;
+            opacity: 0.75;
+            flex-shrink: 0;
+            font-family: 'Montserrat', sans-serif !important;
+        }
+        /* Name portion — bold, truncates cleanly */
+        .fc-event .fc-event-title {
+            font-size: 10px !important;
+            font-weight: 700 !important;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-family: 'Montserrat', sans-serif !important;
+        }
+        /* Dot before time */
+        .fc-daygrid-event-dot { display: none !important; }
         .fc-toolbar-title { font-size: 1rem !important; font-weight: 700 !important; color: var(--text-dark) !important; font-family: 'Montserrat', serif !important; }
         .fc-button-primary { background-color: var(--burgundy) !important; border-color: var(--burgundy) !important; border-radius: 2px !important; }
         .fc-button-primary:hover { background-color: var(--burgundy-dk) !important; }
@@ -1919,6 +1946,8 @@
             calendar = new FullCalendar.Calendar(getEl('calendar'), {
                 initialView: 'dayGridMonth',
                 headerToolbar: { left: 'prev,next today', center: 'title', right: '' },
+                displayEventTime: true,
+                eventTimeFormat: { hour: 'numeric', minute: '2-digit', meridiem: 'short' },
                 eventClick: (info) => {
                     lastEventClick = Date.now();
                     showBookingDetails(info.event.id, info.event.extendedProps);
@@ -1943,7 +1972,7 @@
                     const isFinal = data.status === 'finalized';
                     events.push({
                         id: data.id,
-                        title: `${data.customerName} (${(parseInt(data.adultCount)||0) + (parseInt(data.childCount)||0)})`,
+                        title: `${data.customerName}  ·${(parseInt(data.adultCount)||0) + (parseInt(data.childCount)||0)}`,
                         start: `${data.resDate}T${data.resTime}`,
                         backgroundColor: isFinal ? '#d1fae5' : '#6a453f',
                         borderColor: isFinal ? '#10b981' : '#6a453f',
@@ -1960,7 +1989,7 @@
                     calendar.removeAllEvents();
                     calendar.addEventSource(visibleBookings.map(data => ({
                         id: data.id,
-                        title: `${data.customerName} (${(parseInt(data.adultCount)||0) + (parseInt(data.childCount)||0)})`,
+                        title: `${data.customerName}  ·${(parseInt(data.adultCount)||0) + (parseInt(data.childCount)||0)}`,
                         start: `${data.resDate}T${data.resTime}`,
                         backgroundColor: data.status === 'finalized' ? '#d1fae5' : '#6a453f',
                         borderColor: data.status === 'finalized' ? '#10b981' : '#6a453f',
