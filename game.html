@@ -438,7 +438,7 @@ function checkGuess() {
 
   const resultEmoji = document.getElementById('resultEmoji').textContent;
   const resultQuote = document.getElementById('result').querySelector('.result-text').textContent;
-  const waMsg = `${resultEmoji} I guessed £${guess.toFixed(2)} for the Bike & Boot packed lunch!\n"${resultQuote}"\nCan you do better? 👇\nwww.crokes.co.uk/game.html`;
+  const waMsg = `${resultEmoji} I guessed £${guess.toFixed(2)} for the Bike & Boot packed lunch!\n"${resultQuote}"\nCan you do better?;
   const shareBtn = document.getElementById('shareBtn');
   shareBtn.href = 'https://wa.me/?text=' + encodeURIComponent(waMsg);
   shareBtn.className = 'wa-btn show';
