@@ -286,6 +286,27 @@
     margin-top: 6px;
   }
 
+  .wa-btn {
+    width: 100%;
+    padding: 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #fff;
+    background: #25D366;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform 0.15s, background 0.15s;
+    margin-bottom: 8px;
+    display: none;
+    text-decoration: none;
+    text-align: center;
+    box-sizing: border-box;
+  }
+  .wa-btn:hover { background: #1ebe5d; transform: translateY(-1px); }
+  .wa-btn.show { display: block; }
+
   .footer {
     text-align: center;
     margin-top: 2rem;
@@ -329,8 +350,7 @@
       </div>
     </div>
 
-    <div class="section-label" style="margin-top: 1rem;">Packaging</div>
-    <div class="packaging-note">Burger boxes with clear lids, 6oz salad cup, paper bag, cutlery & napkin all included.</div>
+
   </div>
 
   <div class="card guess-section">
@@ -348,6 +368,7 @@
     <p class="result-text" id="resultText"></p>
   </div>
 
+  <a class="wa-btn" id="shareBtn" href="#" target="_blank">💬 Share my score on WhatsApp</a>
   <button class="secondary-btn" id="revealBtn" onclick="reveal()">👀 Show the actual price</button>
 
   <div class="answer-reveal" id="answerCard">
@@ -382,33 +403,45 @@ function checkGuess() {
     result.classList.add('win');
     emoji.textContent = '🎉';
     title.textContent = 'Spot on!';
-    text.textContent = 'You guessed exactly right — absolutely brilliant!';
+    text.textContent = "You've clearly been stung by expensive sandwiches before...";
   } else if (diff <= 0.50) {
     result.classList.add('win');
     emoji.textContent = '🥳';
     title.textContent = 'So close!';
-    text.textContent = `Only ${diff === 0.5 ? '50p' : '£' + diff.toFixed(2)} away — incredible guess!`;
+    text.textContent = "Scarily close. You must have a sixth sense for daylight robbery.";
   } else if (diff <= 2) {
     result.classList.add('win');
     emoji.textContent = '😄';
     title.textContent = guess < ACTUAL ? 'Just under!' : 'Just over!';
-    text.textContent = `£${diff.toFixed(2)} away — a really good shout!`;
+    text.textContent = "So close. You sniffed out the extortion like a true professional.";
   } else if (diff <= 5) {
     result.classList.add('close');
     emoji.textContent = '🤔';
     title.textContent = guess < ACTUAL ? 'A bit low!' : 'A bit high!';
-    text.textContent = `You were £${diff.toFixed(2)} off. Not bad at all!`;
+    text.textContent = "Getting warmer... and so is your wallet, apparently.";
+  } else if (guess < ACTUAL) {
+    result.classList.add('lose');
+    emoji.textContent = '😅';
+    title.textContent = 'Way too low!';
+    text.textContent = "Bless you. You thought someone would feed you for that. Adorable.";
   } else {
     result.classList.add('lose');
     emoji.textContent = '😅';
-    title.textContent = guess < ACTUAL ? 'Way too low!' : 'Way too high!';
-    text.textContent = `£${diff.toFixed(2)} off — have another look at that menu!`;
+    title.textContent = 'Way too high!';
+    text.textContent = "Even you thought it was extortionate — and you were still wrong.";
   }
 
   document.getElementById('revealBtn').className = 'secondary-btn show';
   document.getElementById('guessInput').disabled = true;
   document.querySelector('.submit-btn').disabled = true;
   document.querySelector('.submit-btn').style.opacity = '0.4';
+
+  const resultEmoji = document.getElementById('resultEmoji').textContent;
+  const resultQuote = document.getElementById('result').querySelector('.result-text').textContent;
+  const waMsg = `${resultEmoji} I guessed £${guess.toFixed(2)} for the Bike & Boot packed lunch!\n"${resultQuote}"\nCan you do better? 👇\nwww.crokes.co.uk/game.html`;
+  const shareBtn = document.getElementById('shareBtn');
+  shareBtn.href = 'https://wa.me/?text=' + encodeURIComponent(waMsg);
+  shareBtn.className = 'wa-btn show';
 }
 
 function reveal() {
@@ -422,6 +455,7 @@ function resetGame() {
   document.getElementById('guessInput').disabled = false;
   document.querySelector('.submit-btn').disabled = false;
   document.querySelector('.submit-btn').style.opacity = '1';
+  document.getElementById('shareBtn').className = 'wa-btn';
   document.getElementById('result').className = 'result';
   document.getElementById('revealBtn').className = 'secondary-btn';
   document.getElementById('answerCard').className = 'answer-reveal';
