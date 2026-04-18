@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guess the Lunch Price!</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cream: #f7f4ee;
+    --brown: #3a2a1a;
+    --kraft: #c8a96e;
+    --green: #4a6741;
+    --green-light: #d6e8d3;
+    --amber: #e8a020;
+    --amber-light: #fef3d8;
+    --red: #c0392b;
+    --red-light: #fde8e6;
+    --paper: #fdfaf4;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    min-height: 100vh;
+    padding: 2rem 1rem 4rem;
+    background-image: 
+      radial-gradient(circle at 20% 20%, rgba(200,169,110,0.15) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(74,103,65,0.08) 0%, transparent 50%);
+  }
+
+  .container {
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .bag-icon {
+    font-size: 56px;
+    display: block;
+    margin-bottom: 0.75rem;
+    animation: bounce 2s ease-in-out infinite;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    color: var(--brown);
+    line-height: 1.2;
+    margin-bottom: 0.5rem;
+  }
+
+  .tagline {
+    font-size: 0.95rem;
+    color: #7a6a5a;
+  }
+
+  .card {
+    background: var(--paper);
+    border-radius: 16px;
+    border: 1.5px solid rgba(200,169,110,0.35);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 12px rgba(58,42,26,0.06);
+  }
+
+  .section-label {
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--kraft);
+    margin-bottom: 0.75rem;
+  }
+
+  .items-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 1rem;
+  }
+
+  .item {
+    background: var(--cream);
+    border-radius: 10px;
+    padding: 8px 10px;
+    font-size: 0.875rem;
+    color: var(--brown);
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    border: 1px solid rgba(200,169,110,0.2);
+  }
+
+  .item.wide { grid-column: span 2; }
+  .item-icon { font-size: 17px; flex-shrink: 0; }
+
+  .sandwich-list { display: flex; flex-direction: column; gap: 7px; }
+
+  .sandwich {
+    background: var(--cream);
+    border-radius: 10px;
+    padding: 9px 12px;
+    border: 1px solid rgba(200,169,110,0.2);
+  }
+
+  .sandwich-name {
+    font-weight: 500;
+    font-size: 0.9rem;
+    color: var(--brown);
+    margin-bottom: 2px;
+  }
+
+  .sandwich-desc {
+    font-size: 0.8rem;
+    color: #7a6a5a;
+  }
+
+  .packaging-note {
+    font-size: 0.8rem;
+    color: #8a7a6a;
+    line-height: 1.6;
+    padding: 8px 10px;
+    background: var(--cream);
+    border-radius: 8px;
+    border: 1px solid rgba(200,169,110,0.2);
+  }
+
+  .guess-section { text-align: center; padding: 0.25rem 0; }
+
+  .guess-label {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    color: var(--brown);
+    margin-bottom: 1rem;
+  }
+
+  .input-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 1rem;
+  }
+
+  .pound-sign {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    color: var(--brown);
+  }
+
+  .price-input {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--brown);
+    background: var(--cream);
+    border: 2px solid var(--kraft);
+    border-radius: 12px;
+    padding: 8px 16px;
+    width: 130px;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s;
+    -moz-appearance: textfield;
+  }
+
+  .price-input::-webkit-outer-spin-button,
+  .price-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  .price-input:focus { border-color: var(--brown); }
+
+  .submit-btn {
+    width: 100%;
+    padding: 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--paper);
+    background: var(--brown);
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform 0.15s, background 0.15s;
+    letter-spacing: 0.02em;
+  }
+
+  .submit-btn:hover { background: #2a1a0e; transform: translateY(-1px); }
+  .submit-btn:active { transform: scale(0.98); }
+
+  .result {
+    display: none;
+    border-radius: 16px;
+    padding: 1.5rem;
+    text-align: center;
+    margin-bottom: 1rem;
+    animation: popIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  }
+
+  @keyframes popIn {
+    from { transform: scale(0.85); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .result.show { display: block; }
+  .result.win { background: var(--green-light); border: 1.5px solid var(--green); }
+  .result.close { background: var(--amber-light); border: 1.5px solid var(--amber); }
+  .result.lose { background: var(--red-light); border: 1.5px solid var(--red); }
+
+  .result-emoji { font-size: 2.5rem; display: block; margin-bottom: 8px; }
+
+  .result-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    margin-bottom: 4px;
+  }
+
+  .result.win .result-title { color: var(--green); }
+  .result.close .result-title { color: #b07800; }
+  .result.lose .result-title { color: var(--red); }
+
+  .result-text { font-size: 0.9rem; color: #5a4a3a; }
+
+  .secondary-btn {
+    width: 100%;
+    padding: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--brown);
+    background: transparent;
+    border: 1.5px solid rgba(58,42,26,0.25);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.15s;
+    margin-bottom: 8px;
+    display: none;
+  }
+
+  .secondary-btn:hover { background: rgba(58,42,26,0.06); }
+  .secondary-btn.show { display: block; }
+
+  .answer-reveal {
+    display: none;
+    background: var(--brown);
+    color: var(--paper);
+    border-radius: 16px;
+    padding: 1.5rem;
+    text-align: center;
+    margin-bottom: 1rem;
+    animation: popIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  }
+
+  .answer-reveal.show { display: block; }
+
+  .answer-label {
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--kraft);
+    margin-bottom: 4px;
+  }
+
+  .answer-price {
+    font-family: 'Playfair Display', serif;
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--paper);
+    line-height: 1;
+  }
+
+  .answer-note {
+    font-size: 0.8rem;
+    color: #c8a96e;
+    margin-top: 6px;
+  }
+
+  .footer {
+    text-align: center;
+    margin-top: 2rem;
+    font-size: 0.75rem;
+    color: #b0a090;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <span class="bag-icon">🥡</span>
+    <h1>Guess the Lunch Price!</h1>
+    <p class="tagline">Take a look at what's inside — then make your best guess</p>
+  </div>
+
+  <div class="card">
+    <div class="section-label">What's in the bag</div>
+    <div class="items-grid">
+      <div class="item"><span class="item-icon">🥙</span> Sandwich on ciabatta</div>
+      <div class="item"><span class="item-icon">🍎</span> Apple or banana</div>
+      <div class="item"><span class="item-icon">🍫</span> Flapjack or traybake</div>
+      <div class="item"><span class="item-icon">💧</span> Bottle of water</div>
+      <div class="item wide"><span class="item-icon">🥗</span> Mixed bean salad — fine beans, kidney beans, chickpeas, shallot & dressing</div>
+    </div>
+
+    <div class="section-label">Sandwich choices</div>
+    <div class="sandwich-list">
+      <div class="sandwich">
+        <div class="sandwich-name">🥩 Pastrami</div>
+        <div class="sandwich-desc">Cheese, gherkins, soused onion & lettuce</div>
+      </div>
+      <div class="sandwich">
+        <div class="sandwich-name">🫒 Hummus</div>
+        <div class="sandwich-desc">Olive, artichoke, harissa tapenade & sun-dried tomatoes</div>
+      </div>
+      <div class="sandwich">
+        <div class="sandwich-name">🍗 Tandoori chicken</div>
+        <div class="sandwich-desc">Feta, mint-yoghurt dressing & rocket</div>
+      </div>
+    </div>
+
+    <div class="section-label" style="margin-top: 1rem;">Packaging</div>
+    <div class="packaging-note">Burger boxes with clear lids, 6oz salad cup, paper bag, cutlery & napkin all included.</div>
+  </div>
+
+  <div class="card guess-section">
+    <p class="guess-label">What's your guess?</p>
+    <div class="input-row">
+      <span class="pound-sign">£</span>
+      <input class="price-input" type="number" id="guessInput" min="0" max="999" step="0.50" placeholder="0.00" />
+    </div>
+    <button class="submit-btn" onclick="checkGuess()">Submit my guess 🤞</button>
+  </div>
+
+  <div class="result" id="result">
+    <span class="result-emoji" id="resultEmoji"></span>
+    <p class="result-title" id="resultTitle"></p>
+    <p class="result-text" id="resultText"></p>
+  </div>
+
+  <button class="secondary-btn" id="revealBtn" onclick="reveal()">👀 Show the actual price</button>
+
+  <div class="answer-reveal" id="answerCard">
+    <div class="answer-label">The actual price is</div>
+    <div class="answer-price">£17.00</div>
+    <div class="answer-note">Per person — all packaging included</div>
+  </div>
+
+  <button class="secondary-btn show" id="resetBtn" onclick="resetGame()" style="display:none;">↩ Play again</button>
+
+  <div class="footer">Made with Claude · Bike &amp; Boot Peak District</div>
+</div>
+
+<script>
+const ACTUAL = 17.00;
+
+function checkGuess() {
+  const raw = document.getElementById('guessInput').value;
+  if (!raw || raw === '') return;
+  const guess = parseFloat(raw);
+  if (isNaN(guess)) return;
+  const diff = Math.abs(guess - ACTUAL);
+
+  const result = document.getElementById('result');
+  const emoji = document.getElementById('resultEmoji');
+  const title = document.getElementById('resultTitle');
+  const text = document.getElementById('resultText');
+
+  result.className = 'result show';
+
+  if (diff === 0) {
+    result.classList.add('win');
+    emoji.textContent = '🎉';
+    title.textContent = 'Spot on!';
+    text.textContent = 'You guessed exactly right — absolutely brilliant!';
+  } else if (diff <= 0.50) {
+    result.classList.add('win');
+    emoji.textContent = '🥳';
+    title.textContent = 'So close!';
+    text.textContent = `Only ${diff === 0.5 ? '50p' : '£' + diff.toFixed(2)} away — incredible guess!`;
+  } else if (diff <= 2) {
+    result.classList.add('win');
+    emoji.textContent = '😄';
+    title.textContent = guess < ACTUAL ? 'Just under!' : 'Just over!';
+    text.textContent = `£${diff.toFixed(2)} away — a really good shout!`;
+  } else if (diff <= 5) {
+    result.classList.add('close');
+    emoji.textContent = '🤔';
+    title.textContent = guess < ACTUAL ? 'A bit low!' : 'A bit high!';
+    text.textContent = `You were £${diff.toFixed(2)} off. Not bad at all!`;
+  } else {
+    result.classList.add('lose');
+    emoji.textContent = '😅';
+    title.textContent = guess < ACTUAL ? 'Way too low!' : 'Way too high!';
+    text.textContent = `£${diff.toFixed(2)} off — have another look at that menu!`;
+  }
+
+  document.getElementById('revealBtn').className = 'secondary-btn show';
+  document.getElementById('guessInput').disabled = true;
+  document.querySelector('.submit-btn').disabled = true;
+  document.querySelector('.submit-btn').style.opacity = '0.4';
+}
+
+function reveal() {
+  document.getElementById('answerCard').className = 'answer-reveal show';
+  document.getElementById('revealBtn').className = 'secondary-btn';
+  document.getElementById('resetBtn').style.display = 'block';
+}
+
+function resetGame() {
+  document.getElementById('guessInput').value = '';
+  document.getElementById('guessInput').disabled = false;
+  document.querySelector('.submit-btn').disabled = false;
+  document.querySelector('.submit-btn').style.opacity = '1';
+  document.getElementById('result').className = 'result';
+  document.getElementById('revealBtn').className = 'secondary-btn';
+  document.getElementById('answerCard').className = 'answer-reveal';
+  document.getElementById('resetBtn').style.display = 'none';
+}
+
+document.getElementById('guessInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') checkGuess();
+});
+</script>
+</body>
+</html>
